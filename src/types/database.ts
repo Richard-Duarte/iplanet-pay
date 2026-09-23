@@ -45,6 +45,8 @@ export interface PaymentGoal {
   reservation_id: string | null;
   name: string;
   target_date: string;
+  /** Dia do mês 1–30; meses sem o dia usam o último dia */
+  reminder_day: number | null;
   reminder_at: string | null;
   amount_cents: number;
   installment_cents: number;

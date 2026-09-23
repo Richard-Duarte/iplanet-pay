@@ -12,10 +12,20 @@ export async function POST(request: Request) {
     );
   }
 
+  const reminderRaw = body.reminder_day ?? body.reminderDay;
+  const reminder_day =
+    reminderRaw === null || reminderRaw === undefined || reminderRaw === ""
+      ? null
+      : Number(reminderRaw);
+
   const result = await createPaymentGoal({
     product_id: String(body.product_id ?? ""),
     name: String(body.name ?? ""),
     target_date: String(body.target_date ?? ""),
+    reminder_day:
+      reminder_day != null && Number.isFinite(reminder_day)
+        ? reminder_day
+        : null,
     reminder_at: body.reminder_at ? String(body.reminder_at) : null,
     amount_cents: Number(body.amount_cents),
     installment_cents: Number(body.installment_cents),

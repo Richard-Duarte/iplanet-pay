@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { MotionModal } from "@/components/ui/motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,8 @@ function galleryFor(product: Product): string[] {
   return out;
 }
 
+const REMINDER_DAYS = Array.from({ length: 30 }, (_, i) => i + 1);
+
 export function ProductModal({
   product,
   open,
@@ -47,7 +49,7 @@ export function ProductModal({
   const [cadastrarMeta, setCadastrarMeta] = useState(false);
   const [metaName, setMetaName] = useState("");
   const [targetDate, setTargetDate] = useState("");
-  const [reminderLocal, setReminderLocal] = useState("");
+  const [reminderDay, setReminderDay] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imgIdx, setImgIdx] = useState(0);
@@ -58,7 +60,7 @@ export function ProductModal({
     setCadastrarMeta(false);
     setMetaName(`Meta · ${product.name}`);
     setTargetDate("");
-    setReminderLocal("");
+    setReminderDay("");
     setError(null);
     setImgIdx(0);
   }, [product?.id]);
@@ -91,19 +93,34 @@ export function ProductModal({
     router.push(reserveHref());
   }
 
+  function prevImg() {
+    setImgIdx((i) => (i - 1 + gallery.length) % gallery.length);
+  }
+  function nextImg() {
+    setImgIdx((i) => (i + 1) % gallery.length);
+  }
+
   async function saveGoal() {
     if (!product) return;
     setSaving(true);
     setError(null);
+
+    const dayNum = reminderDay ? Number(reminderDay) : null;
+    if (
+      reminderDay &&
+      (!Number.isFinite(dayNum) || (dayNum as number) < 1 || (dayNum as number) > 30)
+    ) {
+      setError("Escolha um dia entre 1 e 30.");
+      setSaving(false);
+      return;
+    }
 
     const draft = {
       product_id: product.id,
       product_slug: product.slug,
       name: metaName.trim() || `Meta · ${product.name}`,
       target_date: targetDate,
-      reminder_at: reminderLocal
-        ? new Date(reminderLocal).toISOString()
-        : null,
+      reminder_day: dayNum,
       amount_cents: price,
       installment_cents: installmentCents,
       installments_count: effectiveInstallments,
@@ -177,18 +194,70 @@ export function ProductModal({
           ) : (
             <div className="h-36 w-36 rounded-full bg-[var(--line)]" />
           )}
+
+          {gallery.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={prevImg}
+                className="absolute left-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--ink)] shadow-md ring-1 ring-black/5 transition hover:bg-white"
+                aria-label="Imagem anterior"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={nextImg}
+                className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--ink)] shadow-md ring-1 ring-black/5 transition hover:bg-white"
+                aria-label="Próxima imagem"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+              <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
+                {imgIdx + 1}/{gallery.length}
+              </span>
+            </>
+          ) : null}
         </div>
+
         {gallery.length > 1 ? (
-          <div className="mt-3 flex justify-center gap-2">
+          <div className="mt-3 flex justify-center gap-2 overflow-x-auto pb-1">
             {gallery.map((u, i) => (
               <button
                 key={u}
                 type="button"
                 onClick={() => setImgIdx(i)}
+                className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition ${
+                  i === imgIdx
+                    ? "border-[var(--accent)] shadow-sm"
+                    : "border-transparent opacity-70 hover:opacity-100"
+                }`}
+                aria-label={`Imagem ${i + 1}`}
+                aria-current={i === imgIdx}
+              >
+                <Image
+                  src={u}
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-contain mix-blend-multiply p-1"
+                />
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {gallery.length > 1 ? (
+          <div className="mt-2 flex justify-center gap-2">
+            {gallery.map((u, i) => (
+              <button
+                key={`dot-${u}`}
+                type="button"
+                onClick={() => setImgIdx(i)}
                 className={`h-2 w-2 rounded-full transition ${
                   i === imgIdx ? "bg-[var(--accent)]" : "bg-[var(--line)]"
                 }`}
-                aria-label={`Imagem ${i + 1}`}
+                aria-label={`Ir para imagem ${i + 1}`}
               />
             ))}
           </div>
@@ -232,7 +301,8 @@ export function ProductModal({
                 className="mt-2 w-full accent-[var(--accent)]"
               />
               <span className="mt-1 block text-[var(--ink-muted)]">
-                {installments}× de {formatCentsBRL(Math.floor(price / installments))}
+                {installments}× de{" "}
+                {formatCentsBRL(Math.floor(price / installments))}
               </span>
             </label>
           ) : null}
@@ -282,13 +352,27 @@ export function ProductModal({
               onChange={(e) => setTargetDate(e.target.value)}
               required
             />
-            <Input
-              label="Data do lembrete"
-              type="datetime-local"
-              value={reminderLocal}
-              onChange={(e) => setReminderLocal(e.target.value)}
-              hint="Opcional — enfileiramos aviso WhatsApp (stub sem API key)"
-            />
+            <label className="flex w-full flex-col gap-2 text-sm">
+              <span className="font-medium text-[var(--ink)]">
+                Dia do lembrete
+              </span>
+              <select
+                value={reminderDay}
+                onChange={(e) => setReminderDay(e.target.value)}
+                className="h-12 w-full rounded-2xl border border-[var(--line)] bg-white px-4 text-[var(--ink)] outline-none transition focus:border-[var(--ink)] focus:ring-4 focus:ring-black/5"
+              >
+                <option value="">Sem lembrete</option>
+                {REMINDER_DAYS.map((d) => (
+                  <option key={d} value={d}>
+                    Todo dia {d}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-[var(--ink-muted)]">
+                Nos meses sem esse dia, o lembrete cai no último dia do mês.
+                Aviso por volta das 10h (horário de Brasília).
+              </span>
+            </label>
             {targetDate ? (
               <p className="text-sm text-[var(--ink-muted)]">
                 Até a data: ~{effectiveInstallments} meses ·{" "}

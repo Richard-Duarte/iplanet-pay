@@ -1,10 +1,14 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { USE_MOCK_AUTH } from "@/lib/auth/mock";
+import { nextReminderAt, parseReminderDay } from "@/lib/goals/reminder";
 
 export type CreateGoalInput = {
   product_id: string;
   name: string;
   target_date: string;
+  /** Dia do mês 1–30; opcional */
+  reminder_day?: number | null;
+  /** @deprecated use reminder_day — still accepted for draft compat */
   reminder_at?: string | null;
   amount_cents: number;
   installment_cents: number;
@@ -39,6 +43,23 @@ export async function createPaymentGoal(
     return { ok: false, error: "Valores da meta inválidos." };
   }
 
+  let reminderDay = parseReminderDay(input.reminder_day ?? null);
+  if (reminderDay == null && input.reminder_at) {
+    const d = new Date(input.reminder_at);
+    if (!Number.isNaN(d.getTime())) {
+      const day = Number(
+        new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/Sao_Paulo",
+          day: "numeric",
+        }).format(d),
+      );
+      reminderDay = Math.min(30, Math.max(1, day));
+    }
+  }
+
+  const reminderAt =
+    reminderDay != null ? nextReminderAt(reminderDay).toISOString() : null;
+
   if (USE_MOCK_AUTH) {
     return { ok: true, goal_id: `mock-goal-${Date.now()}` };
   }
@@ -54,7 +75,8 @@ export async function createPaymentGoal(
         reservation_id: input.reservation_id ?? null,
         name: input.name.trim(),
         target_date: input.target_date,
-        reminder_at: input.reminder_at || null,
+        reminder_day: reminderDay,
+        reminder_at: reminderAt,
         amount_cents: Math.round(input.amount_cents),
         installment_cents: Math.round(input.installment_cents),
         installments_count: Math.round(input.installments_count),

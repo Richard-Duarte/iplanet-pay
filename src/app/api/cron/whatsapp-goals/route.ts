@@ -5,6 +5,7 @@ import {
   whatsappConfigured,
 } from "@/lib/whatsapp/client";
 import { formatCentsBRL } from "@/lib/utils";
+import { advanceReminderAt, nextReminderAt } from "@/lib/goals/reminder";
 
 /**
  * Cron: process due goal reminders.
@@ -49,9 +50,6 @@ async function run(request: Request) {
 
     let processed = 0;
     for (const row of dueQueue ?? []) {
-      // Re-enqueue path: try send via client (updates same row awkwardly —
-      // instead mark and call Meta stub by re-inserting is wrong).
-      // Simpler: if not configured, mark skipped; if configured, attempt send inline.
       if (!whatsappConfigured()) {
         await admin
           .from("whatsapp_dispatch_queue")
@@ -62,7 +60,6 @@ async function run(request: Request) {
           })
           .eq("id", row.id);
       } else {
-        // Leave pending for a worker — mark attempt via enqueue helper by updating
         await admin
           .from("whatsapp_dispatch_queue")
           .update({
@@ -75,12 +72,12 @@ async function run(request: Request) {
       processed += 1;
     }
 
-    // 2) Goals with reminder_at due that have no pending reminder in last day
+    // 2) Goals with reminder_at due
     const { data: dueGoals } = await admin
       .from("payment_goals")
       .select(
         `
-        id, user_id, name, installment_cents, reminder_at, whatsapp_phone, product_id,
+        id, user_id, name, installment_cents, reminder_at, reminder_day, whatsapp_phone, product_id,
         product:products ( name )
       `,
       )
@@ -96,7 +93,8 @@ async function run(request: Request) {
       .eq("active", true)
       .maybeSingle();
 
-    const mpMissing = !process.env.MERCADOPAGO_ACCESS_TOKEN?.trim() &&
+    const mpMissing =
+      !process.env.MERCADOPAGO_ACCESS_TOKEN?.trim() &&
       !process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
     const pixStub = mpMissing
       ? "QR estará disponível quando Pix estiver configurado"
@@ -134,12 +132,36 @@ async function run(request: Request) {
       });
       enqueued += 1;
 
-      // Push reminder forward ~1 month to avoid re-fire
-      const next = new Date();
-      next.setMonth(next.getMonth() + 1);
+      // Advance to next month using reminder_day (clamp last day)
+      const day =
+        typeof g.reminder_day === "number" && g.reminder_day >= 1
+          ? g.reminder_day
+          : (() => {
+              const d = g.reminder_at ? new Date(g.reminder_at) : new Date();
+              return Math.min(
+                30,
+                Math.max(
+                  1,
+                  Number(
+                    new Intl.DateTimeFormat("en-US", {
+                      timeZone: "America/Sao_Paulo",
+                      day: "numeric",
+                    }).format(d),
+                  ),
+                ),
+              );
+            })();
+
+      const next = advanceReminderAt(day, new Date());
+      // Safety: if somehow still <= now, jump forward again
+      const nextIso =
+        next.getTime() <= Date.now()
+          ? nextReminderAt(day).toISOString()
+          : next.toISOString();
+
       await admin
         .from("payment_goals")
-        .update({ reminder_at: next.toISOString() })
+        .update({ reminder_at: nextIso, reminder_day: day })
         .eq("id", g.id);
     }
 

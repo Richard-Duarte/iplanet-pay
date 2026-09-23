@@ -274,7 +274,7 @@ export function WhatsappAdminPanel({
         <p className="mt-4 text-sm text-[var(--ink-muted)]">
           Após o primeiro aporte confirmado por reserva, o sistema enfileira o
           template <strong>primeiro_aporte</strong> e agenda lembrete se houver
-          meta com reminder_at.
+          meta com reminder_day (1–30) + reminder_at.
         </p>
       </Card>
     </div>
