@@ -1,86 +1,71 @@
 # iPlanet Pay
 
-PWA de layaway (crediário via Pix) para smartphones nas lojas **iPlanet** (Itaim Bibi & São Caetano).
+Layaway inteligente (crediário via Pix) para produtos Apple nas lojas **iPlanet** (Itaim Bibi & São Caetano).
 
-Stack desta fase: **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabase Auth · PWA**.
+Stack: **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabase · framer-motion · recharts**.
 
-> Fase atual: esqueleto + design system + auth + catálogo + reservas (hold de estoque). Pix / carteira / webhooks ainda são placeholders — sem fluxos de dinheiro inventados.
+UI 100% pt-BR · accent `#FF6A00` · estética Apple-premium.
 
-## Como rodar localmente
+## Bootstrap admin
+
+| Campo | Valor |
+|-------|-------|
+| E-mail | `admin@iplanet.com.br` |
+| Senha | `1234` |
+| Papel | `admin` (profiles + app_metadata) |
+
+> Credenciais de bootstrap pedidas pelo time — troque em produção.
+
+## Como rodar
 
 ```bash
 cp .env.example .env.local
+# preencha Supabase; deixe MP/AI/Telegram/Resend vazios até o produto 100%
 npm install
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000).
+Abra [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
-### Modo demo (mock auth)
+## O que já está pronto
 
-Se `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` estiverem vazios, ou se `USE_MOCK_AUTH=true`, o app usa **auth mock**:
+- Landing com catálogo (hero) + deep link `?product=slug` → auth → reserva
+- Estoque infinito (RPCs sem hold em `store_stock`; UI de estoque removida)
+- Back button consistente + logo `public/logo-iplanet.png`
+- Motion (page transitions, cards, parallax)
+- Admin Dashboards (`/admin/dashboards`) + `analytics_events`
+- FAQ chat + WhatsApp handoff (`app_settings.whatsapp_support`)
+- Stubs agente/Telegram (`/api/agent/*`) — 503 sem chaves
+- E-mails brandados (confirm / aporte / lembrete 30d) + `email_outbox` + cron stub
 
-1. Vá em **Entrar**
-2. Escolha Cliente / Parceiro / Staff / Admin
-3. Navegue pelos shells protegidos
+## Bloqueado em chaves (não inventar)
 
-### Modo Supabase (real)
+| Chave | Uso |
+|-------|-----|
+| `MERCADOPAGO_*` | Pix real |
+| `RESEND_API_KEY` | Envio real de e-mail (senão outbox) |
+| `TELEGRAM_BOT_TOKEN` / `AGENT_API_KEY` | Agente |
+| `CRON_SECRET` | Lembrete 30 dias |
+| `SUPABASE_SERVICE_ROLE_KEY` | Webhooks Pix + outbox + cron RPC |
 
-Preencha no `.env.local`:
+## E-mails
 
-```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-USE_MOCK_AUTH=false
-```
+- Templates HTML: `src/lib/email/templates/`
+- Auth Confirm signup: `supabase/templates/confirm-signup.html` (colar no dashboard Auth)
+- Preview admin: `/admin/emails/preview?template=aporte_confirmado`
+- Cron: `GET/POST /api/cron/aporte-reminder` com `Authorization: Bearer $CRON_SECRET`
 
-Aplique a migration:
-
-```bash
-# via Supabase CLI ou SQL Editor
-supabase db push
-# ou cole supabase/migrations/001_init.sql, 002_products.sql e 003_reservations.sql no SQL Editor
-# (002 já está no projeto live — não reaplicar)
-```
-
-## Scripts
-
-| Comando | Descrição |
-|--------|-----------|
-| `npm run dev` | Dev server (Turbopack) |
-| `npm run build` | Build de produção |
-| `npm run start` | Serve o build |
-| `npm run lint` | ESLint |
-
-## Rotas
+## Rotas principais
 
 | Path | Descrição |
 |------|-----------|
-| `/` | Landing |
-| `/entrar` · `/criar-conta` | Auth |
-| `/app/*` | Shell Cliente |
-| `/parceiro` | Dashboard parceiro |
-| `/staff` | Operação staff |
-| `/admin` | Admin |
+| `/` | Landing / catálogo |
+| `/entrar` · `/criar-conta` | Auth (+ `?product=`) |
+| `/app/*` | Cliente |
+| `/admin/dashboards` | Métricas |
+| `/admin/config` | WhatsApp, agente, lojas |
+| `/admin/emails/preview` | QA e-mails |
 
-## Design system
+## Migrations
 
-Tokens em `src/app/globals.css` (`--bg`, `--accent`, `--radius-card`, …).  
-Primitivos em `src/components/ui/` (Button, Pill, Card, ProductHeroCard, Progress*, AppShell…).
-
-## Supabase
-
-- Clients: `src/lib/supabase/{client,server,middleware}.ts`
-- Migrations + RLS: `supabase/migrations/001_init.sql`, `002_products.sql`, `003_reservations.sql`
-- Edge stub Pix: `supabase/functions/pix-webhook/index.ts`
-
-## PWA
-
-- `public/manifest.webmanifest`
-- Ícones em `public/icons/`
-- Service worker via `@ducanh2912/next-pwa` (produção)
-
-## Papéis
-
-`cliente` · `parceiro` · `staff` · `admin` — redirecionamento pós-login e middleware por prefixo.
+`supabase/migrations/001` … `012` — projeto live `zjnikfrledckmjahwnsb`.

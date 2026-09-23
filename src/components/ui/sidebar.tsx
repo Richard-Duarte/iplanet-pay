@@ -15,8 +15,10 @@ import {
   Trophy,
   Users,
   Gift,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
+import { BrandLogo } from "./brand-logo";
 
 export type SidebarIcon =
   | "layout-dashboard"
@@ -29,7 +31,8 @@ export type SidebarIcon =
   | "credit-card"
   | "clipboard-check"
   | "bookmark"
-  | "gift";
+  | "gift"
+  | "bar-chart";
 
 const icons: Record<SidebarIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -43,6 +46,7 @@ const icons: Record<SidebarIcon, LucideIcon> = {
   "clipboard-check": ClipboardCheck,
   bookmark: Bookmark,
   gift: Gift,
+  "bar-chart": BarChart3,
 };
 
 export interface SidebarItem {
@@ -64,9 +68,12 @@ export function Sidebar({ title, subtitle, items, footer }: SidebarProps) {
   return (
     <aside className="hidden w-72 shrink-0 flex-col border-r border-[var(--line)] bg-white p-6 lg:flex">
       <div className="mb-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-          iPlanet Pay
-        </p>
+        <div className="mb-4 flex items-center gap-3">
+          <BrandLogo size={40} />
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+            iPlanet Pay
+          </p>
+        </div>
         <h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--ink)]">
           {title}
         </h2>

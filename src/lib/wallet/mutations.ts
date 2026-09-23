@@ -79,6 +79,10 @@ export async function adminConfirmContribution(
       amount_paid_cents?: number;
       reservation_status?: string;
     };
+    if (!payload.already_confirmed) {
+      const { notifyAporteConfirmado } = await import("@/lib/email/notify");
+      void notifyAporteConfirmado(contributionId);
+    }
     return {
       ok: true,
       already_confirmed: payload.already_confirmed,

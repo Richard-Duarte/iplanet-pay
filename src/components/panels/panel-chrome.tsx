@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/ui/app-shell";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Pill } from "@/components/ui/pill";
+import { BrandLogo } from "@/components/ui/brand-logo";
+import { BackButton } from "@/components/ui/back-button";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { UserRole } from "@/types/auth";
 import type { SidebarItem } from "@/components/ui/sidebar";
@@ -11,20 +13,18 @@ const NAV: Record<"parceiro" | "staff" | "admin", SidebarItem[]> = {
     { href: "/parceiro", label: "Visão geral", icon: "layout-dashboard" },
     { href: "/parceiro/reservas", label: "Reservas", icon: "bookmark" },
     { href: "/parceiro#pedidos", label: "Retiradas", icon: "shopping-bag" },
-    { href: "/parceiro/estoque", label: "Estoque", icon: "package" },
   ],
   staff: [
     { href: "/staff", label: "Visão geral", icon: "layout-dashboard" },
     { href: "/staff/reservas", label: "Reservas", icon: "bookmark" },
     { href: "/staff#retiradas", label: "Retiradas", icon: "package" },
     { href: "/staff/clientes", label: "Clientes", icon: "users" },
-    { href: "/staff/estoque", label: "Estoque", icon: "package" },
     { href: "/staff#avaliacoes", label: "Avaliações", icon: "clipboard-check" },
   ],
   admin: [
     { href: "/admin", label: "Overview", icon: "layout-dashboard" },
+    { href: "/admin/dashboards", label: "Dashboards", icon: "bar-chart" },
     { href: "/admin/reservas", label: "Reservas", icon: "bookmark" },
-    { href: "/admin/estoque", label: "Estoque", icon: "package" },
     { href: "/admin/clientes", label: "Clientes", icon: "users" },
     { href: "/admin/financeiro", label: "Financeiro", icon: "credit-card" },
     { href: "/admin/config", label: "Config", icon: "settings" },
@@ -34,7 +34,7 @@ const NAV: Record<"parceiro" | "staff" | "admin", SidebarItem[]> = {
 };
 
 const TITLES = {
-  parceiro: { title: "Parceiro", subtitle: "Loja · estoque e pedidos" },
+  parceiro: { title: "Parceiro", subtitle: "Loja · pedidos e retiradas" },
   staff: { title: "Staff", subtitle: "Operação iPlanet" },
   admin: { title: "Admin", subtitle: "Controle da plataforma" },
 } as const;
@@ -68,12 +68,16 @@ export async function PanelChrome({
         </div>
       }
       topBar={
-        <div className="flex items-center justify-between lg:hidden">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-              iPlanet Pay
-            </p>
-            <p className="text-lg font-bold">{meta.title}</p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <BackButton fallbackHref={`/${role}`} className="lg:hidden" />
+            <BrandLogo size={32} className="lg:hidden" />
+            <div className="lg:hidden">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                iPlanet Pay
+              </p>
+              <p className="text-lg font-bold">{meta.title}</p>
+            </div>
           </div>
           <LogoutButton />
         </div>

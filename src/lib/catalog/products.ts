@@ -1,102 +1,22 @@
 import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import type { ProductWithStock } from "@/types/database";
 
-/** Demo catalog when USE_MOCK_AUTH (mirrors DB seed). */
 export const MOCK_CATALOG: ProductWithStock[] = [
   {
-    id: "mock-iphone-15",
-    name: "iPhone 15",
-    slug: "iphone-15-128-azul",
+    id: "mock-iphone-17",
+    name: "iPhone 17",
+    slug: "iphone-17-256",
     brand: "Apple",
-    model: "iPhone 15",
-    storage: "128 GB",
-    color: "Azul",
-    list_price_cents: 599900,
-    image_url: null,
-    active: true,
-    store_stock: [
-      { qty_available: 3, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 2, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
-    ],
-  },
-  {
-    id: "mock-iphone-15-pro",
-    name: "iPhone 15 Pro",
-    slug: "iphone-15-pro-256-titaniobranco",
-    brand: "Apple",
-    model: "iPhone 15 Pro",
+    model: "iPhone 17",
     storage: "256 GB",
-    color: "Titânio Branco",
+    color: "Lavanda",
     list_price_cents: 799900,
-    image_url: null,
+    image_url: "/products/iphone-17.png",
     active: true,
+    category: "iPhone",
     store_stock: [
-      { qty_available: 3, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 2, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
-    ],
-  },
-  {
-    id: "mock-iphone-16",
-    name: "iPhone 16",
-    slug: "iphone-16-128-preto",
-    brand: "Apple",
-    model: "iPhone 16",
-    storage: "128 GB",
-    color: "Preto",
-    list_price_cents: 749900,
-    image_url: null,
-    active: true,
-    store_stock: [
-      { qty_available: 3, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 2, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
-    ],
-  },
-  {
-    id: "mock-iphone-16-plus",
-    name: "iPhone 16 Plus",
-    slug: "iphone-16-plus-128-ultramarino",
-    brand: "Apple",
-    model: "iPhone 16 Plus",
-    storage: "128 GB",
-    color: "Ultramarino",
-    list_price_cents: 849900,
-    image_url: null,
-    active: true,
-    store_stock: [
-      { qty_available: 3, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 2, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
-    ],
-  },
-  {
-    id: "mock-iphone-16-pro",
-    name: "iPhone 16 Pro",
-    slug: "iphone-16-pro-256-titaniunegro",
-    brand: "Apple",
-    model: "iPhone 16 Pro",
-    storage: "256 GB",
-    color: "Titânio Negro",
-    list_price_cents: 999900,
-    image_url: null,
-    active: true,
-    store_stock: [
-      { qty_available: 3, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 2, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
-    ],
-  },
-  {
-    id: "mock-iphone-16-pro-max",
-    name: "iPhone 16 Pro Max",
-    slug: "iphone-16-pro-max-256-titaniudadeserto",
-    brand: "Apple",
-    model: "iPhone 16 Pro Max",
-    storage: "256 GB",
-    color: "Titânio Deserto",
-    list_price_cents: 1199900,
-    image_url: null,
-    active: true,
-    store_stock: [
-      { qty_available: 3, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 2, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
+      { qty_available: 9999, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
+      { qty_available: 9999, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
     ],
   },
 ];
@@ -127,6 +47,7 @@ export async function listCatalogProducts(): Promise<{
         list_price_cents,
         image_url,
         active,
+        category,
         store_stock (
           qty_available,
           store:stores (
@@ -154,13 +75,19 @@ export async function listCatalogProducts(): Promise<{
   }
 }
 
-export function totalStockQty(product: ProductWithStock) {
-  return product.store_stock.reduce((sum, row) => sum + (row.qty_available ?? 0), 0);
+export async function getProductBySlug(slug: string) {
+  const { products, error } = await listCatalogProducts();
+  if (error) return { product: null, error };
+  return {
+    product: products.find((p) => p.slug === slug) ?? null,
+    error: null,
+  };
 }
 
-export function stockByStoreLabel(product: ProductWithStock) {
-  return product.store_stock
-    .filter((row) => row.store && row.qty_available > 0)
-    .map((row) => `${row.store!.name.split(" ").slice(-2).join(" ")}: ${row.qty_available}`)
-    .join(" · ");
+/** Store list for picker — infinite stock: any store linked (or all if empty). */
+export function storesForProduct(product: ProductWithStock) {
+  const rows = product.store_stock.filter((row) => row.store);
+  return rows.length > 0
+    ? rows
+    : [];
 }

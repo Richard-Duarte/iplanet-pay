@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { trackEvent } from "@/lib/analytics/track";
 
 export function SignupForm({
   mockMode,
   initialReferralCode = "",
+  productSlug,
 }: {
   mockMode: boolean;
   initialReferralCode?: string;
+  productSlug?: string;
 }) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -36,6 +39,7 @@ export function SignupForm({
           phone,
           password,
           referral_code: referralCode || undefined,
+          product: productSlug,
         }),
       });
       const data = await res.json();
@@ -43,7 +47,11 @@ export function SignupForm({
         setMessage(data.error ?? "Não foi possível criar a conta.");
         return;
       }
-      router.push(data.redirectTo ?? "/app");
+      void trackEvent("signup", { meta: { product: productSlug } });
+      const dest = productSlug
+        ? `/app/catalogo?product=${encodeURIComponent(productSlug)}`
+        : (data.redirectTo ?? "/app");
+      router.push(dest);
       router.refresh();
     } catch {
       setMessage("Erro de rede. Tente novamente.");
@@ -52,8 +60,18 @@ export function SignupForm({
     }
   }
 
+  const loginHref = productSlug
+    ? `/entrar?product=${encodeURIComponent(productSlug)}`
+    : "/entrar";
+
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
+      {productSlug ? (
+        <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--ink-muted)]">
+          Depois de criar a conta você reserva{" "}
+          <strong className="text-[var(--ink)]">{productSlug}</strong>.
+        </p>
+      ) : null}
       {mockMode ? (
         <p className="rounded-2xl bg-[var(--bg-lavender)] px-4 py-3 text-sm text-[var(--ink-muted)]">
           Modo demo ativo — a conta será simulada localmente.
@@ -110,7 +128,7 @@ export function SignupForm({
       ) : null}
       <p className="text-sm text-[var(--ink-muted)]">
         Já tem conta?{" "}
-        <Link href="/entrar" className="font-semibold text-[var(--ink)]">
+        <Link href={loginHref} className="font-semibold text-[var(--ink)]">
           Entrar
         </Link>
       </p>

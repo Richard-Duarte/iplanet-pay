@@ -190,14 +190,23 @@ export async function processPixWebhook(params: {
     p_error: null,
   });
 
+  const already = Boolean(
+    (confirmData as { already_confirmed?: boolean } | null)?.already_confirmed,
+  );
+  if (!already) {
+    try {
+      const { notifyAporteConfirmado } = await import("@/lib/email/notify");
+      void notifyAporteConfirmado(contributionId);
+    } catch {
+      /* non-fatal */
+    }
+  }
+
   return {
     ok: true,
     message: "Aporte confirmado.",
     contribution_id: contributionId,
     inbox_id: inboxRow.id,
-    skipped: Boolean(
-      (confirmData as { already_confirmed?: boolean } | null)
-        ?.already_confirmed,
-    ),
+    skipped: already,
   };
 }

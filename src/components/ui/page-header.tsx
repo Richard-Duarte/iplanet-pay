@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { BackButton } from "./back-button";
 
 interface PageHeaderProps {
   eyebrow?: string;
@@ -8,6 +9,8 @@ interface PageHeaderProps {
   actions?: ReactNode;
   className?: string;
   size?: "md" | "lg" | "xl";
+  showBack?: boolean;
+  backFallback?: string;
 }
 
 export function PageHeader({
@@ -17,6 +20,8 @@ export function PageHeader({
   actions,
   className,
   size = "lg",
+  showBack = true,
+  backFallback = "/",
 }: PageHeaderProps) {
   const titleSize =
     size === "xl"
@@ -26,33 +31,31 @@ export function PageHeader({
         : "text-3xl md:text-4xl";
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4 md:flex-row md:items-end md:justify-between",
-        className,
-      )}
-    >
-      <div className="max-w-3xl">
-        {eyebrow ? (
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-            {eyebrow}
-          </p>
-        ) : null}
-        <h1
-          className={cn(
-            "font-bold tracking-tight text-[var(--ink)] leading-[1.05]",
-            titleSize,
-          )}
-        >
-          {title}
-        </h1>
-        {description ? (
-          <p className="mt-3 max-w-2xl text-base text-[var(--ink-muted)] md:text-lg">
-            {description}
-          </p>
-        ) : null}
+    <div className={cn("space-y-3", className)}>
+      {showBack ? <BackButton fallbackHref={backFallback} /> : null}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-3xl">
+          {eyebrow ? (
+            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1
+            className={cn(
+              "font-bold tracking-tight text-[var(--ink)] leading-[1.05]",
+              titleSize,
+            )}
+          >
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-3 max-w-2xl text-base text-[var(--ink-muted)] md:text-lg">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
     </div>
   );
 }

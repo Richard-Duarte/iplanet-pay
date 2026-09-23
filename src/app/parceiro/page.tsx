@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Package, Bookmark } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { ReservationCard } from "@/components/reservations/reservation-card";
 import { PickupQueue } from "@/components/reservations/pickup-queue";
@@ -43,12 +43,12 @@ export default async function ParceiroPage() {
       <PageHeader
         eyebrow="Loja parceira"
         title="Dashboard"
-        description="Estoque, reservas e fila de retirada."
+        description="Reservas e fila de retirada."
       />
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          { label: "Itens em estoque", value: "—" },
+          { label: "Produtos no catálogo", value: "∞" },
           { label: "Reservas ativas", value: String(activeCount) },
           { label: "Retiradas hoje", value: String(retiradaToday) },
         ].map((stat) => (
@@ -94,21 +94,6 @@ export default async function ParceiroPage() {
         )}
       </section>
 
-      <section id="estoque" className="space-y-4">
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
-            <p className="mt-1 text-[var(--ink-muted)]">
-              Quantidade disponível por produto na sua loja.
-            </p>
-          </div>
-          <Link href="/parceiro/estoque">
-            <Button variant="accent" leftIcon={<Package className="h-4 w-4" />}>
-              Abrir estoque
-            </Button>
-          </Link>
-        </Card>
-      </section>
     </div>
   );
 }

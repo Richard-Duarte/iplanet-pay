@@ -20,6 +20,7 @@ export interface Product {
   list_price_cents: number;
   image_url: string | null;
   active: boolean;
+  category?: string;
   created_at?: string;
 }
 

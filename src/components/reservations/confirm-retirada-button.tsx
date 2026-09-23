@@ -20,7 +20,7 @@ export function ConfirmRetiradaButton({
   async function submit() {
     const label = productName ? ` (${productName})` : "";
     const ok = window.confirm(
-      `Confirmar retirada do aparelho${label}? O status passará para Retirada e o estoque permanece consumido.`,
+      `Confirmar retirada do aparelho${label}? O status passará para Retirada.`,
     );
     if (!ok) return;
 

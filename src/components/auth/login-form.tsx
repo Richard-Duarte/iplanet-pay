@@ -15,12 +15,26 @@ const DEMO_ROLES: { role: UserRole; label: string }[] = [
   { role: "admin", label: "Admin" },
 ];
 
-export function LoginForm({ mockMode }: { mockMode: boolean }) {
+export function LoginForm({
+  mockMode,
+  nextPath,
+  productSlug,
+}: {
+  mockMode: boolean;
+  nextPath?: string;
+  productSlug?: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function resolveRedirect(fallback: string) {
+    if (nextPath) return nextPath;
+    if (productSlug) return `/app/catalogo?product=${encodeURIComponent(productSlug)}`;
+    return fallback;
+  }
 
   async function submit(role?: UserRole) {
     setLoading(true);
@@ -29,14 +43,14 @@ export function LoginForm({ mockMode }: { mockMode: boolean }) {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password, role, next: nextPath }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setMessage(data.error ?? "Não foi possível entrar.");
         return;
       }
-      router.push(data.redirectTo ?? "/app");
+      router.push(resolveRedirect(data.redirectTo ?? "/app"));
       router.refresh();
     } catch {
       setMessage("Erro de rede. Tente novamente.");
@@ -63,8 +77,18 @@ export function LoginForm({ mockMode }: { mockMode: boolean }) {
     }
   }
 
+  const signupHref = productSlug
+    ? `/criar-conta?product=${encodeURIComponent(productSlug)}`
+    : "/criar-conta";
+
   return (
     <div className="space-y-6">
+      {productSlug ? (
+        <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--ink-muted)]">
+          Depois do login você continua a reserva de{" "}
+          <strong className="text-[var(--ink)]">{productSlug}</strong>.
+        </p>
+      ) : null}
       {mockMode ? (
         <div className="rounded-2xl bg-[var(--accent-soft)] p-4">
           <Pill tone="accent">Modo demo</Pill>
@@ -136,7 +160,7 @@ export function LoginForm({ mockMode }: { mockMode: boolean }) {
 
       <p className="text-sm text-[var(--ink-muted)]">
         Ainda não tem conta?{" "}
-        <Link href="/criar-conta" className="font-semibold text-[var(--ink)]">
+        <Link href={signupHref} className="font-semibold text-[var(--ink)]">
           Criar conta
         </Link>
       </p>

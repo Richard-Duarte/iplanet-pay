@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Users, Package, ClipboardCheck, Bookmark } from "lucide-react";
+import { Users, ClipboardCheck, Bookmark } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { ReservationCard } from "@/components/reservations/reservation-card";
 import { PickupQueue } from "@/components/reservations/pickup-queue";
@@ -31,7 +31,7 @@ export default async function StaffPage() {
       <PageHeader
         eyebrow="Operação"
         title="Staff"
-        description="Clientes, estoque, retiradas e avaliações."
+        description="Clientes, retiradas e avaliações."
       />
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -137,21 +137,6 @@ export default async function StaffPage() {
         </Card>
       </section>
 
-      <section id="estoque" className="mt-8">
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
-            <p className="mt-1 text-[var(--ink-muted)]">
-              Ajuste de quantidade por produto e loja.
-            </p>
-          </div>
-          <Link href="/staff/estoque">
-            <Button variant="outline" leftIcon={<Package className="h-4 w-4" />}>
-              Abrir estoque
-            </Button>
-          </Link>
-        </Card>
-      </section>
 
       <section id="avaliacoes" className="mt-8">
         <div className="mb-4 flex items-center gap-2">

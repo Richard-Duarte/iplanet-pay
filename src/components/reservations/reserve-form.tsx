@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import type { ProductWithStock } from "@/types/database";
+import { storesForProduct } from "@/lib/catalog/products";
+import { trackEvent } from "@/lib/analytics/track";
 
 interface ReserveFormProps {
   product: ProductWithStock;
@@ -12,13 +14,7 @@ interface ReserveFormProps {
 
 export function ReserveForm({ product }: ReserveFormProps) {
   const router = useRouter();
-  const stores = useMemo(
-    () =>
-      product.store_stock.filter(
-        (row) => row.store && row.qty_available > 0,
-      ),
-    [product.store_stock],
-  );
+  const stores = useMemo(() => storesForProduct(product), [product]);
 
   const [storeId, setStoreId] = useState(stores[0]?.store?.id ?? "");
   const [loading, setLoading] = useState(false);
@@ -26,9 +22,9 @@ export function ReserveForm({ product }: ReserveFormProps) {
 
   if (stores.length === 0) {
     return (
-      <Button className="mt-5" variant="outline" disabled>
-        Esgotado
-      </Button>
+      <p className="mt-5 text-sm text-[var(--ink-muted)]">
+        Nenhuma loja disponível para retirada no momento.
+      </p>
     );
   }
 
@@ -36,6 +32,10 @@ export function ReserveForm({ product }: ReserveFormProps) {
     setLoading(true);
     setMessage(null);
     try {
+      void trackEvent("contribution_start", {
+        product_id: product.id,
+        meta: { step: "reserve" },
+      });
       const res = await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,7 +81,7 @@ export function ReserveForm({ product }: ReserveFormProps) {
         >
           {stores.map((row) => (
             <option key={row.store!.id} value={row.store!.id}>
-              {row.store!.name} · {row.qty_available} un.
+              {row.store!.name}
             </option>
           ))}
         </Select>

@@ -7,7 +7,7 @@ import {
   CreditCard,
   Settings,
   Trophy,
-  Package,
+  BarChart3,
   Users,
   Gift,
 } from "lucide-react";
@@ -90,13 +90,13 @@ export default async function AdminPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Estoque</h2>
+            <h2 className="text-xl font-bold tracking-tight">Dashboards</h2>
             <p className="mt-1 text-sm text-[var(--ink-muted)]">
-              Produtos × lojas (qty_available).
+              Acessos, cliques e aportes.
             </p>
           </div>
-          <Link href="/admin/estoque">
-            <Button variant="outline" size="sm" leftIcon={<Package className="h-4 w-4" />}>
+          <Link href="/admin/dashboards">
+            <Button variant="outline" size="sm" leftIcon={<BarChart3 className="h-4 w-4" />}>
               Abrir
             </Button>
           </Link>

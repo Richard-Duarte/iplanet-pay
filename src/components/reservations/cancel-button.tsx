@@ -15,7 +15,7 @@ export function CancelReservationButton({
 
   async function submit() {
     const ok = window.confirm(
-      "Cancelar esta reserva? O aparelho volta ao estoque da loja.",
+      "Cancelar esta reserva? Esta ação não pode ser desfeita.",
     );
     if (!ok) return;
 

@@ -19,8 +19,10 @@ export function SwitchDeviceButton({
   storeId: string;
   amountPaidCents: number;
   products: ProductWithStock[];
+  // storeId kept for callers; switch RPC uses reservation store
 }) {
   const router = useRouter();
+  void storeId; // reserved for future store-scoped filters
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,12 +31,10 @@ export function SwitchDeviceButton({
   const options = useMemo(() => {
     return products.filter((p) => {
       if (!p.active || p.id === currentProductId) return false;
-      const row = p.store_stock.find(
-        (s) => s.store?.id === storeId && (s.qty_available ?? 0) > 0,
-      );
-      return Boolean(row);
+      // Infinite stock: any other active product is eligible (same-store switch in RPC)
+      return true;
     });
-  }, [products, currentProductId, storeId]);
+  }, [products, currentProductId]);
 
   const selected = options.find((p) => p.id === selectedId) ?? null;
 
@@ -117,13 +117,10 @@ export function SwitchDeviceButton({
             <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
               {options.length === 0 ? (
                 <p className="py-6 text-center text-sm text-[var(--ink-muted)]">
-                  Nenhum outro aparelho com estoque nesta loja.
+                  Nenhum outro aparelho disponível para troca.
                 </p>
               ) : (
                 options.map((p) => {
-                  const qty =
-                    p.store_stock.find((s) => s.store?.id === storeId)
-                      ?.qty_available ?? 0;
                   const active = selectedId === p.id;
                   return (
                     <button
@@ -152,7 +149,6 @@ export function SwitchDeviceButton({
                         <p className="truncate font-semibold">{p.name}</p>
                         <p className="text-xs text-[var(--ink-muted)]">
                           {[p.storage, p.color].filter(Boolean).join(" · ")}
-                          {qty ? ` · ${qty} un.` : ""}
                         </p>
                         <p className="mt-0.5 text-sm font-medium text-[var(--accent)]">
                           {formatCentsBRL(p.list_price_cents)}

@@ -67,6 +67,18 @@ export async function POST(request: Request) {
     }
   }
 
+  if (body.email) {
+    try {
+      const { notifyWelcome } = await import("@/lib/email/notify");
+      void notifyWelcome({
+        email: body.email,
+        fullName: body.full_name,
+      });
+    } catch {
+      /* non-fatal */
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     redirectTo: homeForRole("cliente"),
