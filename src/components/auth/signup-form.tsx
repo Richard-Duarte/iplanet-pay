@@ -6,12 +6,19 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function SignupForm({ mockMode }: { mockMode: boolean }) {
+export function SignupForm({
+  mockMode,
+  initialReferralCode = "",
+}: {
+  mockMode: boolean;
+  initialReferralCode?: string;
+}) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,6 +35,7 @@ export function SignupForm({ mockMode }: { mockMode: boolean }) {
           email,
           phone,
           password,
+          referral_code: referralCode || undefined,
         }),
       });
       const data = await res.json();
@@ -75,6 +83,14 @@ export function SignupForm({ mockMode }: { mockMode: boolean }) {
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         required
+      />
+      <Input
+        label="Código de indicação (opcional)"
+        name="referral_code"
+        placeholder="ABC123"
+        value={referralCode}
+        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+        className="uppercase tracking-widest"
       />
       <Input
         label="Senha"

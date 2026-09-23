@@ -48,7 +48,7 @@ export default async function ClienteHomePage() {
         <EmptyState
           icon={<Smartphone className="h-6 w-6" />}
           title="Nenhuma reserva ativa"
-          description="Escolha um iPhone no catálogo. O Pix de aporte chega em breve."
+          description="Escolha um iPhone no catálogo e gere o aporte Pix na reserva."
           action={
             <Link href="/app/catalogo">
               <Button variant="accent" leftIcon={<Smartphone className="h-4 w-4" />}>
@@ -82,14 +82,15 @@ export default async function ClienteHomePage() {
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button
-                      size="sm"
-                      variant="accent"
-                      disabled
-                      leftIcon={<QrCode className="h-4 w-4" />}
-                    >
-                      Aporte Pix (em breve)
-                    </Button>
+                    <Link href={`/app/reserva/${hero.id}`}>
+                      <Button
+                        size="sm"
+                        variant="accent"
+                        leftIcon={<QrCode className="h-4 w-4" />}
+                      >
+                        Gerar aporte Pix
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -136,7 +137,7 @@ export default async function ClienteHomePage() {
           <Pill tone="accent">Carteira</Pill>
           <h3 className="mt-3 text-2xl font-bold tracking-tight">Saldo & Pix</h3>
           <p className="mt-2 text-[var(--ink-muted)]">
-            Placeholder da carteira e histórico de aportes.
+            Veja aportes Pix confirmados e o extrato da carteira.
           </p>
           <Link href="/app/carteira" className="mt-5 inline-block">
             <Button variant="ghost">Ir para carteira →</Button>

@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     email?: string;
     password?: string;
     phone?: string;
+    referral_code?: string;
   };
 
   if (USE_MOCK_AUTH) {
@@ -55,6 +56,15 @@ export async function POST(request: Request) {
       { ok: false, error: error?.message ?? "Falha ao criar conta" },
       { status: 400 },
     );
+  }
+
+  const ref = (body.referral_code ?? "").trim();
+  if (ref && data.session) {
+    try {
+      await supabase.rpc("apply_referral_code", { p_code: ref });
+    } catch {
+      // non-fatal: user can apply later in /app/indicacoes
+    }
   }
 
   return NextResponse.json({

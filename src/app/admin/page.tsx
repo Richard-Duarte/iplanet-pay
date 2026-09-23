@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   CreditCard,
-  Store,
   Settings,
   Trophy,
+  Package,
+  Users,
+  Gift,
 } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { listRecentContributions } from "@/lib/wallet/queries";
@@ -15,30 +17,52 @@ import { ContributionList } from "@/components/wallet/contribution-list";
 import { formatCentsBRL } from "@/lib/utils";
 import { listQuitadasForPickup } from "@/lib/reservations/queries";
 import { PickupQueue } from "@/components/reservations/pickup-queue";
+import { listStores } from "@/lib/stores/queries";
+import { getFinanceAggregates } from "@/lib/finance/queries";
 
 export const metadata = { title: "Admin" };
 
 export default async function AdminPage() {
-  const { contributions } = await listRecentContributions(10);
-  const { reservations: quitadas } = await listQuitadasForPickup({ limit: 12 });
-  const aporteTotal = contributions
-    .filter((c) => c.status === "confirmed")
-    .reduce((s, c) => s + c.amount_cents, 0);
+  const [
+    { contributions },
+    { reservations: quitadas },
+    { stores },
+    { aggregates },
+  ] = await Promise.all([
+    listRecentContributions(10),
+    listQuitadasForPickup({ limit: 12 }),
+    listStores(),
+    getFinanceAggregates(10),
+  ]);
+
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Plataforma"
         title="Admin"
-        description="Overview financeiro, lojas, gateways, sorteios e config."
+        description="Overview financeiro, lojas, gateways e config."
         size="xl"
       />
 
       <div className="grid gap-4 md:grid-cols-4">
         {[
-          { label: "GMV (mês)", value: "—" },
-          { label: "Aportes Pix", value: formatCentsBRL(aporteTotal) },
-          { label: "Reservas ativas", value: "—" },
-          { label: "Lojas", value: "2" },
+          {
+            label: "Aportes confirmados",
+            value: formatCentsBRL(aggregates.confirmed_sum_cents),
+          },
+          {
+            label: "Pendentes",
+            value: String(aggregates.pending_count),
+          },
+          {
+            label: "Aportes (lista)",
+            value: formatCentsBRL(
+              contributions
+                .filter((c) => c.status === "confirmed")
+                .reduce((s, c) => s + c.amount_cents, 0),
+            ),
+          },
+          { label: "Lojas", value: String(stores.length) },
         ].map((stat) => (
           <Card key={stat.label} className="bg-white">
             <p className="text-sm text-[var(--ink-muted)]">{stat.label}</p>
@@ -63,6 +87,35 @@ export default async function AdminPage() {
         </Card>
       </section>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Estoque</h2>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Produtos × lojas (qty_available).
+            </p>
+          </div>
+          <Link href="/admin/estoque">
+            <Button variant="outline" size="sm" leftIcon={<Package className="h-4 w-4" />}>
+              Abrir
+            </Button>
+          </Link>
+        </Card>
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Clientes</h2>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Perfis, papéis e reservas.
+            </p>
+          </div>
+          <Link href="/admin/clientes">
+            <Button variant="outline" size="sm" leftIcon={<Users className="h-4 w-4" />}>
+              Abrir
+            </Button>
+          </Link>
+        </Card>
+      </div>
+
       <section id="retiradas">
         <div className="mb-4 flex items-center gap-2">
           <h2 className="text-2xl font-bold tracking-tight">
@@ -74,73 +127,73 @@ export default async function AdminPage() {
       </section>
 
       <section id="financeiro">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Financeiro</h2>
-          <Pill tone="accent">aportes</Pill>
-        </div>
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Financeiro</h2>
+            <p className="mt-1 text-[var(--ink-muted)]">
+              Agregados de aportes confirmados/pendentes e lista recente.
+            </p>
+          </div>
+          <Link href="/admin/financeiro">
+            <Button variant="accent" leftIcon={<CreditCard className="h-4 w-4" />}>
+              Abrir financeiro
+            </Button>
+          </Link>
+        </Card>
         {contributions.length === 0 ? (
-          <EmptyState
-            icon={<CreditCard className="h-6 w-6" />}
-            title="Sem aportes ainda"
-            description="Aportes confirmados e pendentes aparecerão aqui."
-          />
+          <div className="mt-4">
+            <EmptyState
+              icon={<CreditCard className="h-6 w-6" />}
+              title="Sem aportes ainda"
+              description="Aportes confirmados e pendentes aparecerão aqui."
+            />
+          </div>
         ) : (
-          <Card>
+          <Card className="mt-4">
             <ContributionList contributions={contributions} />
           </Card>
         )}
       </section>
 
-      <section id="lojas" className="mt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Lojas</h2>
-          <Pill tone="lavender">seed</Pill>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <Store className="mb-3 h-5 w-5 text-[var(--accent)]" />
-            <h3 className="text-xl font-bold">Itaim Bibi</h3>
-            <p className="text-[var(--ink-muted)]">São Paulo · SP</p>
-          </Card>
-          <Card>
-            <Store className="mb-3 h-5 w-5 text-[var(--accent)]" />
-            <h3 className="text-xl font-bold">São Caetano</h3>
-            <p className="text-[var(--ink-muted)]">São Caetano do Sul · SP</p>
-          </Card>
-        </div>
-      </section>
-
-      <section id="gateways" className="mt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Gateways</h2>
-          <Pill>TODO</Pill>
-        </div>
-        <EmptyState
-          icon={<Settings className="h-6 w-6" />}
-          title="Configuração de gateways Pix"
-          description="TODO: chaves, webhooks e ambiente sandbox/produção."
-        />
-      </section>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Configurações</h2>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Lojas, status de gateways (env) e bônus de indicação.
+            </p>
+          </div>
+          <Link href="/admin/config">
+            <Button variant="outline" size="sm" leftIcon={<Settings className="h-4 w-4" />}>
+              Abrir
+            </Button>
+          </Link>
+        </Card>
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Indicações</h2>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Lista leve de referrals.
+            </p>
+          </div>
+          <Link href="/admin/indicacoes">
+            <Button variant="outline" size="sm" leftIcon={<Gift className="h-4 w-4" />}>
+              Abrir
+            </Button>
+          </Link>
+        </Card>
+      </div>
 
       <section id="sorteios" className="mt-8">
         <div className="mb-4 flex items-center gap-2">
           <h2 className="text-2xl font-bold tracking-tight">Sorteios</h2>
-          <Pill>TODO</Pill>
+          <Pill>em breve</Pill>
         </div>
         <EmptyState
           icon={<Trophy className="h-6 w-6" />}
           title="Campanhas e sorteios"
-          description="TODO: regras, elegibilidade e auditoria."
+          description="Fora do escopo desta fase — não inventamos premiações."
         />
-      </section>
-
-      <section id="config" className="mt-8">
-        <Card>
-          <h2 className="text-2xl font-bold tracking-tight">Config</h2>
-          <p className="mt-2 text-[var(--ink-muted)]">
-            TODO: parâmetros globais, papéis e feature flags.
-          </p>
-        </Card>
       </section>
     </div>
   );

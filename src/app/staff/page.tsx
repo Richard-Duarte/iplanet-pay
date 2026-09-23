@@ -122,27 +122,35 @@ export default async function StaffPage() {
       </section>
 
       <section id="clientes">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Clientes</h2>
-          <Pill>placeholder</Pill>
-        </div>
-        <EmptyState
-          icon={<Users className="h-6 w-6" />}
-          title="Lista de clientes"
-          description="TODO: busca por perfil, reservas e status KYC leve."
-        />
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Clientes</h2>
+            <p className="mt-1 text-[var(--ink-muted)]">
+              Busca por nome/telefone e histórico de reservas.
+            </p>
+          </div>
+          <Link href="/staff/clientes">
+            <Button variant="accent" leftIcon={<Users className="h-4 w-4" />}>
+              Abrir clientes
+            </Button>
+          </Link>
+        </Card>
       </section>
 
       <section id="estoque" className="mt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
-          <Pill>placeholder</Pill>
-        </div>
-        <EmptyState
-          icon={<Package className="h-6 w-6" />}
-          title="Controle de estoque"
-          description="TODO: ajustes manuais e conferência por loja."
-        />
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
+            <p className="mt-1 text-[var(--ink-muted)]">
+              Ajuste de quantidade por produto e loja.
+            </p>
+          </div>
+          <Link href="/staff/estoque">
+            <Button variant="outline" leftIcon={<Package className="h-4 w-4" />}>
+              Abrir estoque
+            </Button>
+          </Link>
+        </Card>
       </section>
 
       <section id="avaliacoes" className="mt-8">

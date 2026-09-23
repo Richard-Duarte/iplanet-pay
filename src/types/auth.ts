@@ -15,5 +15,7 @@ export interface Profile {
   phone: string | null;
   role: UserRole;
   store_id: string | null;
+  referral_code?: string | null;
+  referred_by?: string | null;
   created_at: string;
 }

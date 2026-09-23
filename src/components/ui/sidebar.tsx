@@ -14,6 +14,7 @@ import {
   Store,
   Trophy,
   Users,
+  Gift,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,7 +28,8 @@ export type SidebarIcon =
   | "trophy"
   | "credit-card"
   | "clipboard-check"
-  | "bookmark";
+  | "bookmark"
+  | "gift";
 
 const icons: Record<SidebarIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -40,6 +42,7 @@ const icons: Record<SidebarIcon, LucideIcon> = {
   "credit-card": CreditCard,
   "clipboard-check": ClipboardCheck,
   bookmark: Bookmark,
+  gift: Gift,
 };
 
 export interface SidebarItem {

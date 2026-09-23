@@ -6,7 +6,14 @@ import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 
 export const metadata = { title: "Criar conta" };
 
-export default function CriarContaPage() {
+export default async function CriarContaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const params = await searchParams;
+  const ref = (params.ref ?? "").trim().toUpperCase();
+
   return (
     <div className="min-h-screen bg-[var(--bg-subtle)] px-4 py-10 md:px-8">
       <div className="mx-auto max-w-md">
@@ -23,7 +30,7 @@ export default function CriarContaPage() {
           size="md"
         />
         <Card className="mt-8">
-          <SignupForm mockMode={USE_MOCK_AUTH} />
+          <SignupForm mockMode={USE_MOCK_AUTH} initialReferralCode={ref} />
         </Card>
       </div>
     </div>

@@ -95,15 +95,19 @@ export default async function ParceiroPage() {
       </section>
 
       <section id="estoque" className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
-          <Pill tone="lavender">placeholder</Pill>
-        </div>
-        <EmptyState
-          icon={<Package className="h-6 w-6" />}
-          title="Estoque ainda não conectado"
-          description="TODO: sync de SKUs, reservas e disponibilidade por loja."
-        />
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
+            <p className="mt-1 text-[var(--ink-muted)]">
+              Quantidade disponível por produto na sua loja.
+            </p>
+          </div>
+          <Link href="/parceiro/estoque">
+            <Button variant="accent" leftIcon={<Package className="h-4 w-4" />}>
+              Abrir estoque
+            </Button>
+          </Link>
+        </Card>
       </section>
     </div>
   );

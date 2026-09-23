@@ -1,0 +1,132 @@
+import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ContributionList } from "@/components/wallet/contribution-list";
+import { getFinanceAggregates } from "@/lib/finance/queries";
+import { formatCentsBRL } from "@/lib/utils";
+import { CreditCard, ArrowLeft } from "lucide-react";
+
+export const metadata = { title: "Financeiro" };
+
+export default async function AdminFinanceiroPage() {
+  const { aggregates, error } = await getFinanceAggregates(40);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          eyebrow="Admin"
+          title="Financeiro"
+          description="Aportes reais — sem GMV inventado."
+          size="xl"
+        />
+        <Link href="/admin">
+          <Button variant="outline" size="sm" leftIcon={<ArrowLeft className="h-4 w-4" />}>
+            Voltar
+          </Button>
+        </Link>
+      </div>
+
+      {error ? (
+        <p className="text-sm text-[var(--danger)]">{error}</p>
+      ) : null}
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {[
+          {
+            label: "Confirmados (soma)",
+            value: formatCentsBRL(aggregates.confirmed_sum_cents),
+          },
+          {
+            label: "Confirmados (qtd)",
+            value: String(aggregates.confirmed_count),
+          },
+          {
+            label: "Pendentes (qtd)",
+            value: String(aggregates.pending_count),
+          },
+          {
+            label: "Pendentes (soma janela)",
+            value: formatCentsBRL(aggregates.pending_sum_cents),
+          },
+        ].map((stat) => (
+          <Card key={stat.label} className="bg-white">
+            <p className="text-sm text-[var(--ink-muted)]">{stat.label}</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
+              {stat.value}
+            </p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <h2 className="text-lg font-bold tracking-tight">Por dia (28d)</h2>
+          {aggregates.by_day.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--ink-muted)]">Sem dados.</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {aggregates.by_day.map((d) => (
+                <li
+                  key={d.day}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span>
+                    {new Date(d.day + "T12:00:00").toLocaleDateString("pt-BR")}{" "}
+                    · {d.count}x
+                  </span>
+                  <span className="font-semibold">
+                    {formatCentsBRL(d.confirmed_cents)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+        <Card>
+          <h2 className="text-lg font-bold tracking-tight">Por semana</h2>
+          {aggregates.by_week.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--ink-muted)]">Sem dados.</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {aggregates.by_week.map((w) => (
+                <li
+                  key={w.week}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span>
+                    Semana de{" "}
+                    {new Date(w.week + "T12:00:00").toLocaleDateString("pt-BR")}{" "}
+                    · {w.count}x
+                  </span>
+                  <span className="font-semibold">
+                    {formatCentsBRL(w.confirmed_cents)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      <section>
+        <h2 className="mb-4 text-2xl font-bold tracking-tight">
+          Aportes recentes
+        </h2>
+        {aggregates.recent.length === 0 ? (
+          <EmptyState
+            icon={<CreditCard className="h-6 w-6" />}
+            title="Sem aportes ainda"
+            description="Aportes confirmados e pendentes aparecerão aqui."
+          />
+        ) : (
+          <Card>
+            <ContributionList contributions={aggregates.recent} />
+          </Card>
+        )}
+      </section>
+    </div>
+  );
+}
