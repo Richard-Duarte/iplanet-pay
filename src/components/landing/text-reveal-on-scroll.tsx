@@ -11,7 +11,14 @@ import {
 import { cn } from "@/lib/utils";
 
 /** Full text revealed by this fraction of sticky-panel scroll progress. */
-const REVEAL_COMPLETE_AT = 0.48;
+const REVEAL_COMPLETE_AT = 0.5;
+
+const SOFT_SPRING = {
+  stiffness: 48,
+  damping: 28,
+  mass: 0.55,
+  restDelta: 0.001,
+} as const;
 
 function Word({
   children,
@@ -26,17 +33,66 @@ function Word({
   mutedColor: string;
   activeColor: string;
 }) {
-  // Color-only Framer-style reveal — keep opacity high so muted never looks white/ghosted
   const color = useTransform(progress, range, [mutedColor, activeColor]);
 
   return (
-    <motion.span
-      style={{ color }}
-      className="mr-[0.28em] inline-block will-change-[color]"
-    >
+    <motion.span style={{ color }} className="mr-[0.28em] inline-block">
       {children}
     </motion.span>
   );
+}
+
+function RevealWords({
+  text,
+  className,
+  mutedColor,
+  activeColor,
+  as: Tag,
+  progress,
+}: {
+  text: string;
+  className?: string;
+  mutedColor: string;
+  activeColor: string;
+  as: "p" | "h2" | "h3" | "span";
+  progress: MotionValue<number>;
+}) {
+  const words = useMemo(
+    () => text.trim().split(/\s+/).filter(Boolean),
+    [text],
+  );
+
+  return (
+    <Tag className={cn("flex flex-wrap", className)} aria-label={text}>
+      {words.map((word, i) => {
+        const start = (i / words.length) * REVEAL_COMPLETE_AT;
+        const end = ((i + 1) / words.length) * REVEAL_COMPLETE_AT;
+        return (
+          <Word
+            key={`${word}-${i}`}
+            progress={progress}
+            range={[start, end]}
+            mutedColor={mutedColor}
+            activeColor={activeColor}
+          >
+            {word}
+          </Word>
+        );
+      })}
+    </Tag>
+  );
+}
+
+/** Shared sticky-panel scroll progress — call once per step. */
+export function useStickyRevealProgress(
+  scrollTargetRef: RefObject<HTMLElement | null>,
+) {
+  const { scrollYProgress } = useScroll({
+    target: scrollTargetRef,
+    offset: ["start start", "end end"],
+  });
+
+  return useSpring(scrollYProgress, SOFT_SPRING);
 }
 
 export function TextRevealOnScroll({
@@ -45,9 +101,7 @@ export function TextRevealOnScroll({
   mutedColor = "#a1a1a6",
   activeColor = "#111111",
   as: Tag = "p",
-  /** Drive reveal from an outer tall scroll wrapper (sticky panels). */
   scrollTargetRef,
-  /** Or pass a shared MotionValue from the parent step. */
   progress: externalProgress,
 }: {
   text: string;
@@ -58,28 +112,59 @@ export function TextRevealOnScroll({
   scrollTargetRef?: RefObject<HTMLElement | null>;
   progress?: MotionValue<number>;
 }) {
-  const localRef = useRef<HTMLElement>(null);
-  const words = useMemo(
-    () => text.trim().split(/\s+/).filter(Boolean),
-    [text],
-  );
+  if (externalProgress) {
+    return (
+      <RevealWords
+        text={text}
+        className={className}
+        mutedColor={mutedColor}
+        activeColor={activeColor}
+        as={Tag}
+        progress={externalProgress}
+      />
+    );
+  }
 
-  // Map 0→1 across sticky travel (wrapper taller than viewport):
-  // ["start start","end end"] ≈ the sticky pin window for h-[~130–140vh].
+  return (
+    <TextRevealWithLocalScroll
+      text={text}
+      className={className}
+      mutedColor={mutedColor}
+      activeColor={activeColor}
+      as={Tag}
+      scrollTargetRef={scrollTargetRef}
+    />
+  );
+}
+
+function TextRevealWithLocalScroll({
+  text,
+  className,
+  mutedColor,
+  activeColor,
+  as: Tag,
+  scrollTargetRef,
+}: {
+  text: string;
+  className?: string;
+  mutedColor: string;
+  activeColor: string;
+  as: "p" | "h2" | "h3" | "span";
+  scrollTargetRef?: RefObject<HTMLElement | null>;
+}) {
+  const localRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: scrollTargetRef ?? localRef,
     offset: scrollTargetRef
       ? ["start start", "end end"]
       : ["start 0.85", "end 0.35"],
   });
+  const progress = useSpring(scrollYProgress, SOFT_SPRING);
 
-  const sprung = useSpring(scrollYProgress, {
-    stiffness: 140,
-    damping: 32,
-    mass: 0.28,
-  });
-
-  const progress = externalProgress ?? sprung;
+  const words = useMemo(
+    () => text.trim().split(/\s+/).filter(Boolean),
+    [text],
+  );
 
   return (
     <Tag
@@ -88,8 +173,6 @@ export function TextRevealOnScroll({
       aria-label={text}
     >
       {words.map((word, i) => {
-        // Compress word ranges so the last word finishes by REVEAL_COMPLETE_AT
-        // (mid sticky scroll ≈ full reveal).
         const start = (i / words.length) * REVEAL_COMPLETE_AT;
         const end = ((i + 1) / words.length) * REVEAL_COMPLETE_AT;
         return (

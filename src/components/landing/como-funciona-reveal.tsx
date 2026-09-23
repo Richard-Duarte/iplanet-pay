@@ -3,7 +3,10 @@
 import { useRef, type ReactNode } from "react";
 import Image from "next/image";
 import { QrCode, PackageCheck } from "lucide-react";
-import { TextRevealOnScroll } from "@/components/landing/text-reveal-on-scroll";
+import {
+  TextRevealOnScroll,
+  useStickyRevealProgress,
+} from "@/components/landing/text-reveal-on-scroll";
 import { DeviceMockupStage } from "@/components/landing/device-mockup-stage";
 
 const STEPS = [
@@ -168,6 +171,7 @@ function StepPanel({
   idx: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const revealProgress = useStickyRevealProgress(scrollRef);
   const isDark = step.tone === "unboxing";
   // Light screens: muted dark gray, active near-black — never white active on light
   const muted = isDark ? "#6e6e73" : "#a1a1a6";
@@ -185,7 +189,7 @@ function StepPanel({
   }
 
   return (
-    <div ref={scrollRef} className="relative h-[130vh]">
+    <div ref={scrollRef} className="relative h-[220vh]">
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         <PanelShell
           tone={step.tone}
@@ -199,14 +203,14 @@ function StepPanel({
             className="text-4xl font-bold tracking-tight md:text-6xl"
             mutedColor={muted}
             activeColor={active}
-            scrollTargetRef={scrollRef}
+            progress={revealProgress}
           />
           <TextRevealOnScroll
             text={step.body}
             className="mt-5 max-w-xl text-lg leading-relaxed md:text-2xl"
             mutedColor={muted}
             activeColor={bodyActive}
-            scrollTargetRef={scrollRef}
+            progress={revealProgress}
           />
         </PanelShell>
       </div>
