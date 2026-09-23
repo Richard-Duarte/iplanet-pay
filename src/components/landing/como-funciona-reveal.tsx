@@ -8,27 +8,27 @@ import { DeviceMockupStage } from "@/components/landing/device-mockup-stage";
 
 const STEPS = [
   {
-    n: "01",
+    id: "escolha",
     title: "Escolha",
     body: "Toque no produto e veja detalhes e defina uma meta.",
     tone: "light" as const,
   },
   {
-    n: "02",
+    id: "aporte",
     title: "Aporte via Pix",
     body: "Entre, reserve e pague aos poucos sem juros.",
     tone: "soft" as const,
     icon: "pix" as const,
   },
   {
-    n: "03",
+    id: "retire",
     title: "Retire",
     body: "Com a reserva quitada, retire na loja iPlanet.",
-    tone: "navy" as const,
+    tone: "white" as const,
     icon: "retire" as const,
   },
   {
-    n: "04",
+    id: "ritmo",
     title: "Seu iPhone, no seu ritmo",
     body: "Da escolha à retirada: iPlanet Pay une as lojas físicas ao Pix no seu tempo.",
     tone: "unboxing" as const,
@@ -79,8 +79,8 @@ function PanelShell({
       ? "bg-gradient-to-b from-white via-[#f5f5f7] to-[#e8e8ec]"
       : tone === "soft"
         ? "bg-gradient-to-b from-white to-[#eef3fb]"
-        : tone === "navy"
-          ? "bg-gradient-to-b from-[#0b1a33] to-[#132844]"
+        : tone === "white"
+          ? "bg-white"
           : "bg-black";
 
   const showUnboxing = tone === "unboxing";
@@ -156,7 +156,7 @@ export function ComoFuncionaReveal() {
       </div>
 
       {STEPS.map((step, idx) => (
-        <StepPanel key={step.n} step={step} idx={idx} />
+        <StepPanel key={step.id} step={step} idx={idx} />
       ))}
     </section>
   );
@@ -170,7 +170,7 @@ function StepPanel({
   idx: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isDark = step.tone === "navy" || step.tone === "unboxing";
+  const isDark = step.tone === "unboxing";
   // Light screens: muted dark gray, active near-black — never white active on light
   const muted = isDark ? "#6e6e73" : "#a1a1a6";
   const active = isDark ? "#ffffff" : "#111111";
@@ -187,7 +187,7 @@ function StepPanel({
   }
 
   return (
-    <div ref={scrollRef} className="relative h-[140vh]">
+    <div ref={scrollRef} className="relative h-[130vh]">
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         <PanelShell
           tone={step.tone}
@@ -195,13 +195,10 @@ function StepPanel({
           fullBleedDevices={fullBleedDevices}
           overlayCopy={overlayCopy}
         >
-          <p className="text-sm font-semibold text-[var(--accent)]">
-            Passo {step.n}
-          </p>
           <TextRevealOnScroll
             as="h3"
             text={step.title}
-            className="mt-4 text-4xl font-bold tracking-tight md:text-6xl"
+            className="text-4xl font-bold tracking-tight md:text-6xl"
             mutedColor={muted}
             activeColor={active}
             scrollTargetRef={scrollRef}

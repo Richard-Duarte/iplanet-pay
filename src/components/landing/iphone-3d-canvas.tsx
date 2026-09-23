@@ -36,7 +36,7 @@ function IphoneModel() {
   );
 }
 
-/** Faint circular floor ring — Framer viewer “reflection” motif */
+/** Faint circular floor ring — subtle on white */
 function FloorRing() {
   return (
     <mesh
@@ -46,9 +46,9 @@ function FloorRing() {
     >
       <ringGeometry args={[0.55, 0.58, 64]} />
       <meshBasicMaterial
-        color="#ffffff"
+        color="#111111"
         transparent
-        opacity={0.14}
+        opacity={0.08}
         side={DoubleSide}
         depthWrite={false}
       />
@@ -59,43 +59,43 @@ function FloorRing() {
 function Scene() {
   return (
     <>
-      <color attach="background" args={["#050505"]} />
-      <ambientLight intensity={0.28} />
-      {/* Key */}
-      <directionalLight position={[3.5, 5.5, 2.5]} intensity={1.35} color="#ffffff" />
+      <color attach="background" args={["#ffffff"]} />
+      <ambientLight intensity={0.55} />
+      {/* Softer key for white Material bg */}
+      <directionalLight position={[3.5, 5.5, 2.5]} intensity={0.95} color="#ffffff" />
       {/* Fill */}
-      <directionalLight position={[-3, 2, 1]} intensity={0.35} color="#dbeafe" />
-      {/* Lavender rim — Framer signature edge glow */}
+      <directionalLight position={[-3, 2, 1]} intensity={0.42} color="#e8eef8" />
+      {/* Lavender rim — still readable on white */}
       <directionalLight
         position={[-2.5, 1.5, -4]}
-        intensity={1.55}
+        intensity={0.95}
         color="#c4b5fd"
       />
       <spotLight
         position={[1.5, 4.5, -3]}
-        intensity={1.1}
+        intensity={0.65}
         angle={0.5}
-        penumbra={0.7}
+        penumbra={0.75}
         color="#ddd6fe"
       />
       {/* Soft top specular */}
       <spotLight
         position={[0, 5.5, 1.5]}
-        intensity={0.9}
+        intensity={0.55}
         angle={0.35}
-        penumbra={0.85}
+        penumbra={0.9}
         color="#f8fafc"
       />
       <Suspense fallback={null}>
         <IphoneModel />
-        <Environment preset="studio" environmentIntensity={0.55} />
+        <Environment preset="studio" environmentIntensity={0.45} />
       </Suspense>
       <FloorRing />
       <ContactShadows
         position={[0, -1.2, 0]}
-        opacity={0.65}
+        opacity={0.42}
         scale={8}
-        blur={3.2}
+        blur={4.2}
         far={4.5}
         color="#000000"
       />
@@ -113,7 +113,7 @@ function Scene() {
 }
 
 function CornerBrackets() {
-  const arm = "absolute h-9 w-9 border-white/55 md:h-10 md:w-10";
+  const arm = "absolute h-9 w-9 border-black/25 md:h-10 md:w-10";
   return (
     <>
       <div className={`${arm} left-5 top-5 border-l border-t md:left-7 md:top-7`} />
@@ -126,15 +126,15 @@ function CornerBrackets() {
 
 export default function Iphone3dCanvas() {
   return (
-    <div className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#050505] shadow-[0_24px_80px_rgba(0,0,0,0.45)] md:min-h-[720px] md:h-[780px]">
+    <div className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]">
       {/* Faint concentric rings behind model */}
       <div
-        className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.1]"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.12]"
         aria-hidden
       >
-        <div className="h-[78%] w-[78%] rounded-full border border-white" />
-        <div className="absolute h-[54%] w-[54%] rounded-full border border-white" />
-        <div className="absolute h-[32%] w-[32%] rounded-full border border-white" />
+        <div className="h-[78%] w-[78%] rounded-full border border-black/40" />
+        <div className="absolute h-[54%] w-[54%] rounded-full border border-black/40" />
+        <div className="absolute h-[32%] w-[32%] rounded-full border border-black/40" />
       </div>
       <CornerBrackets />
       <Canvas
@@ -145,7 +145,7 @@ export default function Iphone3dCanvas() {
       >
         <Scene />
       </Canvas>
-      <p className="pointer-events-none absolute bottom-5 left-0 right-0 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">
+      <p className="pointer-events-none absolute bottom-5 left-0 right-0 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
         Arraste para girar · pinça para zoom
       </p>
     </div>

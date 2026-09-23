@@ -10,6 +10,9 @@ import {
 } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+/** Full text revealed by this fraction of sticky-panel scroll progress. */
+const REVEAL_COMPLETE_AT = 0.48;
+
 function Word({
   children,
   progress,
@@ -61,17 +64,19 @@ export function TextRevealOnScroll({
     [text],
   );
 
+  // Map 0→1 across sticky travel (wrapper taller than viewport):
+  // ["start start","end end"] ≈ the sticky pin window for h-[~130–140vh].
   const { scrollYProgress } = useScroll({
     target: scrollTargetRef ?? localRef,
     offset: scrollTargetRef
-      ? ["start start", "end start"]
+      ? ["start start", "end end"]
       : ["start 0.85", "end 0.35"],
   });
 
   const sprung = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 28,
-    mass: 0.35,
+    stiffness: 140,
+    damping: 32,
+    mass: 0.28,
   });
 
   const progress = externalProgress ?? sprung;
@@ -83,8 +88,10 @@ export function TextRevealOnScroll({
       aria-label={text}
     >
       {words.map((word, i) => {
-        const start = i / words.length;
-        const end = start + 1 / words.length;
+        // Compress word ranges so the last word finishes by REVEAL_COMPLETE_AT
+        // (mid sticky scroll ≈ full reveal).
+        const start = (i / words.length) * REVEAL_COMPLETE_AT;
+        const end = ((i + 1) / words.length) * REVEAL_COMPLETE_AT;
         return (
           <Word
             key={`${word}-${i}`}

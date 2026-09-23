@@ -8,8 +8,8 @@ const Iphone3dCanvas = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-[70vh] w-full items-center justify-center rounded-[28px] border border-white/10 bg-black md:min-h-[720px]">
-        <div className="h-56 w-28 animate-pulse rounded-[28px] bg-white/10" />
+      <div className="flex min-h-[70vh] w-full items-center justify-center rounded-[28px] border border-black/8 bg-white md:min-h-[720px]">
+        <div className="h-56 w-28 animate-pulse rounded-[28px] bg-black/5" />
       </div>
     ),
   },
@@ -17,16 +17,16 @@ const Iphone3dCanvas = dynamic(
 
 export function Experiencia3dSection() {
   return (
-    <section id="experiencia-3d" className="bg-black text-white">
+    <section id="experiencia-3d" className="bg-white text-[#111]">
       <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-24">
         <MotionFade>
-          <h2 className="text-center text-3xl font-bold tracking-tight md:text-5xl lg:text-6xl">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-[#111] md:text-5xl lg:text-6xl">
             IPHONE 18 PRO MAX
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-base font-medium leading-relaxed text-white/70 md:text-xl">
+          <p className="mx-auto mt-3 max-w-2xl text-center text-base font-medium leading-relaxed text-[#1d1d1f] md:text-xl">
             transforme seu sonho em meta.
           </p>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-white/45 md:text-base">
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#6e6e73] md:text-base">
             Arraste para orbitar, use pinça ou scroll para zoom — a mesma
             experiência premium das lojas iPlanet.
           </p>
