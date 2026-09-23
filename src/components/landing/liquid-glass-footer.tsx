@@ -65,7 +65,20 @@ export function LiquidGlassFooter() {
         >
           <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-sm">
-              <BrandLogo variant="wordmark" height={44} />
+              <a
+                href="#hero"
+                className="inline-flex"
+                aria-label="Voltar ao início"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("hero")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+              >
+                <BrandLogo variant="wordmark" height={44} />
+              </a>
               <p className="mt-4 text-sm leading-relaxed text-[var(--ink-muted)]">
                 Reserve na iPlanet, aporte via Pix no seu ritmo e retire no
                 Itaim Bibi ou em São Caetano.

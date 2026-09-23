@@ -121,7 +121,25 @@ export function LandingCatalog({
     <div className="min-h-screen bg-white text-[var(--ink)]">
       <header className="sticky top-0 z-30 border-b border-black/5 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
-          <BrandLogo variant="wordmark" height={52} priority />
+          <a
+            href="#hero"
+            className="inline-flex shrink-0"
+            aria-label="Voltar ao início"
+            onClick={(e) => {
+              e.preventDefault();
+              const el = document.getElementById("hero");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              } else {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+              if (typeof window !== "undefined") {
+                window.history.replaceState(null, "", "#hero");
+              }
+            }}
+          >
+            <BrandLogo variant="wordmark" height={52} priority />
+          </a>
           <div className="flex items-center gap-2">
             <Link href="/entrar">
               <Button variant="ghost" size="sm">
@@ -140,7 +158,7 @@ export function LandingCatalog({
       </header>
 
       {/* Hero — dark full-bleed video */}
-      <section className="relative isolate min-h-[78vh] overflow-hidden bg-black text-white md:min-h-[88vh]">
+      <section id="hero" className="relative isolate min-h-[78vh] overflow-hidden bg-black text-white md:min-h-[88vh]">
         <video
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
