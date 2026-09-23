@@ -2,6 +2,7 @@ import Link from "next/link";
 import { QrCode, Smartphone, ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ProductHeroCard } from "@/components/ui/product-hero-card";
+import { ProductImage } from "@/components/products/product-image";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Card } from "@/components/ui/card";
@@ -65,6 +66,14 @@ export default async function ClienteHomePage() {
             title={hero.product?.name ?? "Reserva"}
             subtitle={productSubtitle(hero.product, hero.store)}
             priceLabel={`${formatCentsBRL(reservationRemainingCents(hero))} restantes`}
+            imageSlot={
+              <ProductImage
+                src={hero.product?.image_url}
+                alt={hero.product?.name ?? "Produto"}
+                size="hero"
+                className="h-full w-full bg-transparent"
+              />
+            }
             footer={
               <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <ProgressRing

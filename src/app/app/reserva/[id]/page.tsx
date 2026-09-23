@@ -26,6 +26,7 @@ import {
 } from "@/lib/reservations/types";
 import { formatCentsBRL } from "@/lib/utils";
 import { Package } from "lucide-react";
+import { ProductImage } from "@/components/products/product-image";
 
 export const metadata = { title: "Reserva" };
 
@@ -96,15 +97,28 @@ export default async function ReservaDetailPage({
       />
 
       <Card className="space-y-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <ReservationStatusPill status={reservation.status} />
-          {reservation.store ? (
-            <Pill tone="lavender">{reservation.store.name}</Pill>
-          ) : null}
+        <div className="flex gap-4">
+          <ProductImage
+            src={reservation.product?.image_url}
+            alt={title}
+            size="lg"
+            className="border border-[var(--line)]"
+          />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <ReservationStatusPill status={reservation.status} />
+              {reservation.store ? (
+                <Pill tone="lavender">{reservation.store.name}</Pill>
+              ) : null}
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-[var(--ink)]">
+              {title}
+            </h2>
+            {subtitle ? (
+              <p className="text-[var(--ink-muted)]">{subtitle}</p>
+            ) : null}
+          </div>
         </div>
-        {subtitle ? (
-          <p className="text-[var(--ink-muted)]">{subtitle}</p>
-        ) : null}
 
         {reservation.status === "quitada" ? (
           <div className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--bg-subtle)] px-4 py-3">

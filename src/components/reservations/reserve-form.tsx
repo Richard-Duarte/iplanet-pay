@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import type { ProductWithStock } from "@/types/database";
-import { storesForProduct } from "@/lib/catalog/products";
+import { storesForProduct } from "@/lib/catalog/stores-for-product";
 import { trackEvent } from "@/lib/analytics/track";
 
 interface ReserveFormProps {

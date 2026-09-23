@@ -1,5 +1,9 @@
 import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import type { ProductWithStock } from "@/types/database";
+import { normalizeStoreEmbed } from "./stores-for-product";
+
+export { storesForProduct, normalizeStoreEmbed } from "./stores-for-product";
+export type { StoreStockRow } from "./stores-for-product";
 
 export const MOCK_CATALOG: ProductWithStock[] = [
   {
@@ -12,17 +16,46 @@ export const MOCK_CATALOG: ProductWithStock[] = [
     color: "Lavanda",
     list_price_cents: 799900,
     image_url: "/products/iphone-17.png",
-    description: "iPhone 17 no catálogo iPlanet Pay: reserve e aporte via Pix no seu ritmo. Retire nas lojas Itaim Bibi ou São Caetano.",
+    description:
+      "iPhone 17 no catálogo iPlanet Pay: reserve e aporte via Pix no seu ritmo. Retire nas lojas Itaim Bibi ou São Caetano.",
     product_images: [],
     active: true,
     category: "iPhone",
     category_id: "cat-iphone",
     store_stock: [
-      { qty_available: 9999, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
-      { qty_available: 9999, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
+      {
+        qty_available: 9999,
+        store: {
+          id: "store-itaim",
+          name: "iPlanet Itaim Bibi",
+          slug: "itaim-bibi",
+        },
+      },
+      {
+        qty_available: 9999,
+        store: {
+          id: "store-sc",
+          name: "iPlanet São Caetano",
+          slug: "sao-caetano",
+        },
+      },
     ],
   },
 ];
+
+function normalizeCatalogProducts(rows: ProductWithStock[]): ProductWithStock[] {
+  return rows.map((p) => ({
+    ...p,
+    store_stock: Array.isArray(p.store_stock)
+      ? p.store_stock.map((row) => ({
+          qty_available: row?.qty_available ?? 0,
+          store: normalizeStoreEmbed(
+            row?.store as Parameters<typeof normalizeStoreEmbed>[0],
+          ),
+        }))
+      : [],
+  }));
+}
 
 export async function listCatalogProducts(): Promise<{
   products: ProductWithStock[];
@@ -72,11 +105,14 @@ export async function listCatalogProducts(): Promise<{
     }
 
     return {
-      products: (data ?? []) as unknown as ProductWithStock[],
+      products: normalizeCatalogProducts(
+        (data ?? []) as unknown as ProductWithStock[],
+      ),
       error: null,
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Falha ao carregar catálogo";
+    const message =
+      err instanceof Error ? err.message : "Falha ao carregar catálogo";
     return { products: [], error: message };
   }
 }
@@ -88,12 +124,4 @@ export async function getProductBySlug(slug: string) {
     product: products.find((p) => p.slug === slug) ?? null,
     error: null,
   };
-}
-
-/** Store list for picker — infinite stock: any store linked (or all if empty). */
-export function storesForProduct(product: ProductWithStock) {
-  const rows = product.store_stock.filter((row) => row.store);
-  return rows.length > 0
-    ? rows
-    : [];
 }

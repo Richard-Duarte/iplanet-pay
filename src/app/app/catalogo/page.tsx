@@ -37,7 +37,7 @@ export default async function CatalogoPage({
         title="Catálogo"
         description="Escolha o aparelho e a loja de retirada. Estoque sempre disponível."
         showBack
-          backFallback="/app"
+        backFallback="/app"
       />
 
       {error ? (
