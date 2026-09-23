@@ -65,6 +65,22 @@ export function GatewayStatusPanel() {
           </li>
         </ul>
       ) : null}
+      <div className="mt-5 rounded-2xl bg-[var(--bg-subtle)] px-4 py-3 text-sm text-[var(--ink-muted)]">
+        <p className="font-semibold text-[var(--ink)]">Google OAuth</p>
+        <p className="mt-1">
+          O botão &quot;Entrar com Google&quot; já está no app. Ative o provedor em{" "}
+          <span className="font-medium text-[var(--ink)]">
+            Supabase → Authentication → Providers → Google
+          </span>{" "}
+          com Client ID/Secret do Google Cloud. Redirect do Supabase:{" "}
+          <code className="text-xs">
+            https://zjnikfrledckmjahwnsb.supabase.co/auth/v1/callback
+          </code>
+          . Redirect do app (allow list):{" "}
+          <code className="text-xs">http://127.0.0.1:3000/auth/callback</code>{" "}
+          (+ URL de produção quando houver).
+        </p>
+      </div>
     </Card>
   );
 }

@@ -19,9 +19,8 @@ export default async function CriarContaPage({
   return (
     <div className="min-h-screen bg-[var(--bg-subtle)] px-4 py-10 md:px-8">
       <div className="mx-auto max-w-md">
-        <div className="mb-6 flex items-center gap-3">
-          <BrandLogo size={40} />
-          <p className="text-sm font-bold">iPlanet Pay</p>
+        <div className="mb-8 flex justify-center">
+          <BrandLogo variant="wordmark" height={52} priority />
         </div>
         <PageHeader
           eyebrow="Comece agora"
@@ -29,7 +28,7 @@ export default async function CriarContaPage({
           description="Reserve seu Apple e pague no seu ritmo."
           size="md"
           showBack
-          backFallback="/"
+          backForceHref="/"
         />
         <Card className="mt-8">
           <SignupForm

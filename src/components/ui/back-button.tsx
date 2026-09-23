@@ -6,18 +6,25 @@ import { cn } from "@/lib/utils";
 
 interface BackButtonProps {
   fallbackHref?: string;
+  /** When set, always navigate here — never history.back(). */
+  forceHref?: string;
   label?: string;
   className?: string;
 }
 
 export function BackButton({
   fallbackHref = "/",
+  forceHref,
   label = "Voltar",
   className,
 }: BackButtonProps) {
   const router = useRouter();
 
   function goBack() {
+    if (forceHref) {
+      router.push(forceHref);
+      return;
+    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
       return;

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pill } from "@/components/ui/pill";
+import { AuthDivider, GoogleAuthButton } from "@/components/auth/google-auth-button";
 import type { UserRole } from "@/types/auth";
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
@@ -33,6 +34,8 @@ export function LoginForm({
     if (productSlug) return `/app/catalogo?product=${encodeURIComponent(productSlug)}`;
     return fallback;
   }
+
+  const oauthNext = resolveRedirect("/app");
 
   async function submit(role?: UserRole) {
     setLoading(true);
@@ -109,7 +112,12 @@ export function LoginForm({
             ))}
           </div>
         </div>
-      ) : null}
+      ) : (
+        <>
+          <GoogleAuthButton nextPath={oauthNext} disabled={loading} />
+          <AuthDivider />
+        </>
+      )}
 
       <form
         className="space-y-4"

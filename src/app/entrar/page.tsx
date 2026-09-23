@@ -21,9 +21,8 @@ export default async function EntrarPage({
   return (
     <div className="min-h-screen bg-[var(--bg-subtle)] px-4 py-10 md:px-8">
       <div className="mx-auto max-w-md">
-        <div className="mb-6 flex items-center gap-3">
-          <BrandLogo size={40} />
-          <p className="text-sm font-bold">iPlanet Pay</p>
+        <div className="mb-8 flex justify-center">
+          <BrandLogo variant="wordmark" height={52} priority />
         </div>
         <PageHeader
           eyebrow="Acesso"
@@ -31,7 +30,7 @@ export default async function EntrarPage({
           description="Continue sua reserva ou gerencie a loja."
           size="md"
           showBack
-          backFallback="/"
+          backForceHref="/"
         />
         <Card className="mt-8">
           <LoginForm mockMode={USE_MOCK_AUTH} nextPath={next} productSlug={product} />

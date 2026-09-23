@@ -40,6 +40,15 @@ function redirectTo(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // OAuth PKCE callback must run without auth gates (code exchange happens in route).
+  if (pathname.startsWith("/auth/callback")) {
+    if (USE_MOCK_AUTH) {
+      return NextResponse.next();
+    }
+    const { response } = await updateSession(request);
+    return response;
+  }
+
   // Parceiro / staff panels removed — only cliente + admin
   if (pathname.startsWith("/parceiro") || pathname.startsWith("/staff")) {
     return redirectTo(request, "/entrar");

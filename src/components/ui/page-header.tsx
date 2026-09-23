@@ -11,6 +11,8 @@ interface PageHeaderProps {
   size?: "md" | "lg" | "xl";
   showBack?: boolean;
   backFallback?: string;
+  /** When set, Back always goes here (never history.back). */
+  backForceHref?: string;
 }
 
 export function PageHeader({
@@ -22,6 +24,7 @@ export function PageHeader({
   size = "lg",
   showBack = false,
   backFallback = "/",
+  backForceHref,
 }: PageHeaderProps) {
   const titleSize =
     size === "xl"
@@ -32,7 +35,9 @@ export function PageHeader({
 
   return (
     <div className={cn("space-y-3", className)}>
-      {showBack ? <BackButton fallbackHref={backFallback} /> : null}
+      {showBack ? (
+        <BackButton fallbackHref={backFallback} forceHref={backForceHref} />
+      ) : null}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-3xl">
           {eyebrow ? (

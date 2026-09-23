@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthDivider, GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { trackEvent } from "@/lib/analytics/track";
 
 export function SignupForm({
@@ -24,6 +25,10 @@ export function SignupForm({
   const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const oauthNext = productSlug
+    ? `/app/catalogo?product=${encodeURIComponent(productSlug)}`
+    : "/app";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +70,7 @@ export function SignupForm({
     : "/entrar";
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
+    <div className="space-y-6">
       {productSlug ? (
         <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--ink-muted)]">
           Depois de criar a conta você reserva{" "}
@@ -76,62 +81,74 @@ export function SignupForm({
         <p className="rounded-2xl bg-[var(--bg-lavender)] px-4 py-3 text-sm text-[var(--ink-muted)]">
           Modo demo ativo — a conta será simulada localmente.
         </p>
-      ) : null}
-      <Input
-        label="Nome completo"
-        name="full_name"
-        placeholder="Seu nome"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-        required
-      />
-      <Input
-        label="E-mail"
-        type="email"
-        name="email"
-        placeholder="voce@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <Input
-        label="Telefone"
-        name="phone"
-        placeholder="(11) 99999-9999"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        required
-      />
-      <Input
-        label="Código de indicação (opcional)"
-        name="referral_code"
-        placeholder="ABC123"
-        value={referralCode}
-        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-        className="uppercase tracking-widest"
-      />
-      <Input
-        label="Senha"
-        type="password"
-        name="password"
-        placeholder="Mínimo 6 caracteres"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required={!mockMode}
-        minLength={mockMode ? undefined : 6}
-      />
-      <Button type="submit" fullWidth disabled={loading}>
-        {loading ? "Criando..." : "Criar conta"}
-      </Button>
-      {message ? (
-        <p className="text-sm text-[var(--ink-muted)]">{message}</p>
-      ) : null}
-      <p className="text-sm text-[var(--ink-muted)]">
-        Já tem conta?{" "}
-        <Link href={loginHref} className="font-semibold text-[var(--ink)]">
-          Entrar
-        </Link>
-      </p>
-    </form>
+      ) : (
+        <>
+          <GoogleAuthButton
+            nextPath={oauthNext}
+            label="Continuar com Google"
+            disabled={loading}
+          />
+          <AuthDivider />
+        </>
+      )}
+
+      <form className="space-y-4" onSubmit={onSubmit}>
+        <Input
+          label="Nome completo"
+          name="full_name"
+          placeholder="Seu nome"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
+        <Input
+          label="E-mail"
+          type="email"
+          name="email"
+          placeholder="voce@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Input
+          label="Telefone"
+          name="phone"
+          placeholder="(11) 99999-9999"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+        <Input
+          label="Código de indicação (opcional)"
+          name="referral_code"
+          placeholder="ABC123"
+          value={referralCode}
+          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+          className="uppercase tracking-widest"
+        />
+        <Input
+          label="Senha"
+          type="password"
+          name="password"
+          placeholder="Mínimo 6 caracteres"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required={!mockMode}
+          minLength={mockMode ? undefined : 6}
+        />
+        <Button type="submit" fullWidth disabled={loading}>
+          {loading ? "Criando..." : "Criar conta"}
+        </Button>
+        {message ? (
+          <p className="text-sm text-[var(--ink-muted)]">{message}</p>
+        ) : null}
+        <p className="text-sm text-[var(--ink-muted)]">
+          Já tem conta?{" "}
+          <Link href={loginHref} className="font-semibold text-[var(--ink)]">
+            Entrar
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }

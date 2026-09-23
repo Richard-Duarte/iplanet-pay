@@ -66,6 +66,20 @@ Abra [http://127.0.0.1:3000](http://127.0.0.1:3000).
 | `/admin/config` | WhatsApp, agente, gateways |
 | `/admin/emails/preview` | QA e-mails |
 
+
+## Google OAuth
+
+App wiring: `signInWithOAuth({ provider: 'google' })` → `/auth/callback` (PKCE).
+
+1. Google Cloud → OAuth Client (Web) → Authorized redirect URI =
+   `https://zjnikfrledckmjahwnsb.supabase.co/auth/v1/callback`
+2. Supabase → Authentication → Providers → Google → colar Client ID + Secret
+3. Supabase → Authentication → URL Configuration → Redirect URLs:
+   `http://127.0.0.1:3000/auth/callback` (+ produção)
+4. Não inventar / commit secrets — só no dashboard Supabase
+
+Perfil: trigger `handle_new_user` cria `profiles` com role `cliente` (admins existentes preservados).
+
 ## Migrations
 
 `supabase/migrations/001` … `017` — projeto live `zjnikfrledckmjahwnsb`.
