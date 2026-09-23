@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f7f7f8;
+  --bg-lavender: #f3f0ff;
+  --ink: #111111;
+  --ink-muted: #5c5c66;
+  --line: #e8e8ec;
+  --accent: #ff6a00;
+  --accent-soft: #fff1e8;
+  --whatsapp: #25d366;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --primary-btn: #111111;
+  --primary-btn-text: #ffffff;
+  --radius-pill: 9999px;
+  --radius-card: 24px;
+  --shadow-soft: 0 20px 60px rgba(17, 17, 17, 0.06);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-lavender: var(--bg-lavender);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-whatsapp: var(--whatsapp);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-primary-btn: var(--primary-btn);
+  --color-primary-btn-text: var(--primary-btn-text);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius-pill: var(--radius-pill);
+  --radius-card: var(--radius-card);
+  --shadow-soft: var(--shadow-soft);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Display", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.glow-lavender {
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 40%,
+    rgba(243, 240, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+}
+
+.soft-glow {
+  box-shadow: var(--shadow-soft);
+}
