@@ -24,7 +24,7 @@ export function aporteReminderEmail(opts: {
     </p>
     <p style="text-align:center;margin:24px 0;">${ctaButton("Gerar Pix / Carteira", href)}</p>
     <p style="text-align:center;margin:0;">
-      <a href="${reserva}" style="color:#FF6A00;font-weight:600;font-size:14px;text-decoration:none;">Ver reserva</a>
+      <a href="${reserva}" style="color:#0071e3;font-weight:600;font-size:14px;text-decoration:none;">Ver reserva</a>
     </p>
     ${wa}
   `;

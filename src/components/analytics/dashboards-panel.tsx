@@ -21,7 +21,7 @@ import {
 import { Card } from "@/components/ui/card";
 import type { AnalyticsSummary } from "@/lib/analytics/queries";
 
-const COLORS = ["#FF6A00", "#111111", "#5c5c66", "#25d366", "#a78bfa"];
+const COLORS = ["#0071e3", "#111111", "#5c5c66", "#25d366", "#a78bfa"];
 
 type ChartKind = "line" | "bar" | "area" | "pie";
 
@@ -137,7 +137,7 @@ export function DashboardsPanel({ summary }: { summary: AnalyticsSummary }) {
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="page_view" fill="#111111" radius={6} />
-                <Bar dataKey="product_click" fill="#FF6A00" radius={6} />
+                <Bar dataKey="product_click" fill="#0071e3" radius={6} />
                 <Bar dataKey="signup" fill="#a78bfa" radius={6} />
               </BarChart>
             </ResponsiveContainer>
@@ -150,7 +150,7 @@ export function DashboardsPanel({ summary }: { summary: AnalyticsSummary }) {
                 <Tooltip />
                 <Legend />
                 <Line type="monotone" dataKey="page_view" stroke="#111111" strokeWidth={2} />
-                <Line type="monotone" dataKey="product_click" stroke="#FF6A00" strokeWidth={2} />
+                <Line type="monotone" dataKey="product_click" stroke="#0071e3" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -162,7 +162,7 @@ export function DashboardsPanel({ summary }: { summary: AnalyticsSummary }) {
                 <Tooltip />
                 <Legend />
                 <Area type="monotone" dataKey="page_view" stroke="#111111" fill="#11111122" />
-                <Area type="monotone" dataKey="product_click" stroke="#FF6A00" fill="#FF6A0033" />
+                <Area type="monotone" dataKey="product_click" stroke="#0071e3" fill="#0071e333" />
               </AreaChart>
             </ResponsiveContainer>
           )}

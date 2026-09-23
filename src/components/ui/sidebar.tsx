@@ -16,6 +16,7 @@ import {
   Users,
   Gift,
   BarChart3,
+  MessageCircle,
   type LucideIcon,
 } from "lucide-react";
 import { BrandLogo } from "./brand-logo";
@@ -32,7 +33,8 @@ export type SidebarIcon =
   | "clipboard-check"
   | "bookmark"
   | "gift"
-  | "bar-chart";
+  | "bar-chart"
+  | "message-circle";
 
 const icons: Record<SidebarIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -47,6 +49,7 @@ const icons: Record<SidebarIcon, LucideIcon> = {
   bookmark: Bookmark,
   gift: Gift,
   "bar-chart": BarChart3,
+  "message-circle": MessageCircle,
 };
 
 export interface SidebarItem {

@@ -44,6 +44,8 @@ export async function listAllProducts(): Promise<{
           color: "Lavanda",
           list_price_cents: 799900,
           image_url: "/products/iphone-17.png",
+          description: "iPhone 17 no catálogo iPlanet Pay.",
+          product_images: [],
           active: true,
           category: "iPhone",
           category_id: "cat-iphone",
@@ -69,6 +71,8 @@ export async function listAllProducts(): Promise<{
         color,
         list_price_cents,
         image_url,
+        description,
+        product_images,
         active,
         category,
         category_id,
@@ -101,6 +105,8 @@ export type ProductInput = {
   color?: string | null;
   list_price_cents: number;
   image_url?: string | null;
+  description?: string | null;
+  product_images?: string[] | null;
   active?: boolean;
   category_id?: string | null;
   /** If set, create category (or reuse) then link */
@@ -155,6 +161,8 @@ export async function createProduct(
   const brand = (input.brand?.trim() || "Apple").trim();
   const color = input.color?.trim() || null;
   const image_url = input.image_url?.trim() || null;
+  const description = input.description?.trim() || null;
+  const product_images = input.product_images ?? [];
   const active = input.active ?? true;
 
   if (USE_MOCK_AUTH) {
@@ -170,6 +178,8 @@ export async function createProduct(
         color,
         list_price_cents: input.list_price_cents,
         image_url,
+        description,
+        product_images,
         active,
         category: resolved.category ?? "Nova",
         category_id: resolved.category_id,
@@ -190,6 +200,8 @@ export async function createProduct(
       color,
       list_price_cents: Math.round(input.list_price_cents),
       image_url,
+      description,
+      product_images,
       active,
       category_id: resolved.category_id,
     };
@@ -201,7 +213,7 @@ export async function createProduct(
       .select(
         `
         id, name, slug, brand, model, storage, color,
-        list_price_cents, image_url, active, category, category_id, created_at
+        list_price_cents, image_url, description, product_images, active, category, category_id, created_at
       `,
       )
       .single();
@@ -263,6 +275,8 @@ export async function updateProduct(
   const brand = (input.brand?.trim() || "Apple").trim();
   const color = input.color?.trim() || null;
   const image_url = input.image_url?.trim() || null;
+  const description = input.description?.trim() || null;
+  const product_images = input.product_images ?? [];
   const active = input.active ?? true;
 
   if (USE_MOCK_AUTH) {
@@ -278,6 +292,8 @@ export async function updateProduct(
         color,
         list_price_cents: input.list_price_cents,
         image_url,
+        description,
+        product_images,
         active,
         category: resolved.category ?? "Nova",
         category_id: resolved.category_id,
@@ -298,6 +314,8 @@ export async function updateProduct(
       color,
       list_price_cents: Math.round(input.list_price_cents),
       image_url,
+      description,
+      product_images,
       active,
       category_id: resolved.category_id,
     };
@@ -310,7 +328,7 @@ export async function updateProduct(
       .select(
         `
         id, name, slug, brand, model, storage, color,
-        list_price_cents, image_url, active, category, category_id, created_at
+        list_price_cents, image_url, description, product_images, active, category, category_id, created_at
       `,
       )
       .single();

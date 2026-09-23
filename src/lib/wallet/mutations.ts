@@ -82,6 +82,10 @@ export async function adminConfirmContribution(
     if (!payload.already_confirmed) {
       const { notifyAporteConfirmado } = await import("@/lib/email/notify");
       void notifyAporteConfirmado(contributionId);
+      const { notifyFirstAporteWhatsapp } = await import(
+        "@/lib/whatsapp/notify"
+      );
+      void notifyFirstAporteWhatsapp(contributionId);
     }
     return {
       ok: true,

@@ -6,6 +6,7 @@ import { Package, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Pill } from "@/components/ui/pill";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -25,6 +26,7 @@ type FormState = {
   color: string;
   list_price_reais: string;
   image_url: string;
+  description: string;
   active: boolean;
   category_id: string;
   new_category_name: string;
@@ -39,6 +41,7 @@ const emptyForm = (): FormState => ({
   color: "",
   list_price_reais: "",
   image_url: "",
+  description: "",
   active: true,
   category_id: "",
   new_category_name: "",
@@ -95,6 +98,7 @@ export function ProdutosAdminPanel({
       color: p.color ?? "",
       list_price_reais: centsToReais(p.list_price_cents),
       image_url: p.image_url ?? "",
+      description: p.description ?? "",
       active: p.active,
       category_id: p.category_id ?? "",
       new_category_name: "",
@@ -125,6 +129,7 @@ export function ProdutosAdminPanel({
       color: form.color || null,
       list_price_cents,
       image_url: form.image_url || null,
+      description: form.description || null,
       active: form.active,
       category_id: creatingNewCat ? null : form.category_id || null,
       new_category_name: creatingNewCat ? form.new_category_name : null,
@@ -307,6 +312,15 @@ export function ProdutosAdminPanel({
                 setForm((f) => ({ ...f, image_url: e.target.value }))
               }
               placeholder="/products/iphone-17.png"
+            />
+            <Textarea
+              label="Descrição"
+              value={form.description}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
+              placeholder="Copy de marketing em português…"
+              hint="Exibida no modal do catálogo (pt-BR)"
             />
 
             <Select

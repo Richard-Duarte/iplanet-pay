@@ -28,10 +28,66 @@ export interface Product {
   color: string | null;
   list_price_cents: number;
   image_url: string | null;
+  description?: string | null;
+  product_images?: string[] | null;
   active: boolean;
   category?: string;
   category_id?: string | null;
   created_at?: string;
+}
+
+export type PaymentGoalStatus = "active" | "paused" | "done" | "cancelled";
+
+export interface PaymentGoal {
+  id: string;
+  user_id: string;
+  product_id: string;
+  reservation_id: string | null;
+  name: string;
+  target_date: string;
+  reminder_at: string | null;
+  amount_cents: number;
+  installment_cents: number;
+  installments_count: number;
+  status: PaymentGoalStatus;
+  whatsapp_phone: string | null;
+  created_at: string;
+}
+
+export type WhatsappTemplateKind =
+  | "aviso"
+  | "cobranca"
+  | "promocao"
+  | "bonus"
+  | "custom";
+
+export interface WhatsappTemplate {
+  id: string;
+  name: string;
+  kind: WhatsappTemplateKind;
+  body: string;
+  active: boolean;
+  created_at?: string;
+}
+
+export type WhatsappDispatchStatus =
+  | "pending"
+  | "sent"
+  | "failed"
+  | "skipped";
+
+export interface WhatsappDispatchQueueItem {
+  id: string;
+  goal_id: string | null;
+  template_id: string | null;
+  to_phone: string;
+  body: string;
+  media_url: string | null;
+  status: WhatsappDispatchStatus;
+  scheduled_at: string;
+  sent_at: string | null;
+  error: string | null;
+  created_at: string;
 }
 
 export interface StoreStock {

@@ -34,7 +34,7 @@ export function aporteConfirmadoEmail(opts: {
         ${brl(opts.paidCents)} de ${brl(opts.listPriceCents)}
       </p>
       <div style="margin-top:10px;height:8px;background:#e8e8ec;border-radius:999px;overflow:hidden;">
-        <div style="height:8px;width:${pct}%;background:#FF6A00;border-radius:999px;"></div>
+        <div style="height:8px;width:${pct}%;background:#0071e3;border-radius:999px;"></div>
       </div>
     </div>
     <p style="text-align:center;margin:24px 0;">${ctaButton("Ver minha reserva", href)}</p>

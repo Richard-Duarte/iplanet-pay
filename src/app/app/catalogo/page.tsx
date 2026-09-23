@@ -61,14 +61,14 @@ export default async function CatalogoPage({
                 className={`flex flex-col ${highlight?.id === p.id ? "ring-2 ring-[var(--accent)]" : ""}`}
                 id={p.slug}
               >
-                <div className="relative -mx-6 -mt-6 mb-4 flex h-44 items-center justify-center overflow-hidden rounded-t-[var(--radius-card)] bg-[var(--bg-subtle)]">
+                <div className="relative -mx-6 -mt-6 mb-4 flex h-44 items-center justify-center overflow-hidden rounded-t-[var(--radius-card)] bg-white">
                   {p.image_url ? (
                     <Image
                       src={p.image_url}
                       alt={p.name}
                       width={220}
                       height={220}
-                      className="h-full w-auto object-contain p-4"
+                      className="h-full w-auto object-contain p-4 mix-blend-multiply"
                     />
                   ) : (
                     <div className="glow-lavender absolute inset-0" />

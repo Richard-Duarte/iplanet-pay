@@ -4,7 +4,7 @@ Layaway inteligente (crediário via Pix) para produtos Apple nas lojas **iPlanet
 
 Stack: **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabase · framer-motion · recharts**.
 
-UI 100% pt-BR · accent `#FF6A00` · estética Apple-premium.
+UI 100% pt-BR · accent `#0071e3` · estética Apple-premium.
 
 ## Bootstrap admin
 

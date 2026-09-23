@@ -4,14 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
-import { MotionCard, MotionFade, ParallaxHero, SpringPress } from "@/components/ui/motion";
+import { motion } from "framer-motion";
+import {
+  MotionCard,
+  MotionFade,
+  ParallaxHero,
+  SpringPress,
+} from "@/components/ui/motion";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { Button } from "@/components/ui/button";
+import { ProductModal } from "@/components/catalog/product-modal";
 import { formatCentsBRL } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
 import type { Product, ProductCategory } from "@/types/database";
 
 export type LandingCategory = Pick<ProductCategory, "id" | "name" | "slug">;
+
+const chipSpring = { type: "spring" as const, stiffness: 400, damping: 30 };
 
 export function LandingCatalog({
   products,
@@ -21,6 +30,7 @@ export function LandingCatalog({
   categories: LandingCategory[];
 }) {
   const [cat, setCat] = useState<string>("Todos");
+  const [selected, setSelected] = useState<Product | null>(null);
 
   const tabs = useMemo(() => {
     const withProducts = categories.filter((c) =>
@@ -30,7 +40,6 @@ export function LandingCatalog({
           (p as Product & { category_id?: string | null }).category_id === c.id,
       ),
     );
-    // Show all active categories passed in; prefer those with products, else all
     const list = withProducts.length > 0 ? withProducts : categories;
     return ["Todos", ...list.map((c) => c.name)];
   }, [categories, products]);
@@ -40,8 +49,12 @@ export function LandingCatalog({
     return products.filter((p) => p.category === cat);
   }, [products, cat]);
 
-  function productHref(slug: string) {
-    return `/criar-conta?product=${encodeURIComponent(slug)}`;
+  function openProduct(p: Product) {
+    void trackEvent("product_click", {
+      product_id: p.id,
+      meta: { slug: p.slug, source: "landing" },
+    });
+    setSelected(p);
   }
 
   return (
@@ -52,7 +65,9 @@ export function LandingCatalog({
             <BrandLogo size={40} priority />
             <div>
               <p className="text-sm font-bold tracking-tight">iPlanet Pay</p>
-              <p className="text-xs text-[var(--ink-muted)]">Reserve · Aporte · Retire</p>
+              <p className="text-xs text-[var(--ink-muted)]">
+                Reserve · Aporte · Retire
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -80,11 +95,13 @@ export function LandingCatalog({
             </p>
             <h1 className="max-w-4xl text-5xl font-bold leading-[1.02] tracking-tight text-[var(--ink)] md:text-7xl">
               Escolha o seu Apple.
-              <span className="mt-2 block text-[var(--ink-muted)]">Pague no seu ritmo.</span>
+              <span className="mt-2 block text-[var(--ink-muted)]">
+                Pague no seu ritmo.
+              </span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-[var(--ink-muted)] md:text-xl">
-              Toque em um produto para começar. Depois do login, reserve e aporte via Pix —
-              retire no Itaim Bibi ou São Caetano.
+              Toque em um produto para ver detalhes e simular aportes. Depois,
+              reserve e aporte via Pix — retire no Itaim Bibi ou São Caetano.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="#catalogo">
@@ -102,64 +119,66 @@ export function LandingCatalog({
         </section>
       </ParallaxHero>
 
-      <section id="catalogo" className="mx-auto max-w-6xl px-4 py-14 md:px-8">
+      <section id="catalogo" className="mx-auto max-w-6xl bg-white px-4 py-14 md:px-8">
         <div className="mb-8 flex flex-wrap gap-2">
           {tabs.map((c) => (
-            <button
+            <motion.button
               key={c}
               type="button"
               onClick={() => setCat(c)}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              transition={chipSpring}
               className={
                 cat === c
                   ? "rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
-                  : "rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink-muted)] hover:border-[var(--ink)]/20 hover:bg-[var(--bg-subtle)]"
+                  : "rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink-muted)] hover:border-[var(--ink)]/20"
               }
             >
               {c}
-            </button>
+            </motion.button>
           ))}
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 bg-white sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p, i) => (
             <MotionCard key={p.id} delay={Math.min(i * 0.04, 0.3)}>
-              <Link
-                href={productHref(p.slug)}
-                onClick={() =>
-                  void trackEvent("product_click", {
-                    product_id: p.id,
-                    meta: { slug: p.slug, source: "landing" },
-                  })
-                }
-                className="group block overflow-hidden rounded-[28px] border border-[var(--line)] bg-white shadow-[0_16px_48px_rgba(17,17,17,0.06)] transition hover:border-[var(--accent)]/30 hover:shadow-[0_24px_64px_rgba(255,106,0,0.12)]"
+              <button
+                type="button"
+                onClick={() => openProduct(p)}
+                className="group block w-full overflow-hidden rounded-[28px] border border-[var(--line)] bg-white text-left shadow-[0_8px_32px_rgba(17,17,17,0.04)] transition hover:border-[var(--accent)]/35 hover:shadow-[0_20px_48px_rgba(0,113,227,0.12)]"
               >
-                <div className="relative flex h-56 items-center justify-center bg-[var(--bg-subtle)] p-6">
+                <div className="relative flex h-56 items-center justify-center bg-white p-6">
                   {p.image_url ? (
                     <Image
                       src={p.image_url}
                       alt={p.name}
                       width={280}
                       height={280}
-                      className="h-full w-auto object-contain transition duration-500 group-hover:scale-105"
+                      className="h-full w-auto object-contain mix-blend-multiply transition duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <div className="h-40 w-40 rounded-full bg-[var(--line)]" />
                   )}
                 </div>
-                <div className="space-y-1 px-5 pb-6 pt-4">
+                <div className="space-y-1 bg-white px-5 pb-6 pt-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
                     {p.category ?? "Apple"}
                   </p>
-                  <h3 className="text-xl font-bold tracking-tight text-[var(--ink)]">{p.name}</h3>
+                  <h3 className="text-xl font-bold tracking-tight text-[var(--ink)]">
+                    {p.name}
+                  </h3>
                   <p className="text-sm text-[var(--ink-muted)]">
                     {[p.storage, p.color].filter(Boolean).join(" · ")}
                   </p>
                   <p className="pt-2 text-lg font-semibold text-[var(--ink)]">
                     {formatCentsBRL(p.list_price_cents)}
                   </p>
-                  <p className="text-sm font-semibold text-[var(--accent)]">Reservar</p>
+                  <p className="text-sm font-semibold text-[var(--accent)]">
+                    Ver detalhes
+                  </p>
                 </div>
-              </Link>
+              </button>
             </MotionCard>
           ))}
         </div>
@@ -168,20 +187,25 @@ export function LandingCatalog({
       <section className="bg-[var(--bg-subtle)]">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-20">
           <MotionFade>
-            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Como funciona</h2>
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+              Como funciona
+            </h2>
             <p className="mt-3 max-w-xl text-[var(--ink-muted)]">
-              Mesma experiência das lojas iPlanet, com aporte via Pix no seu ritmo.
+              Mesma experiência das lojas iPlanet, com aporte via Pix no seu
+              ritmo.
             </p>
           </MotionFade>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {[
-              ["01", "Escolha", "Toque no produto que você quer no catálogo."],
+              ["01", "Escolha", "Toque no produto e veja detalhes no popup."],
               ["02", "Aporte via Pix", "Entre, reserve e pague aos poucos."],
               ["03", "Retire", "Com a reserva quitada, retire na loja iPlanet."],
             ].map(([n, t, d], i) => (
               <MotionCard key={n} delay={i * 0.08}>
                 <div className="h-full rounded-[28px] border border-[var(--line)] bg-white p-6 shadow-[0_12px_40px_rgba(17,17,17,0.04)]">
-                  <p className="text-sm font-semibold text-[var(--accent)]">{n}</p>
+                  <p className="text-sm font-semibold text-[var(--accent)]">
+                    {n}
+                  </p>
                   <h3 className="mt-3 text-2xl font-bold">{t}</h3>
                   <p className="mt-2 text-[var(--ink-muted)]">{d}</p>
                 </div>
@@ -193,14 +217,24 @@ export function LandingCatalog({
 
       <section className="border-t border-[var(--line)] bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-8">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Nossas lojas</h2>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Nossas lojas
+          </h2>
           <p className="mt-2 text-[var(--ink-muted)]">
             Atendimento iPlanet em Itaim Bibi e São Caetano.
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {[
-              { name: "Itaim Bibi", city: "São Paulo · SP", address: "Rua Clodomiro Amazonas" },
-              { name: "São Caetano", city: "São Caetano do Sul · SP", address: "Quiosque iPlanet" },
+              {
+                name: "Itaim Bibi",
+                city: "São Paulo · SP",
+                address: "Rua Clodomiro Amazonas",
+              },
+              {
+                name: "São Caetano",
+                city: "São Caetano do Sul · SP",
+                address: "Quiosque iPlanet",
+              },
             ].map((s) => (
               <div
                 key={s.name}
@@ -212,7 +246,9 @@ export function LandingCatalog({
                 <div>
                   <h3 className="text-xl font-bold">{s.name}</h3>
                   <p className="text-[var(--ink-muted)]">{s.city}</p>
-                  <p className="mt-1 text-sm text-[var(--ink-muted)]">{s.address}</p>
+                  <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                    {s.address}
+                  </p>
                 </div>
               </div>
             ))}
@@ -223,6 +259,12 @@ export function LandingCatalog({
       <footer className="border-t border-[var(--line)] bg-white py-8 text-center text-sm text-[var(--ink-muted)]">
         © {new Date().getFullYear()} iPlanet Pay · Itaim Bibi & São Caetano
       </footer>
+
+      <ProductModal
+        product={selected}
+        open={Boolean(selected)}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }

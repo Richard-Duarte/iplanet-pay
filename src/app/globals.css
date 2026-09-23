@@ -3,12 +3,12 @@
 :root {
   --bg: #ffffff;
   --bg-subtle: #f7f7f8;
-  --bg-lavender: #f3f0ff;
+  --bg-lavender: #eef3fb;
   --ink: #111111;
   --ink-muted: #5c5c66;
   --line: #e8e8ec;
-  --accent: #ff6a00;
-  --accent-soft: #fff1e8;
+  --accent: #0071e3;
+  --accent-soft: #e8f2fc;
   --whatsapp: #25d366;
   --success: #16a34a;
   --danger: #dc2626;
@@ -65,7 +65,7 @@ body {
 .glow-lavender {
   background: radial-gradient(
     ellipse 80% 60% at 50% 40%,
-    rgba(243, 240, 255, 0.95) 0%,
+    rgba(232, 242, 252, 0.95) 0%,
     rgba(255, 255, 255, 0) 70%
   );
 }

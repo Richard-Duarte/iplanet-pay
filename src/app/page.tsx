@@ -22,6 +22,8 @@ export default async function LandingPage() {
     color: p.color,
     list_price_cents: p.list_price_cents,
     image_url: p.image_url,
+    description: p.description ?? null,
+    product_images: p.product_images ?? [],
     active: p.active,
     category: p.category,
     category_id: p.category_id,

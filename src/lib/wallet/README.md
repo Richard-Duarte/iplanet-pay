@@ -4,3 +4,6 @@
 - **`wallet_ledger`:** extrato append-only; `amount_cents` com sinal (+crédito / −débito).
 - **Crédito:** nunca no client. Webhook (service_role) ou staff via `admin_confirm_contribution`.
 - **Criação:** `create_contribution` (authenticated, dono, reserva `ativa`, mín. R$5).
+
+## WhatsApp após primeiro aporte
+Após o primeiro `confirmed` por reserva (webhook ou `admin_confirm_contribution`), `notifyFirstAporteWhatsapp` enfileira o template `primeiro_aporte` e, se houver `payment_goals.reminder_at`, agenda `cobranca_lembrete` na `whatsapp_dispatch_queue`. Sem `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID`, o status fica `skipped` (stub).

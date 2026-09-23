@@ -200,6 +200,14 @@ export async function processPixWebhook(params: {
     } catch {
       /* non-fatal */
     }
+    try {
+      const { notifyFirstAporteWhatsapp } = await import(
+        "@/lib/whatsapp/notify"
+      );
+      void notifyFirstAporteWhatsapp(contributionId);
+    } catch {
+      /* non-fatal */
+    }
   }
 
   return {

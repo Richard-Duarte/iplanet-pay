@@ -1,5 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/utils";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { motion, type HTMLMotionProps } from "framer-motion";
+import type { ReactNode } from "react";
 
 type Variant = "primary" | "accent" | "ghost" | "outline" | "whatsapp";
 
@@ -13,12 +16,16 @@ const variants: Record<Variant, string> = {
   whatsapp: "bg-[var(--whatsapp)] text-white hover:opacity-90",
 };
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+const spring = { type: "spring" as const, stiffness: 420, damping: 28 };
+
+export interface ButtonProps
+  extends Omit<HTMLMotionProps<"button">, "children"> {
   variant?: Variant;
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  children?: ReactNode;
 }
 
 export function Button({
@@ -29,6 +36,7 @@ export function Button({
   leftIcon,
   rightIcon,
   children,
+  disabled,
   ...props
 }: ButtonProps) {
   const sizes = {
@@ -38,19 +46,23 @@ export function Button({
   };
 
   return (
-    <button
+    <motion.button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none",
+        "inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--accent)]/25 disabled:opacity-50 disabled:pointer-events-none",
         variants[variant],
         sizes[size],
         fullWidth && "w-full",
         className,
       )}
+      whileHover={disabled ? undefined : { scale: 1.02 }}
+      whileTap={disabled ? undefined : { scale: 0.97 }}
+      transition={spring}
+      disabled={disabled}
       {...props}
     >
       {leftIcon}
       {children}
       {rightIcon}
-    </button>
+    </motion.button>
   );
 }

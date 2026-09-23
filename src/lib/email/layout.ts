@@ -32,7 +32,7 @@ export function emailShell(opts: {
           <tr>
             <td style="padding:28px 32px 8px;text-align:center;">
               <img src="${logo}" width="56" height="56" alt="iPlanet" style="border-radius:14px;display:inline-block;" />
-              <p style="margin:12px 0 0;font-size:13px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FF6A00;">iPlanet Pay</p>
+              <p style="margin:12px 0 0;font-size:13px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#0071e3;">iPlanet Pay</p>
             </td>
           </tr>
           <tr>
@@ -57,5 +57,5 @@ export function emailShell(opts: {
 }
 
 export function ctaButton(label: string, href: string) {
-  return `<a href="${href}" style="display:inline-block;margin-top:8px;padding:14px 28px;background:#FF6A00;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:15px;">${label}</a>`;
+  return `<a href="${href}" style="display:inline-block;margin-top:8px;padding:14px 28px;background:#0071e3;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:15px;">${label}</a>`;
 }

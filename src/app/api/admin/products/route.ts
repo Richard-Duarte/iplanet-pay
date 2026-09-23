@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     color: body.color != null ? String(body.color) : null,
     list_price_cents,
     image_url: body.image_url != null ? String(body.image_url) : null,
+    description: body.description != null ? String(body.description) : null,
     active: body.active !== false,
     category_id: body.category_id ? String(body.category_id) : null,
     new_category_name: body.new_category_name
@@ -68,6 +69,7 @@ export async function PATCH(request: Request) {
     color: body.color != null ? String(body.color) : null,
     list_price_cents,
     image_url: body.image_url != null ? String(body.image_url) : null,
+    description: body.description != null ? String(body.description) : null,
     active: body.active !== false,
     category_id: body.category_id ? String(body.category_id) : null,
     new_category_name: body.new_category_name
