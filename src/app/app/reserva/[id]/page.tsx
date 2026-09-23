@@ -39,7 +39,8 @@ export default async function ReservaDetailPage({
   if (error) {
     return (
       <div className="space-y-8">
-        <PageHeader eyebrow="Reserva" title="Detalhe" />
+        <PageHeader
+        showBack eyebrow="Reserva" title="Detalhe" />
         <EmptyState
           icon={<Package className="h-6 w-6" />}
           title="Não foi possível carregar"
@@ -177,7 +178,11 @@ export default async function ReservaDetailPage({
         ) : null}
 
         {canCancel ? (
-          <CancelReservationButton reservationId={reservation.id} />
+          <CancelReservationButton
+            reservationId={reservation.id}
+            amountPaidCents={reservation.amount_paid_cents}
+            canCancel={reservation.amount_paid_cents === 0}
+          />
         ) : null}
 
         {canConfirmRetirada ? (

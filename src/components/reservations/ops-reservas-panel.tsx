@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, CalendarCheck } from "lucide-react";
+import { Search, CalendarCheck, Plus, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -10,7 +10,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ReservationStatusPill } from "@/components/reservations/status-pill";
 import { CancelReservationButton } from "@/components/reservations/cancel-button";
 import { ConfirmRetiradaButton } from "@/components/reservations/confirm-retirada-button";
+import { ContributionList } from "@/components/wallet/contribution-list";
 import { formatCentsBRL } from "@/lib/utils";
+import type { Contribution } from "@/lib/wallet/types";
 import {
   ALL_RESERVATION_STATUSES,
   STATUS_LABEL,
@@ -18,6 +20,10 @@ import {
   type ReservationOpsRow,
   type ReservationStore,
 } from "@/lib/reservations/types";
+
+function isZerada(r: ReservationOpsRow) {
+  return (r.amount_paid_cents ?? 0) === 0;
+}
 
 export function OpsReservasPanel({
   reservations,
@@ -36,6 +42,10 @@ export function OpsReservasPanel({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [q, setQ] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [contribById, setContribById] = useState<
+    Record<string, Contribution[] | "loading" | "error">
+  >({});
 
   const status = searchParams.get("status") ?? "";
 
@@ -45,6 +55,36 @@ export function OpsReservasPanel({
     else next.delete(key);
     const qs = next.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
+  }
+
+  async function toggleAportes(reservationId: string) {
+    if (expandedId === reservationId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(reservationId);
+    if (contribById[reservationId] && contribById[reservationId] !== "error") {
+      return;
+    }
+    setContribById((prev) => ({ ...prev, [reservationId]: "loading" }));
+    try {
+      const res = await fetch(`/api/reservations/${reservationId}/contributions`);
+      const data = (await res.json()) as {
+        ok?: boolean;
+        contributions?: Contribution[];
+        error?: string;
+      };
+      if (!res.ok || !data.ok) {
+        setContribById((prev) => ({ ...prev, [reservationId]: "error" }));
+        return;
+      }
+      setContribById((prev) => ({
+        ...prev,
+        [reservationId]: data.contributions ?? [],
+      }));
+    } catch {
+      setContribById((prev) => ({ ...prev, [reservationId]: "error" }));
+    }
   }
 
   const filtered = useMemo(() => {
@@ -75,6 +115,54 @@ export function OpsReservasPanel({
     return base;
   }, [reservations]);
 
+  function renderAportes(r: ReservationOpsRow) {
+    if (expandedId !== r.id) return null;
+    const state = contribById[r.id];
+    return (
+      <div className="mt-3 rounded-2xl border border-[var(--line)] bg-[var(--bg-subtle)] px-4 py-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--ink-muted)]">
+          Histórico de aportes
+        </p>
+        {state === "loading" || state == null ? (
+          <p className="text-sm text-[var(--ink-muted)]">Carregando…</p>
+        ) : state === "error" ? (
+          <p className="text-sm text-[var(--danger)]">
+            Não foi possível carregar os aportes.
+          </p>
+        ) : (
+          <ContributionList
+            contributions={state}
+            emptyLabel="Nenhum aporte nesta reserva."
+          />
+        )}
+      </div>
+    );
+  }
+
+  function ClientCell({ r }: { r: ReservationOpsRow }) {
+    const open = expandedId === r.id;
+    return (
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          onClick={() => void toggleAportes(r.id)}
+          className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
+          aria-expanded={open}
+          aria-label={open ? "Ocultar aportes" : "Ver aportes"}
+          title="Ver aportes"
+        >
+          {open ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+        </button>
+        <div className="min-w-0">
+          <p className="font-medium">{r.client?.full_name ?? "Cliente"}</p>
+          <p className="text-xs text-[var(--ink-muted)]">
+            {r.client?.phone ?? r.client?.email ?? "—"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -94,7 +182,7 @@ export function OpsReservasPanel({
         ))}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
+      <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-muted)]" />
           <Input
@@ -117,20 +205,8 @@ export function OpsReservasPanel({
             </option>
           ))}
         </Select>
-        {lockStoreId ? null : (
-          <Select
-            label="Loja"
-            value={searchParams.get("store") ?? ""}
-            onChange={(e) => updateParam("store", e.target.value)}
-          >
-            <option value="">Todas</option>
-            {stores.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
-        )}
+        {/* Filtro de loja mantido só via lockStoreId (legado); loja não aparece na lista */}
+        {!lockStoreId && stores.length === 0 ? null : null}
       </div>
 
       {filtered.length === 0 ? (
@@ -146,13 +222,14 @@ export function OpsReservasPanel({
       ) : (
         <>
           <Card className="hidden overflow-x-auto p-0 md:block">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead className="border-b border-[var(--line)] bg-[var(--bg-subtle)] text-xs uppercase tracking-wide text-[var(--ink-muted)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Cliente</th>
                   <th className="px-4 py-3 font-semibold">Produto</th>
-                  <th className="px-4 py-3 font-semibold">Loja</th>
-                  <th className="px-4 py-3 font-semibold text-right">Pago / Total</th>
+                  <th className="px-4 py-3 font-semibold text-right">
+                    Pago / Total
+                  </th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Data</th>
                   <th className="px-4 py-3 font-semibold text-right">Ações</th>
@@ -160,59 +237,61 @@ export function OpsReservasPanel({
               </thead>
               <tbody>
                 {filtered.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="border-b border-[var(--line)] last:border-0"
-                  >
-                    <td className="px-4 py-3">
-                      <p className="font-medium">
-                        {r.client?.full_name ?? "Cliente"}
-                      </p>
-                      <p className="text-xs text-[var(--ink-muted)]">
-                        {r.client?.phone ?? r.client?.email ?? "—"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="truncate font-medium">
-                        {r.product?.name ?? "Produto"}
-                      </p>
-                      <p className="font-mono text-[10px] text-[var(--ink-muted)]">
-                        #{shortReservationId(r.id)}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-[var(--ink-muted)]">
-                      {r.store?.name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono">
-                      <span className="font-semibold text-[var(--accent)]">
-                        {formatCentsBRL(r.amount_paid_cents)}
-                      </span>
-                      <span className="text-xs text-[var(--ink-muted)]">
-                        {" "}
-                        / {formatCentsBRL(r.list_price_cents)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ReservationStatusPill status={r.status} />
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[var(--ink-muted)]">
-                      {new Date(r.created_at).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col items-end gap-2">
-                        {showCancel && r.status === "ativa" ? (
-                          <CancelReservationButton reservationId={r.id} />
-                        ) : null}
-                        {showRetirada && r.status === "quitada" ? (
-                          <ConfirmRetiradaButton
-                            reservationId={r.id}
-                            productName={r.product?.name}
-                            size="sm"
-                          />
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
+                  <Fragment key={r.id}>
+                    <tr className="border-b border-[var(--line)] last:border-0">
+                      <td className="px-4 py-3">
+                        <ClientCell r={r} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="truncate font-medium">
+                          {r.product?.name ?? "Produto"}
+                        </p>
+                        <p className="font-mono text-[10px] text-[var(--ink-muted)]">
+                          #{shortReservationId(r.id)}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono">
+                        <span className="font-semibold text-[var(--accent)]">
+                          {formatCentsBRL(r.amount_paid_cents)}
+                        </span>
+                        <span className="text-xs text-[var(--ink-muted)]">
+                          {" "}
+                          / {formatCentsBRL(r.list_price_cents)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <ReservationStatusPill status={r.status} />
+                      </td>
+                      <td className="px-4 py-3 text-xs text-[var(--ink-muted)]">
+                        {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col items-end gap-2">
+                          {showCancel && r.status === "ativa" ? (
+                            <CancelReservationButton
+                              reservationId={r.id}
+                              amountPaidCents={r.amount_paid_cents}
+                              canCancel={isZerada(r)}
+                            />
+                          ) : null}
+                          {showRetirada && r.status === "quitada" ? (
+                            <ConfirmRetiradaButton
+                              reservationId={r.id}
+                              productName={r.product?.name}
+                              size="sm"
+                            />
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                    {expandedId === r.id ? (
+                      <tr className="border-b border-[var(--line)]">
+                        <td colSpan={6} className="px-4 pb-4">
+                          {renderAportes(r)}
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -231,15 +310,14 @@ export function OpsReservasPanel({
                   <h3 className="text-lg font-bold tracking-tight">
                     {r.product?.name ?? "Produto"}
                   </h3>
-                  <p className="text-sm text-[var(--ink-muted)]">
-                    {r.client?.full_name ?? "Cliente"}
-                    {r.client?.phone ? ` · ${r.client.phone}` : ""}
-                  </p>
-                  <p className="text-sm text-[var(--ink-muted)]">
-                    {r.store?.name ?? "Loja"} ·{" "}
+                  <div className="mt-2">
+                    <ClientCell r={r} />
+                  </div>
+                  <p className="mt-2 text-sm text-[var(--ink-muted)]">
                     {new Date(r.created_at).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
+                {renderAportes(r)}
                 <p className="text-sm">
                   <span className="font-semibold text-[var(--accent)]">
                     {formatCentsBRL(r.amount_paid_cents)}
@@ -251,7 +329,11 @@ export function OpsReservasPanel({
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {showCancel && r.status === "ativa" ? (
-                    <CancelReservationButton reservationId={r.id} />
+                    <CancelReservationButton
+                      reservationId={r.id}
+                      amountPaidCents={r.amount_paid_cents}
+                      canCancel={isZerada(r)}
+                    />
                   ) : null}
                   {showRetirada && r.status === "quitada" ? (
                     <ConfirmRetiradaButton

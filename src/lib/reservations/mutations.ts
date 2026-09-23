@@ -85,14 +85,10 @@ export async function confirmRetirada(
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Entre para continuar." };
 
-  if (
-    user.role !== "staff" &&
-    user.role !== "admin" &&
-    user.role !== "parceiro"
-  ) {
+  if (user.role !== "admin") {
     return {
       ok: false,
-      error: "Somente staff, admin ou parceiro podem confirmar retirada.",
+      error: "Somente admin pode confirmar retirada.",
     };
   }
 

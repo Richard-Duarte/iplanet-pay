@@ -26,6 +26,8 @@ type FormState = {
   color: string;
   list_price_reais: string;
   image_url: string;
+  /** Extra gallery URLs; first cover is image_url */
+  product_images: string[];
   description: string;
   active: boolean;
   category_id: string;
@@ -41,6 +43,7 @@ const emptyForm = (): FormState => ({
   color: "",
   list_price_reais: "",
   image_url: "",
+  product_images: [],
   description: "",
   active: true,
   category_id: "",
@@ -98,6 +101,7 @@ export function ProdutosAdminPanel({
       color: p.color ?? "",
       list_price_reais: centsToReais(p.list_price_cents),
       image_url: p.image_url ?? "",
+      product_images: (p.product_images ?? []).filter(Boolean),
       description: p.description ?? "",
       active: p.active,
       category_id: p.category_id ?? "",
@@ -129,6 +133,11 @@ export function ProdutosAdminPanel({
       color: form.color || null,
       list_price_cents,
       image_url: form.image_url || null,
+      product_images: form.product_images
+        .map((u) => u.trim())
+        .filter(Boolean)
+        .filter((u) => u !== (form.image_url || "").trim())
+        .filter((u, i, arr) => arr.indexOf(u) === i),
       description: form.description || null,
       active: form.active,
       category_id: creatingNewCat ? null : form.category_id || null,
@@ -305,14 +314,66 @@ export function ProdutosAdminPanel({
               onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
               hint="Gerado automaticamente se vazio"
             />
-            <Input
-              label="URL da imagem"
-              value={form.image_url}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, image_url: e.target.value }))
-              }
-              placeholder="/products/iphone-17.png"
-            />
+            <div className="space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--bg-subtle)] p-4">
+              <div>
+                <p className="text-sm font-semibold">Imagens</p>
+                <p className="text-xs text-[var(--ink-muted)]">
+                  A primeira é a capa (image_url). Demais vão em product_images.
+                </p>
+              </div>
+              <Input
+                label="Capa (URL)"
+                value={form.image_url}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, image_url: e.target.value }))
+                }
+                placeholder="/products/iphone-18-pro.png"
+              />
+              {form.product_images.map((url, idx) => (
+                <div key={idx} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <Input
+                    label={`Imagem ${idx + 2}`}
+                    value={url}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const next = [...f.product_images];
+                        next[idx] = e.target.value;
+                        return { ...f, product_images: next };
+                      })
+                    }
+                    placeholder="/products/..."
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        product_images: f.product_images.filter((_, i) => i !== idx),
+                      }))
+                    }
+                  >
+                    Remover
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                leftIcon={<Plus className="h-4 w-4" />}
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    product_images: [...f.product_images, ""],
+                  }))
+                }
+              >
+                Adicionar imagem
+              </Button>
+            </div>
             <Textarea
               label="Descrição"
               value={form.description}

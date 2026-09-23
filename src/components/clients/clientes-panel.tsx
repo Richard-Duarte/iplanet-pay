@@ -18,12 +18,12 @@ import type {
 import type { Store } from "@/types/database";
 import type { UserRole } from "@/types/auth";
 
-const ROLE_OPTIONS: UserRole[] = ["cliente", "parceiro", "staff", "admin"];
+const ROLE_OPTIONS: Array<"cliente" | "admin"> = ["cliente", "admin"];
 
 const ROLE_TONE: Record<UserRole, "neutral" | "accent" | "lavender"> = {
   cliente: "neutral",
-  parceiro: "lavender",
-  staff: "accent",
+  parceiro: "neutral",
+  staff: "neutral",
   admin: "accent",
 };
 
@@ -52,8 +52,7 @@ export function ClientesPanel({
     initialReservations ?? [],
   );
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [roleDraft, setRoleDraft] = useState<UserRole>("cliente");
-  const [storeDraft, setStoreDraft] = useState<string>("");
+  const [roleDraft, setRoleDraft] = useState<"cliente" | "admin">("cliente");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savingRole, setSavingRole] = useState(false);
@@ -75,8 +74,7 @@ export function ClientesPanel({
 
   async function openDetail(client: ClientListItem) {
     setSelectedId(client.id);
-    setRoleDraft(client.role);
-    setStoreDraft(client.store_id ?? "");
+    setRoleDraft(client.role === "admin" ? "admin" : "cliente");
     setError(null);
     setMessage(null);
     setLoadingDetail(true);
@@ -116,7 +114,7 @@ export function ClientesPanel({
         body: JSON.stringify({
           userId: selected.id,
           role: roleDraft,
-          storeId: roleDraft === "parceiro" ? storeDraft || null : null,
+          storeId: null,
         }),
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
@@ -209,7 +207,7 @@ export function ClientesPanel({
                       label="Papel"
                       value={roleDraft}
                       onChange={(e) =>
-                        setRoleDraft(e.target.value as UserRole)
+                        setRoleDraft(e.target.value as "cliente" | "admin")
                       }
                     >
                       {ROLE_OPTIONS.map((r) => (
@@ -218,21 +216,6 @@ export function ClientesPanel({
                         </option>
                       ))}
                     </Select>
-                    {roleDraft === "parceiro" ? (
-                      <Select
-                        label="Loja do parceiro"
-                        value={storeDraft}
-                        onChange={(e) => setStoreDraft(e.target.value)}
-                        hint="Opcional — sem loja o parceiro vê empty state de estoque."
-                      >
-                        <option value="">Sem loja vinculada</option>
-                        {stores.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : null}
                     <Button
                       size="sm"
                       variant="accent"

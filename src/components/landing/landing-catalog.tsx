@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AtSign, MapPin, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -49,6 +50,8 @@ const STATS = [
   { value: "2", label: "unidades: Itaim e São Caetano" },
 ] as const;
 
+const HERO_PRODUCT_SLUG = "iphone-18-pro-256";
+
 export function LandingCatalog({
   products,
   categories,
@@ -58,6 +61,31 @@ export function LandingCatalog({
 }) {
   const [cat, setCat] = useState<string>("Todos");
   const [selected, setSelected] = useState<Product | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const slug = searchParams.get("product");
+    if (!slug || products.length === 0) return;
+    const match = products.find((p) => p.slug === slug);
+    if (match) setSelected(match);
+  }, [searchParams, products]);
+
+  function openHeroProduct() {
+    const match =
+      products.find((p) => p.slug === HERO_PRODUCT_SLUG) ??
+      products.find((p) => p.slug.startsWith("iphone-18-pro")) ??
+      null;
+    if (match) {
+      void trackEvent("product_click", {
+        product_id: match.id,
+        meta: { slug: match.slug, source: "landing_hero" },
+      });
+      setSelected(match);
+      document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" });
+  }
 
   const tabs = useMemo(() => {
     const withProducts = categories.filter((c) =>
@@ -86,7 +114,7 @@ export function LandingCatalog({
 
   return (
     <div className="min-h-screen bg-white text-[var(--ink)]">
-      <header className="sticky top-0 z-30 border-b border-white/40 bg-white/40 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-black/5 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
           <BrandLogo variant="wordmark" height={52} priority />
           <div className="flex items-center gap-2">
@@ -144,17 +172,47 @@ export function LandingCatalog({
                   Ver catálogo
                 </Button>
               </Link>
-              <Link href="#lojas">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white/40 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
-                >
-                  Saiba mais
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/40 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+                onClick={openHeroProduct}
+              >
+                Saiba mais
+              </Button>
             </div>
           </MotionFade>
+        </div>
+      </section>
+
+      <section id="como-funciona" className="bg-[var(--bg-subtle)]">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-20">
+          <MotionFade>
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+              Como funciona
+            </h2>
+            <p className="mt-3 max-w-xl text-[var(--ink-muted)]">
+              Mesma experiência das lojas iPlanet, com aporte via Pix no seu
+              ritmo.
+            </p>
+          </MotionFade>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {[
+              ["01", "Escolha", "Toque no produto e veja detalhes e defina uma meta."],
+              ["02", "Aporte via Pix", "Entre, reserve e pague aos poucos sem juros."],
+              ["03", "Retire", "Com a reserva quitada, retire na loja iPlanet."],
+            ].map(([n, t, d], i) => (
+              <MotionCard key={n} delay={i * 0.08}>
+                <div className="h-full rounded-[28px] border border-[var(--line)] bg-white p-6 shadow-[0_12px_40px_rgba(17,17,17,0.04)]">
+                  <p className="text-sm font-semibold text-[var(--accent)]">
+                    {n}
+                  </p>
+                  <h3 className="mt-3 text-2xl font-bold">{t}</h3>
+                  <p className="mt-2 text-[var(--ink-muted)]">{d}</p>
+                </div>
+              </MotionCard>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -232,37 +290,6 @@ export function LandingCatalog({
               </button>
             </MotionCard>
           ))}
-        </div>
-      </section>
-
-      <section className="bg-[var(--bg-subtle)]">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-20">
-          <MotionFade>
-            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-              Como funciona
-            </h2>
-            <p className="mt-3 max-w-xl text-[var(--ink-muted)]">
-              Mesma experiência das lojas iPlanet, com aporte via Pix no seu
-              ritmo.
-            </p>
-          </MotionFade>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {[
-              ["01", "Escolha", "Toque no produto e veja detalhes no popup."],
-              ["02", "Aporte via Pix", "Entre, reserve e pague aos poucos."],
-              ["03", "Retire", "Com a reserva quitada, retire na loja iPlanet."],
-            ].map(([n, t, d], i) => (
-              <MotionCard key={n} delay={i * 0.08}>
-                <div className="h-full rounded-[28px] border border-[var(--line)] bg-white p-6 shadow-[0_12px_40px_rgba(17,17,17,0.04)]">
-                  <p className="text-sm font-semibold text-[var(--accent)]">
-                    {n}
-                  </p>
-                  <h3 className="mt-3 text-2xl font-bold">{t}</h3>
-                  <p className="mt-2 text-[var(--ink-muted)]">{d}</p>
-                </div>
-              </MotionCard>
-            ))}
-          </div>
         </div>
       </section>
 

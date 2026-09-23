@@ -78,15 +78,18 @@ export function ReferralSettingsForm({
 
 export function SupportAndAgentSettingsForm({
   initialWhatsapp,
+  initialWhatsappAdmin,
   initialAgentEnabled,
-  telegramConfigured,
+  whatsappAdminConfigured,
 }: {
   initialWhatsapp: string;
+  initialWhatsappAdmin: string;
   initialAgentEnabled: boolean;
-  telegramConfigured: boolean;
+  whatsappAdminConfigured: boolean;
 }) {
   const router = useRouter();
   const [whatsapp, setWhatsapp] = useState(initialWhatsapp);
+  const [whatsappAdmin, setWhatsappAdmin] = useState(initialWhatsappAdmin);
   const [agentEnabled, setAgentEnabled] = useState(initialAgentEnabled);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,10 +101,20 @@ export function SupportAndAgentSettingsForm({
     setError(null);
     setMessage(null);
     try {
-      const a = await saveSetting("whatsapp_support", whatsapp.replace(/\D/g, ""));
-      const b = await saveSetting("agent_enabled", agentEnabled ? "true" : "false");
-      if (!a.ok || !b.ok) {
-        setError(a.error ?? b.error ?? "Falha ao salvar.");
+      const a = await saveSetting(
+        "whatsapp_support",
+        whatsapp.replace(/\D/g, ""),
+      );
+      const b = await saveSetting(
+        "whatsapp_admin",
+        whatsappAdmin.replace(/\D/g, ""),
+      );
+      const c = await saveSetting(
+        "agent_enabled",
+        agentEnabled ? "true" : "false",
+      );
+      if (!a.ok || !b.ok || !c.ok) {
+        setError(a.error ?? b.error ?? c.error ?? "Falha ao salvar.");
         return;
       }
       setMessage("Salvo.");
@@ -118,7 +131,8 @@ export function SupportAndAgentSettingsForm({
       <div>
         <h3 className="text-lg font-bold tracking-tight">Suporte & Agente</h3>
         <p className="mt-1 text-sm text-[var(--ink-muted)]">
-          WhatsApp para handoff do FAQ e toggles do agente (chaves depois).
+          WhatsApp para handoff do FAQ e canal do agente com o admin do sistema
+          (sem Telegram).
         </p>
       </div>
       <form className="space-y-3" onSubmit={onSubmit}>
@@ -128,6 +142,13 @@ export function SupportAndAgentSettingsForm({
           onChange={(e) => setWhatsapp(e.target.value)}
           placeholder="5511999999999"
           hint="Usado em wa.me/&lt;digits&gt; no chat FAQ"
+        />
+        <Input
+          label="WhatsApp admin (agente AI)"
+          value={whatsappAdmin}
+          onChange={(e) => setWhatsappAdmin(e.target.value)}
+          placeholder="5511999999999"
+          hint="Número do admin do sistema para o agente falar via WhatsApp"
         />
         <label className="flex items-center gap-3 text-sm font-semibold">
           <input
@@ -139,12 +160,17 @@ export function SupportAndAgentSettingsForm({
           agent_enabled
         </label>
         <p className="text-sm text-[var(--ink-muted)]">
-          telegram_bot_configured:{" "}
-          <strong>{telegramConfigured ? "sim (token no env)" : "não"}</strong>
+          whatsapp_admin_channel:{" "}
+          <strong>
+            {whatsappAdminConfigured
+              ? "configurado (número e/ou WHATSAPP_TOKEN)"
+              : "não"}
+          </strong>
         </p>
         <p className="rounded-2xl bg-[var(--bg-subtle)] px-4 py-3 text-sm text-[var(--ink-muted)]">
-          Conecte as chaves (Telegram / AGENT_API_KEY / Resend) quando o produto
-          estiver 100%. Até lá, rotas respondem 503 com mensagem clara.
+          Conecte WHATSAPP_* / AGENT_API_KEY / Resend quando o produto estiver
+          100%. Telegram foi removido — o agente usa WhatsApp com o admin.
+          Rotas respondem 503 com mensagem clara até as chaves existirem.
         </p>
         {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
         {message ? <p className="text-sm text-[var(--accent)]">{message}</p> : null}

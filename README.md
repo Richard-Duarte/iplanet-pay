@@ -20,7 +20,7 @@ UI 100% pt-BR · accent `#0071e3` · estética Apple-premium.
 
 ```bash
 cp .env.example .env.local
-# preencha Supabase; deixe MP/AI/Telegram/Resend vazios até o produto 100%
+# preencha Supabase; deixe MP/AI/WhatsApp/Resend vazios até o produto 100%
 npm install
 npm run dev
 ```
@@ -31,11 +31,11 @@ Abra [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 - Landing com catálogo (hero) + deep link `?product=slug` → auth → reserva
 - Estoque infinito (RPCs sem hold em `store_stock`; UI de estoque removida)
-- Back button consistente + logo `public/logo-iplanet.png`
+- Logo wordmark `public/logo-iplanet-pay.png` (nav); painéis sem BackButton (menu lateral)
 - Motion (page transitions, cards, parallax)
 - Admin Dashboards (`/admin/dashboards`) + `analytics_events`
 - FAQ chat + WhatsApp handoff (`app_settings.whatsapp_support`)
-- Stubs agente/Telegram (`/api/agent/*`) — 503 sem chaves
+- Stubs agente via WhatsApp admin (`/api/agent/*`) — 503 sem chaves; Telegram removido
 - E-mails brandados (confirm / aporte / lembrete 30d) + `email_outbox` + cron stub
 
 ## Bloqueado em chaves (não inventar)
@@ -44,8 +44,8 @@ Abra [http://127.0.0.1:3000](http://127.0.0.1:3000).
 |-------|-----|
 | `MERCADOPAGO_*` | Pix real |
 | `RESEND_API_KEY` | Envio real de e-mail (senão outbox) |
-| `TELEGRAM_BOT_TOKEN` / `AGENT_API_KEY` | Agente |
-| `CRON_SECRET` | Lembrete 30 dias |
+| `WHATSAPP_*` / `AGENT_API_KEY` | Agente (WhatsApp admin) |
+| `CRON_SECRET` | Lembrete + auto-cancel zeradas 30d |
 | `SUPABASE_SERVICE_ROLE_KEY` | Webhooks Pix + outbox + cron RPC |
 
 ## E-mails
@@ -63,9 +63,11 @@ Abra [http://127.0.0.1:3000](http://127.0.0.1:3000).
 | `/entrar` · `/criar-conta` | Auth (+ `?product=`) |
 | `/app/*` | Cliente |
 | `/admin/dashboards` | Métricas |
-| `/admin/config` | WhatsApp, agente, lojas |
+| `/admin/config` | WhatsApp, agente, gateways |
 | `/admin/emails/preview` | QA e-mails |
 
 ## Migrations
 
-`supabase/migrations/001` … `012` — projeto live `zjnikfrledckmjahwnsb`.
+`supabase/migrations/001` … `017` — projeto live `zjnikfrledckmjahwnsb`.
+
+Cron stale: `GET/POST /api/cron/stale-reservations` com `Authorization: Bearer $CRON_SECRET`.

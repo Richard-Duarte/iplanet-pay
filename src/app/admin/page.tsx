@@ -6,7 +6,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import {
   CreditCard,
   Settings,
-  Trophy,
   BarChart3,
   Users,
   Gift,
@@ -41,7 +40,7 @@ export default async function AdminPage() {
       <PageHeader
         eyebrow="Plataforma"
         title="Admin"
-        description="Overview financeiro, lojas, gateways e config."
+        description="Overview financeiro, gateways e config."
         size="xl"
       />
 
@@ -174,7 +173,7 @@ export default async function AdminPage() {
           <div>
             <h2 className="text-xl font-bold tracking-tight">Configurações</h2>
             <p className="mt-1 text-sm text-[var(--ink-muted)]">
-              Lojas, status de gateways (env) e bônus de indicação.
+              Status de gateways (env) e bônus de indicação.
             </p>
           </div>
           <Link href="/admin/config">
@@ -197,18 +196,6 @@ export default async function AdminPage() {
           </Link>
         </Card>
       </div>
-
-      <section id="sorteios" className="mt-8">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Sorteios</h2>
-          <Pill>em breve</Pill>
-        </div>
-        <EmptyState
-          icon={<Trophy className="h-6 w-6" />}
-          title="Campanhas e sorteios"
-          description="Fora do escopo desta fase — não inventamos premiações."
-        />
-      </section>
     </div>
   );
 }

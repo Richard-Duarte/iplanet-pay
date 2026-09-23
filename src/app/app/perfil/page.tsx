@@ -15,6 +15,7 @@ export default async function PerfilPage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        showBack
         eyebrow="Conta"
         title="Perfil"
         description="Seus dados e preferências."

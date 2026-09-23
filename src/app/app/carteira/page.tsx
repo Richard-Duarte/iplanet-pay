@@ -34,6 +34,7 @@ export default async function CarteiraPage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        showBack
         eyebrow="Financeiro"
         title="Carteira"
         description="Extrato de aportes Pix e lançamentos da carteira."

@@ -1,9 +1,10 @@
-import { PanelChrome } from "@/components/panels/panel-chrome";
+import { redirect } from "next/navigation";
 
+/** Parceiro descontinuado — apenas cliente e admin. */
 export default function ParceiroLayout({
-  children,
+  children: _children,
 }: {
   children: React.ReactNode;
 }) {
-  return <PanelChrome role="parceiro">{children}</PanelChrome>;
+  redirect("/entrar");
 }

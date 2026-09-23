@@ -6,10 +6,16 @@ export type ClientMutationResult =
   | { ok: true }
   | { ok: false; error: string };
 
+/** Roles still present in DB enum; UI only assigns cliente|admin. */
 const ROLES: UserRole[] = ["cliente", "parceiro", "staff", "admin"];
+const ASSIGNABLE: UserRole[] = ["cliente", "admin"];
 
 export function isUserRole(v: string): v is UserRole {
   return (ROLES as string[]).includes(v);
+}
+
+export function isAssignableRole(v: string): v is "cliente" | "admin" {
+  return (ASSIGNABLE as string[]).includes(v);
 }
 
 export async function adminSetUserRole(input: {
@@ -19,7 +25,12 @@ export async function adminSetUserRole(input: {
 }): Promise<ClientMutationResult> {
   const { userId, role, storeId = null } = input;
   if (!userId) return { ok: false, error: "Usuário inválido." };
-  if (!isUserRole(role)) return { ok: false, error: "Papel inválido." };
+  if (!isAssignableRole(role)) {
+    return {
+      ok: false,
+      error: "Papel inválido. Use apenas cliente ou admin.",
+    };
+  }
 
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Entre para continuar." };
@@ -37,7 +48,7 @@ export async function adminSetUserRole(input: {
     const { error } = await supabase.rpc("admin_set_user_role", {
       p_user_id: userId,
       p_role: role,
-      p_store_id: role === "parceiro" ? storeId : null,
+      p_store_id: null,
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };

@@ -28,6 +28,7 @@ export default async function CriarContaPage({
           title="Criar conta"
           description="Reserve seu Apple e pague no seu ritmo."
           size="md"
+          showBack
           backFallback="/"
         />
         <Card className="mt-8">

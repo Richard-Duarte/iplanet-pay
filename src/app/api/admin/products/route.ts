@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { createProduct, updateProduct } from "@/lib/catalog/admin-products";
 
+function parseProductImages(body: Record<string, unknown>): string[] | null {
+  if (!Array.isArray(body.product_images)) return null;
+  return body.product_images
+    .map((u) => String(u ?? "").trim())
+    .filter(Boolean);
+}
+
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
   try {
@@ -22,6 +29,7 @@ export async function POST(request: Request) {
     color: body.color != null ? String(body.color) : null,
     list_price_cents,
     image_url: body.image_url != null ? String(body.image_url) : null,
+    product_images: parseProductImages(body) ?? undefined,
     description: body.description != null ? String(body.description) : null,
     active: body.active !== false,
     category_id: body.category_id ? String(body.category_id) : null,
@@ -69,6 +77,7 @@ export async function PATCH(request: Request) {
     color: body.color != null ? String(body.color) : null,
     list_price_cents,
     image_url: body.image_url != null ? String(body.image_url) : null,
+    product_images: parseProductImages(body) ?? undefined,
     description: body.description != null ? String(body.description) : null,
     active: body.active !== false,
     category_id: body.category_id ? String(body.category_id) : null,

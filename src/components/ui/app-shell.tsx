@@ -10,6 +10,8 @@ interface AppShellProps {
   sidebarItems?: SidebarItem[];
   sidebarFooter?: ReactNode;
   topBar?: ReactNode;
+  mobileMenuOpen?: boolean;
+  onMobileMenuOpenChange?: (open: boolean) => void;
 }
 
 export function AppShell({
@@ -20,10 +22,12 @@ export function AppShell({
   sidebarItems = [],
   sidebarFooter,
   topBar,
+  mobileMenuOpen,
+  onMobileMenuOpenChange,
 }: AppShellProps) {
   if (variant === "cliente") {
     return (
-      <div className="min-h-screen bg-[var(--bg)]">
+      <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
         <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 md:px-8 md:pb-10">
           {topBar}
           {children}
@@ -34,14 +38,16 @@ export function AppShell({
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg-subtle)]">
+    <div className="flex min-h-screen overflow-x-hidden bg-[var(--bg-subtle)]">
       <Sidebar
         title={sidebarTitle ?? "Painel"}
         subtitle={sidebarSubtitle}
         items={sidebarItems}
         footer={sidebarFooter}
+        mobileOpen={mobileMenuOpen}
+        onMobileOpenChange={onMobileMenuOpenChange}
       />
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         {topBar ? (
           <div className="border-b border-[var(--line)] bg-white px-4 py-4 md:px-8">
             {topBar}

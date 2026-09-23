@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { listCatalogProducts } from "@/lib/catalog/products";
 import { listCategories } from "@/lib/catalog/categories";
 import { LandingCatalog } from "@/components/landing/landing-catalog";
@@ -38,10 +39,12 @@ export default async function LandingPage() {
   return (
     <>
       <PageViewTracker path="/" />
-      <LandingCatalog
-        products={landingProducts as never}
-        categories={landingCategories}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <LandingCatalog
+          products={landingProducts as never}
+          categories={landingCategories}
+        />
+      </Suspense>
       <FaqChat whatsappDigits={settings.whatsapp_support} />
     </>
   );

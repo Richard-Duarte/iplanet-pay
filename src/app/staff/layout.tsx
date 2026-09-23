@@ -1,9 +1,10 @@
-import { PanelChrome } from "@/components/panels/panel-chrome";
+import { redirect } from "next/navigation";
 
+/** Staff descontinuado — apenas cliente e admin. */
 export default function StaffLayout({
-  children,
+  children: _children,
 }: {
   children: React.ReactNode;
 }) {
-  return <PanelChrome role="staff">{children}</PanelChrome>;
+  redirect("/entrar");
 }

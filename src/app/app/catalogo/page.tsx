@@ -36,7 +36,8 @@ export default async function CatalogoPage({
         eyebrow="Produtos"
         title="Catálogo"
         description="Escolha o aparelho e a loja de retirada. Estoque sempre disponível."
-        backFallback="/app"
+        showBack
+          backFallback="/app"
       />
 
       {error ? (

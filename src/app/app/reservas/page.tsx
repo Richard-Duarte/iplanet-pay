@@ -36,6 +36,7 @@ export default async function MinhasReservasPage({
   return (
     <div className="space-y-8">
       <PageHeader
+        showBack
         eyebrow="Cliente"
         title="Minhas reservas"
         description="Todas as suas reservas — filtre por status e abra o detalhe."

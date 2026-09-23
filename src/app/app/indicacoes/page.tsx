@@ -32,6 +32,7 @@ export default async function IndicacoesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        showBack
         eyebrow="Programa"
         title="Indicações"
         description="Convide amigos e acompanhe recompensas."

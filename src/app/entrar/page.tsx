@@ -30,6 +30,7 @@ export default async function EntrarPage({
           title="Entrar"
           description="Continue sua reserva ou gerencie a loja."
           size="md"
+          showBack
           backFallback="/"
         />
         <Card className="mt-8">

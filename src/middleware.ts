@@ -40,6 +40,11 @@ function redirectTo(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Parceiro / staff panels removed — only cliente + admin
+  if (pathname.startsWith("/parceiro") || pathname.startsWith("/staff")) {
+    return redirectTo(request, "/entrar");
+  }
+
   if (USE_MOCK_AUTH) {
     const user = parseMockSession(request.cookies.get(MOCK_COOKIE)?.value);
 

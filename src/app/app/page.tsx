@@ -32,6 +32,7 @@ export default async function ClienteHomePage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        showBack
         eyebrow="Sua reserva"
         title="Continue no seu ritmo"
         description="Acompanhe o aporte, pague com Pix e explore o catálogo."

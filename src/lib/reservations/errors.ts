@@ -21,14 +21,20 @@ export function mapReservationError(message: string | null | undefined): string 
   if (m.includes("não pode cancelar") || m.includes("nao pode cancelar")) {
     return "Você não pode cancelar esta reserva.";
   }
+  if (m.includes("zerada") || m.includes("sem aportes") || m.includes("já possui aporte")) {
+    return "Só é possível cancelar reservas zeradas (sem aportes pagos).";
+  }
   if (m.includes("própria loja") || m.includes("propria loja")) {
-    return "Parceiro só pode confirmar retirada da própria loja.";
+    return "Somente admin pode confirmar retirada.";
   }
   if (m.includes("confirmar retirada") || m.includes("retirada de reservas")) {
     return "Só é possível confirmar retirada de reservas quitadas.";
   }
-  if (m.includes("staff, admin ou parceiro")) {
-    return "Somente staff, admin ou parceiro podem confirmar retirada.";
+  if (
+    m.includes("staff, admin ou parceiro") ||
+    m.includes("somente admin")
+  ) {
+    return "Somente admin pode confirmar retirada.";
   }
   if (m.includes("trocar reservas ativas") || m.includes("só é possível trocar")) {
     return "Só é possível trocar reservas ativas.";

@@ -20,7 +20,7 @@ export function PageHeader({
   actions,
   className,
   size = "lg",
-  showBack = true,
+  showBack = false,
   backFallback = "/",
 }: PageHeaderProps) {
   const titleSize =

@@ -10,8 +10,6 @@ import type { UserRole } from "@/types/auth";
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
   { role: "cliente", label: "Cliente" },
-  { role: "parceiro", label: "Parceiro" },
-  { role: "staff", label: "Staff" },
   { role: "admin", label: "Admin" },
 ];
 
