@@ -97,13 +97,23 @@ export function ParallaxHero({
   );
 }
 
-export function PageTransition({ children }: { children: ReactNode }) {
+/** Material decelerate: snappy enter with slight fade + slide. */
+const materialDecelerate = [0.4, 0.0, 0.2, 1] as const;
+
+export function PageTransition({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      className={className}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.2, ease: materialDecelerate }}
     >
       {children}
     </motion.div>
