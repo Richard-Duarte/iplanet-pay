@@ -17,6 +17,10 @@ import { ProductModal } from "@/components/catalog/product-modal";
 import { formatCentsBRL } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
 import type { Product, ProductCategory } from "@/types/database";
+import { ComoFuncionaReveal } from "@/components/landing/como-funciona-reveal";
+import { VelocityCatalogCarousel } from "@/components/landing/velocity-catalog-carousel";
+import { Experiencia3dSection } from "@/components/landing/iphone-3d-viewer";
+import { LiquidGlassFooter } from "@/components/landing/liquid-glass-footer";
 
 export type LandingCategory = Pick<ProductCategory, "id" | "name" | "slug">;
 
@@ -61,6 +65,7 @@ export function LandingCatalog({
 }) {
   const [cat, setCat] = useState<string>("Todos");
   const [selected, setSelected] = useState<Product | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -185,119 +190,114 @@ export function LandingCatalog({
         </div>
       </section>
 
-      <section id="como-funciona" className="bg-[var(--bg-subtle)]">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-20">
+      <ComoFuncionaReveal />
+
+      <section id="catalogo" className="overflow-hidden bg-white py-14 md:py-20">
+        <div className="mx-auto max-w-6xl px-4 md:px-8">
           <MotionFade>
-            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-              Como funciona
-            </h2>
-            <p className="mt-3 max-w-xl text-[var(--ink-muted)]">
-              Mesma experiência das lojas iPlanet, com aporte via Pix no seu
-              ritmo.
-            </p>
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                  Catálogo iPlanet
+                </p>
+                <h2 className="max-w-3xl text-4xl font-bold tracking-tight md:text-5xl">
+                  Escolha o seu Apple.
+                  <span className="mt-1 block text-[var(--ink-muted)]">
+                    Pague no seu ritmo.
+                  </span>
+                </h2>
+              </div>
+              <Button
+                variant="accent"
+                size="lg"
+                onClick={() => setShowAll((v) => !v)}
+              >
+                {showAll ? "Ver carrossel" : "Ver todos"}
+              </Button>
+            </div>
           </MotionFade>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {[
-              ["01", "Escolha", "Toque no produto e veja detalhes e defina uma meta."],
-              ["02", "Aporte via Pix", "Entre, reserve e pague aos poucos sem juros."],
-              ["03", "Retire", "Com a reserva quitada, retire na loja iPlanet."],
-            ].map(([n, t, d], i) => (
-              <MotionCard key={n} delay={i * 0.08}>
-                <div className="h-full rounded-[28px] border border-[var(--line)] bg-white p-6 shadow-[0_12px_40px_rgba(17,17,17,0.04)]">
-                  <p className="text-sm font-semibold text-[var(--accent)]">
-                    {n}
-                  </p>
-                  <h3 className="mt-3 text-2xl font-bold">{t}</h3>
-                  <p className="mt-2 text-[var(--ink-muted)]">{d}</p>
-                </div>
-              </MotionCard>
+
+          <div className="mb-8 mt-8 flex flex-wrap gap-2">
+            {tabs.map((c) => (
+              <motion.button
+                key={c}
+                type="button"
+                onClick={() => {
+                  setCat(c);
+                  setShowAll(false);
+                }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                transition={chipSpring}
+                className={
+                  cat === c
+                    ? "rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
+                    : "rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink-muted)] hover:border-[var(--ink)]/20"
+                }
+              >
+                {c}
+              </motion.button>
             ))}
           </div>
         </div>
+
+        {!showAll ? (
+          <div className="mx-auto max-w-6xl px-4 md:px-8">
+            <VelocityCatalogCarousel
+              products={filtered}
+              onSelect={openProduct}
+            />
+          </div>
+        ) : (
+          <div className="mx-auto grid max-w-6xl gap-5 px-4 sm:grid-cols-2 md:px-8 lg:grid-cols-3">
+            {filtered.map((p, i) => (
+              <MotionCard key={p.id} delay={Math.min(i * 0.04, 0.3)}>
+                <button
+                  type="button"
+                  onClick={() => openProduct(p)}
+                  className="group block w-full overflow-hidden rounded-[28px] border border-[var(--line)] bg-white text-left shadow-[0_8px_32px_rgba(17,17,17,0.04)] transition hover:border-[var(--accent)]/35 hover:shadow-[0_20px_48px_rgba(0,113,227,0.12)]"
+                >
+                  <div className="relative flex h-56 items-center justify-center bg-white p-6">
+                    {p.image_url ? (
+                      <Image
+                        src={p.image_url}
+                        alt={p.name}
+                        width={280}
+                        height={280}
+                        className="h-full w-auto object-contain mix-blend-multiply transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="h-40 w-40 rounded-full bg-[var(--line)]" />
+                    )}
+                  </div>
+                  <div className="space-y-1 bg-white px-5 pb-6 pt-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                      {p.category ?? "Apple"}
+                    </p>
+                    <h3 className="text-xl font-bold tracking-tight text-[var(--ink)]">
+                      {p.name}
+                    </h3>
+                    <p className="text-sm text-[var(--ink-muted)]">
+                      {[p.storage, p.color].filter(Boolean).join(" · ")}
+                    </p>
+                    <p className="pt-2 text-lg font-semibold text-[var(--ink)]">
+                      {formatCentsBRL(p.list_price_cents)}
+                    </p>
+                    <p className="text-sm font-semibold text-[var(--accent)]">
+                      Ver detalhes
+                    </p>
+                  </div>
+                </button>
+              </MotionCard>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section id="catalogo" className="mx-auto max-w-6xl bg-white px-4 py-14 md:px-8">
-        <MotionFade>
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
-            Catálogo iPlanet
-          </p>
-          <h2 className="max-w-3xl text-4xl font-bold tracking-tight md:text-5xl">
-            Escolha o seu Apple.
-            <span className="mt-1 block text-[var(--ink-muted)]">
-              Pague no seu ritmo.
-            </span>
-          </h2>
-        </MotionFade>
-
-        <div className="mb-8 mt-8 flex flex-wrap gap-2">
-          {tabs.map((c) => (
-            <motion.button
-              key={c}
-              type="button"
-              onClick={() => setCat(c)}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              transition={chipSpring}
-              className={
-                cat === c
-                  ? "rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
-                  : "rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink-muted)] hover:border-[var(--ink)]/20"
-              }
-            >
-              {c}
-            </motion.button>
-          ))}
-        </div>
-
-        <div className="grid gap-5 bg-white sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p, i) => (
-            <MotionCard key={p.id} delay={Math.min(i * 0.04, 0.3)}>
-              <button
-                type="button"
-                onClick={() => openProduct(p)}
-                className="group block w-full overflow-hidden rounded-[28px] border border-[var(--line)] bg-white text-left shadow-[0_8px_32px_rgba(17,17,17,0.04)] transition hover:border-[var(--accent)]/35 hover:shadow-[0_20px_48px_rgba(0,113,227,0.12)]"
-              >
-                <div className="relative flex h-56 items-center justify-center bg-white p-6">
-                  {p.image_url ? (
-                    <Image
-                      src={p.image_url}
-                      alt={p.name}
-                      width={280}
-                      height={280}
-                      className="h-full w-auto object-contain mix-blend-multiply transition duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="h-40 w-40 rounded-full bg-[var(--line)]" />
-                  )}
-                </div>
-                <div className="space-y-1 bg-white px-5 pb-6 pt-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-                    {p.category ?? "Apple"}
-                  </p>
-                  <h3 className="text-xl font-bold tracking-tight text-[var(--ink)]">
-                    {p.name}
-                  </h3>
-                  <p className="text-sm text-[var(--ink-muted)]">
-                    {[p.storage, p.color].filter(Boolean).join(" · ")}
-                  </p>
-                  <p className="pt-2 text-lg font-semibold text-[var(--ink)]">
-                    {formatCentsBRL(p.list_price_cents)}
-                  </p>
-                  <p className="text-sm font-semibold text-[var(--accent)]">
-                    Ver detalhes
-                  </p>
-                </div>
-              </button>
-            </MotionCard>
-          ))}
-        </div>
-      </section>
+      <Experiencia3dSection />
 
       {/* Quem é a iPlanet / Nossas lojas — Totens content */}
-      <section
-        id="lojas"
-        className="border-t border-[var(--line)] bg-white"
-      >
+      <section id="lojas" className="border-t border-[var(--line)] bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-20">
           <MotionFade>
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
@@ -417,9 +417,7 @@ export function LandingCatalog({
         </div>
       </section>
 
-      <footer className="border-t border-[var(--line)] bg-white py-8 text-center text-sm text-[var(--ink-muted)]">
-        © {new Date().getFullYear()} iPlanet Pay · Itaim Bibi & São Caetano
-      </footer>
+      <LiquidGlassFooter />
 
       <ProductModal
         product={selected}

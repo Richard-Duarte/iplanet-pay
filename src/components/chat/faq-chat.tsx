@@ -50,7 +50,9 @@ export function FaqChat({
   }
 
   useEffect(() => {
-    // no-op mount
+    const open = () => setOpen(true);
+    window.addEventListener("iplanet:open-faq", open);
+    return () => window.removeEventListener("iplanet:open-faq", open);
   }, []);
 
   return (
