@@ -1,23 +1,50 @@
 "use client";
 
-/** CSS device stage inspired by Framer device-mockups — laptop + tablet + phone with floor reflections. */
-export function DeviceMockupStage() {
+/** Full-bleed Framer-style device stage — MacBook + iPad + large iPhone fills the panel. */
+export function DeviceMockupStage({
+  fullBleed = false,
+}: {
+  fullBleed?: boolean;
+}) {
   return (
-    <div className="relative mx-auto w-full max-w-3xl select-none">
+    <div
+      className={
+        fullBleed
+          ? "pointer-events-none absolute inset-0 select-none overflow-hidden"
+          : "relative mx-auto w-full max-w-3xl select-none"
+      }
+      aria-hidden={fullBleed || undefined}
+    >
       <div
-        className="pointer-events-none absolute inset-x-0 top-1/3 h-2/3 rounded-full opacity-60 blur-3xl"
+        className={
+          fullBleed
+            ? "pointer-events-none absolute inset-x-0 bottom-0 top-[12%] opacity-70 blur-3xl"
+            : "pointer-events-none absolute inset-x-0 top-1/3 h-2/3 rounded-full opacity-60 blur-3xl"
+        }
         style={{
           background:
-            "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.12), transparent 65%)",
+            "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.14), transparent 65%)",
         }}
         aria-hidden
       />
 
-      <div className="relative flex items-end justify-center gap-3 px-2 md:gap-5">
-        {/* Laptop */}
-        <div className="relative w-[46%] max-w-[280px]">
-          <div className="rounded-[10px] border border-[#2a2a2e] bg-[#1a1a1c] p-[6px] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-            <div className="relative aspect-[16/10] overflow-hidden rounded-[6px] bg-black">
+      <div
+        className={
+          fullBleed
+            ? "absolute inset-0 flex items-end justify-center gap-4 px-4 pb-[18%] pt-[8%] md:gap-8 md:px-10 md:pb-[14%] md:pt-[6%] lg:gap-10"
+            : "relative flex items-end justify-center gap-3 px-2 md:gap-5"
+        }
+      >
+        {/* Laptop — large */}
+        <div
+          className={
+            fullBleed
+              ? "relative w-[52%] max-w-[720px] min-w-[200px]"
+              : "relative w-[46%] max-w-[280px]"
+          }
+        >
+          <div className="rounded-[10px] border border-[#2a2a2e] bg-[#1a1a1c] p-[6px] shadow-[0_28px_70px_rgba(0,0,0,0.28)] md:rounded-[14px] md:p-[8px]">
+            <div className="relative aspect-[16/10] overflow-hidden rounded-[6px] bg-black md:rounded-[8px]">
               <div
                 className="absolute inset-0"
                 style={{
@@ -49,15 +76,21 @@ export function DeviceMockupStage() {
               </svg>
             </div>
           </div>
-          <div className="mx-auto h-[6px] w-[108%] -translate-x-[4%] rounded-b-[8px] bg-gradient-to-b from-[#2c2c30] to-[#1a1a1c]" />
-          <div className="mx-auto h-[3px] w-[50%] rounded-b-full bg-[#111]" />
+          <div className="mx-auto h-[6px] w-[108%] -translate-x-[4%] rounded-b-[8px] bg-gradient-to-b from-[#2c2c30] to-[#1a1a1c] md:h-[8px]" />
+          <div className="mx-auto h-[3px] w-[50%] rounded-b-full bg-[#111] md:h-[4px]" />
           <Reflection className="opacity-40" />
         </div>
 
         {/* Tablet */}
-        <div className="relative z-10 w-[24%] max-w-[140px] -translate-y-2">
-          <div className="rounded-[18px] border border-[#222] bg-[#111] p-[5px] shadow-[0_24px_48px_rgba(0,0,0,0.3)]">
-            <div className="relative aspect-[10/14] overflow-hidden rounded-[13px] bg-black">
+        <div
+          className={
+            fullBleed
+              ? "relative z-10 w-[22%] max-w-[280px] min-w-[110px] -translate-y-4 md:-translate-y-8"
+              : "relative z-10 w-[24%] max-w-[140px] -translate-y-2"
+          }
+        >
+          <div className="rounded-[18px] border border-[#222] bg-[#111] p-[5px] shadow-[0_28px_60px_rgba(0,0,0,0.32)] md:rounded-[22px] md:p-[7px]">
+            <div className="relative aspect-[10/14] overflow-hidden rounded-[13px] bg-black md:rounded-[16px]">
               <div
                 className="absolute inset-0"
                 style={{
@@ -94,11 +127,17 @@ export function DeviceMockupStage() {
           <Reflection className="opacity-45" />
         </div>
 
-        {/* Phone */}
-        <div className="relative w-[16%] max-w-[92px] -translate-y-1">
-          <div className="rounded-[18px] border border-[#2a2a2e] bg-[#1c1c1e] p-[4px] shadow-[0_20px_40px_rgba(0,0,0,0.28)]">
-            <div className="relative aspect-[9/19] overflow-hidden rounded-[14px] bg-[#121214]">
-              <div className="absolute left-1/2 top-2 z-10 h-[7px] w-[28%] -translate-x-1/2 rounded-full bg-black" />
+        {/* Phone — prominent */}
+        <div
+          className={
+            fullBleed
+              ? "relative z-20 w-[18%] max-w-[220px] min-w-[96px] -translate-y-2 md:w-[16%] md:max-w-[240px] md:-translate-y-6"
+              : "relative w-[16%] max-w-[92px] -translate-y-1"
+          }
+        >
+          <div className="rounded-[22px] border border-[#2a2a2e] bg-[#1c1c1e] p-[5px] shadow-[0_28px_56px_rgba(0,0,0,0.34)] md:rounded-[28px] md:p-[7px]">
+            <div className="relative aspect-[9/19] overflow-hidden rounded-[17px] bg-[#121214] md:rounded-[22px]">
+              <div className="absolute left-1/2 top-2.5 z-10 h-[8px] w-[32%] -translate-x-1/2 rounded-full bg-black md:top-3 md:h-[10px]" />
               <svg
                 className="absolute inset-0 h-full w-full"
                 viewBox="0 0 90 190"
@@ -134,6 +173,14 @@ export function DeviceMockupStage() {
           <Reflection className="opacity-40" />
         </div>
       </div>
+
+      {/* Soft floor fade so text overlay stays readable */}
+      {fullBleed ? (
+        <div
+          className="absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#f5f5f7] via-[#f5f5f7]/85 to-transparent"
+          aria-hidden
+        />
+      ) : null}
     </div>
   );
 }
@@ -141,7 +188,7 @@ export function DeviceMockupStage() {
 function Reflection({ className }: { className?: string }) {
   return (
     <div
-      className={`mt-1 h-10 w-full origin-top scale-y-[-1] overflow-hidden opacity-50 blur-[1px] ${className ?? ""}`}
+      className={`mt-1 h-10 w-full origin-top scale-y-[-1] overflow-hidden opacity-50 blur-[1px] md:h-14 ${className ?? ""}`}
       aria-hidden
       style={{
         maskImage: "linear-gradient(180deg, rgba(0,0,0,0.45), transparent)",

@@ -18,6 +18,7 @@ import { formatCentsBRL } from "@/lib/utils";
 import type { Product } from "@/types/database";
 
 const GAP = 28;
+const AUTOPLAY_MS = 5000;
 
 export function VelocityCatalogCarousel({
   products,
@@ -30,6 +31,7 @@ export function VelocityCatalogCarousel({
   const [index, setIndex] = useState(0);
   const [cardW, setCardW] = useState(340);
   const [viewportW, setViewportW] = useState(0);
+  const [paused, setPaused] = useState(false);
   const x = useMotionValue(0);
 
   const measure = useCallback(() => {
@@ -71,11 +73,23 @@ export function VelocityCatalogCarousel({
   }, [index, offsetFor, viewportW, x]);
 
   function goTo(i: number) {
-    const clamped = Math.max(0, Math.min(products.length - 1, i));
-    setIndex(clamped);
+    if (products.length === 0) return;
+    const next =
+      ((i % products.length) + products.length) % products.length;
+    setIndex(next);
   }
 
+  // Autoplay every 5s; pause while dragging; reset on index change
+  useEffect(() => {
+    if (products.length < 2 || paused) return;
+    const id = window.setInterval(() => {
+      setIndex((prev) => (prev + 1) % products.length);
+    }, AUTOPLAY_MS);
+    return () => window.clearInterval(id);
+  }, [products.length, paused, index]);
+
   function onDragEnd(_: unknown, info: PanInfo) {
+    setPaused(false);
     const threshold = cardW * 0.18;
     const velocity = info.velocity.x;
     let next = index;
@@ -113,6 +127,10 @@ export function VelocityCatalogCarousel({
             right: offsetFor(0) + 40,
           }}
           dragElastic={0.12}
+          onPointerDown={() => setPaused(true)}
+          onPointerUp={() => setPaused(false)}
+          onPointerCancel={() => setPaused(false)}
+          onDragStart={() => setPaused(true)}
           onDragEnd={onDragEnd}
         >
           {products.map((p, i) => {

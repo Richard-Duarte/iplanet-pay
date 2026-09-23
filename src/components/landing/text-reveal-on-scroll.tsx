@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type RefObject } from "react";
 import {
   motion,
   useScroll,
@@ -23,13 +23,13 @@ function Word({
   mutedColor: string;
   activeColor: string;
 }) {
-  const opacity = useTransform(progress, range, [0.22, 1]);
+  // Color-only Framer-style reveal — keep opacity high so muted never looks white/ghosted
   const color = useTransform(progress, range, [mutedColor, activeColor]);
 
   return (
     <motion.span
-      style={{ opacity, color }}
-      className="mr-[0.28em] inline-block will-change-[opacity,color]"
+      style={{ color }}
+      className="mr-[0.28em] inline-block will-change-[color]"
     >
       {children}
     </motion.span>
@@ -39,36 +39,46 @@ function Word({
 export function TextRevealOnScroll({
   text,
   className,
-  mutedColor = "#9ca3af",
+  mutedColor = "#a1a1a6",
   activeColor = "#111111",
   as: Tag = "p",
+  /** Drive reveal from an outer tall scroll wrapper (sticky panels). */
+  scrollTargetRef,
+  /** Or pass a shared MotionValue from the parent step. */
+  progress: externalProgress,
 }: {
   text: string;
   className?: string;
   mutedColor?: string;
   activeColor?: string;
   as?: "p" | "h2" | "h3" | "span";
+  scrollTargetRef?: RefObject<HTMLElement | null>;
+  progress?: MotionValue<number>;
 }) {
-  const ref = useRef<HTMLElement>(null);
+  const localRef = useRef<HTMLElement>(null);
   const words = useMemo(
     () => text.trim().split(/\s+/).filter(Boolean),
     [text],
   );
 
   const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.85", "end 0.35"],
+    target: scrollTargetRef ?? localRef,
+    offset: scrollTargetRef
+      ? ["start start", "end start"]
+      : ["start 0.85", "end 0.35"],
   });
 
-  const progress = useSpring(scrollYProgress, {
+  const sprung = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 28,
     mass: 0.35,
   });
 
+  const progress = externalProgress ?? sprung;
+
   return (
     <Tag
-      ref={ref as never}
+      ref={localRef as never}
       className={cn("flex flex-wrap", className)}
       aria-label={text}
     >

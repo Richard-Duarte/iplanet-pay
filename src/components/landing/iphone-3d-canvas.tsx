@@ -3,6 +3,7 @@
 import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
+  Bounds,
   ContactShadows,
   Environment,
   OrbitControls,
@@ -25,7 +26,7 @@ function IphoneModel() {
 
   return (
     <Center>
-      <group ref={group} scale={1.2}>
+      <group ref={group} scale={3.2}>
         <primitive object={scene} />
       </group>
     </Center>
@@ -36,36 +37,38 @@ function Scene() {
   return (
     <>
       <color attach="background" args={["#000000"]} />
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[4, 5, 2]} intensity={1.4} color="#ffffff" />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[4, 5, 2]} intensity={1.5} color="#ffffff" />
       <directionalLight
         position={[-4, 2, -2]}
-        intensity={0.55}
+        intensity={0.6}
         color="#88aaff"
       />
       <spotLight
         position={[0, 6, 2]}
-        intensity={1.2}
+        intensity={1.35}
         angle={0.45}
         penumbra={0.6}
         color="#e8f2fc"
       />
       <Suspense fallback={null}>
-        <IphoneModel />
+        <Bounds fit clip observe margin={1.05}>
+          <IphoneModel />
+        </Bounds>
         <Environment preset="studio" />
       </Suspense>
       <ContactShadows
-        position={[0, -1.2, 0]}
+        position={[0, -1.55, 0]}
         opacity={0.55}
-        scale={10}
+        scale={12}
         blur={2.8}
-        far={4}
+        far={5}
         color="#000000"
       />
       <OrbitControls
         enablePan={false}
-        minDistance={2.1}
-        maxDistance={5.2}
+        minDistance={1.35}
+        maxDistance={4.2}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={Math.PI / 1.55}
         makeDefault
@@ -88,7 +91,7 @@ function CornerBrackets() {
 
 export default function Iphone3dCanvas() {
   return (
-    <div className="relative h-[420px] w-full overflow-hidden rounded-[28px] border border-white/10 bg-black shadow-[0_24px_80px_rgba(0,0,0,0.45)] md:h-[560px]">
+    <div className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-white/10 bg-black shadow-[0_24px_80px_rgba(0,0,0,0.45)] md:min-h-[720px] md:h-[780px]">
       {/* faint concentric rings */}
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.12]"
@@ -100,7 +103,7 @@ export default function Iphone3dCanvas() {
       </div>
       <CornerBrackets />
       <Canvas
-        camera={{ position: [0, 0.15, 3.3], fov: 40 }}
+        camera={{ position: [0, 0.1, 2.35], fov: 38 }}
         dpr={[1, 1.75]}
         gl={{ antialias: true, alpha: false }}
         className="touch-none"

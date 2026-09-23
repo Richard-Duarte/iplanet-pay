@@ -1,7 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import Image from "next/image";
+import { QrCode, PackageCheck } from "lucide-react";
 import { TextRevealOnScroll } from "@/components/landing/text-reveal-on-scroll";
 import { DeviceMockupStage } from "@/components/landing/device-mockup-stage";
 
@@ -17,12 +18,14 @@ const STEPS = [
     title: "Aporte via Pix",
     body: "Entre, reserve e pague aos poucos sem juros.",
     tone: "soft" as const,
+    icon: "pix" as const,
   },
   {
     n: "03",
     title: "Retire",
     body: "Com a reserva quitada, retire na loja iPlanet.",
     tone: "navy" as const,
+    icon: "retire" as const,
   },
   {
     n: "04",
@@ -32,16 +35,44 @@ const STEPS = [
   },
 ] as const;
 
+function StepIconCard({
+  icon,
+  dark,
+}: {
+  icon: "pix" | "retire";
+  dark?: boolean;
+}) {
+  const Icon = icon === "pix" ? QrCode : PackageCheck;
+  return (
+    <div
+      className={`flex h-36 w-36 items-center justify-center rounded-[36px] md:h-52 md:w-52 ${
+        dark
+          ? "border border-white/15 bg-white/10 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-md"
+          : "border border-white/80 bg-white text-[var(--accent)] shadow-[0_24px_60px_rgba(17,17,17,0.08)]"
+      }`}
+    >
+      <Icon
+        className="h-16 w-16 md:h-24 md:w-24"
+        strokeWidth={1.35}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
 function PanelShell({
   tone,
   children,
   left,
-  fullBleedLeft,
+  fullBleedDevices,
+  overlayCopy,
 }: {
   tone: (typeof STEPS)[number]["tone"];
   children: ReactNode;
   left?: ReactNode;
-  fullBleedLeft?: boolean;
+  fullBleedDevices?: boolean;
+  /** Bottom-left / lower-third copy for overlay screens */
+  overlayCopy?: boolean;
 }) {
   const bg =
     tone === "light"
@@ -54,8 +85,23 @@ function PanelShell({
 
   const showUnboxing = tone === "unboxing";
 
+  if (fullBleedDevices) {
+    return (
+      <div className={`relative h-[100dvh] w-full overflow-hidden ${bg}`}>
+        <DeviceMockupStage fullBleed />
+        <div className="absolute inset-0 z-10 flex flex-col justify-end px-5 pb-14 pt-20 md:px-10 md:pb-20 lg:max-w-xl lg:justify-end lg:pb-24">
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`relative flex h-[100dvh] w-full items-center ${bg}`}>
+    <div
+      className={`relative flex h-[100dvh] w-full ${
+        overlayCopy ? "items-end" : "items-center"
+      } ${bg}`}
+    >
       {showUnboxing ? (
         <>
           <Image
@@ -74,12 +120,14 @@ function PanelShell({
       ) : null}
 
       <div
-        className={`relative z-10 mx-auto grid w-full max-w-6xl items-center gap-8 px-4 py-16 md:gap-12 md:px-8 ${
+        className={`relative z-10 mx-auto grid w-full max-w-6xl gap-8 px-4 py-16 md:gap-12 md:px-8 ${
+          overlayCopy ? "items-end pb-16 md:pb-24" : "items-center"
+        } ${
           showUnboxing
             ? ""
-            : fullBleedLeft
-              ? "md:grid-cols-[1.15fr_0.85fr]"
-              : "md:grid-cols-2"
+            : left
+              ? "md:grid-cols-2"
+              : ""
         }`}
       >
         {left ? (
@@ -107,59 +155,66 @@ export function ComoFuncionaReveal() {
         </h2>
       </div>
 
-      {STEPS.map((step, idx) => {
-        const isDark = step.tone === "navy" || step.tone === "unboxing";
-        const muted = isDark ? "#6b7280" : "#9ca3af";
-        const active = isDark ? "#ffffff" : "#111111";
-
-        let left: ReactNode = null;
-        let fullBleedLeft = false;
-        if (idx === 0) {
-          left = <DeviceMockupStage />;
-          fullBleedLeft = true;
-        } else if (step.tone !== "unboxing") {
-          left = (
-            <div
-              className={`flex h-40 w-40 items-center justify-center rounded-[36px] text-5xl font-bold tracking-tight md:h-56 md:w-56 md:text-7xl ${
-                isDark
-                  ? "bg-white/10 text-white/90"
-                  : "bg-white text-[var(--accent)] shadow-[0_24px_60px_rgba(17,17,17,0.08)]"
-              }`}
-            >
-              {step.n}
-            </div>
-          );
-        }
-
-        return (
-          <div key={step.n} className="relative h-[140vh]">
-            <div className="sticky top-0 h-[100dvh] overflow-hidden">
-              <PanelShell
-                tone={step.tone}
-                left={left}
-                fullBleedLeft={fullBleedLeft}
-              >
-                <p className="text-sm font-semibold text-[var(--accent)]">
-                  Passo {step.n}
-                </p>
-                <TextRevealOnScroll
-                  as="h3"
-                  text={step.title}
-                  className="mt-4 text-4xl font-bold tracking-tight md:text-6xl"
-                  mutedColor={muted}
-                  activeColor={active}
-                />
-                <TextRevealOnScroll
-                  text={step.body}
-                  className="mt-5 max-w-xl text-lg leading-relaxed md:text-2xl"
-                  mutedColor={muted}
-                  activeColor={isDark ? "#e5e7eb" : "#5c5c66"}
-                />
-              </PanelShell>
-            </div>
-          </div>
-        );
-      })}
+      {STEPS.map((step, idx) => (
+        <StepPanel key={step.n} step={step} idx={idx} />
+      ))}
     </section>
+  );
+}
+
+function StepPanel({
+  step,
+  idx,
+}: {
+  step: (typeof STEPS)[number];
+  idx: number;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDark = step.tone === "navy" || step.tone === "unboxing";
+  // Light screens: muted dark gray, active near-black — never white active on light
+  const muted = isDark ? "#6e6e73" : "#a1a1a6";
+  const active = isDark ? "#ffffff" : "#111111";
+  const bodyActive = isDark ? "#f5f5f7" : "#1d1d1f";
+
+  let left: ReactNode = null;
+  const fullBleedDevices = idx === 0;
+  const overlayCopy = idx === 0 || step.tone === "unboxing";
+
+  if (idx === 0) {
+    left = null;
+  } else if ("icon" in step && step.icon) {
+    left = <StepIconCard icon={step.icon} dark={isDark} />;
+  }
+
+  return (
+    <div ref={scrollRef} className="relative h-[140vh]">
+      <div className="sticky top-0 h-[100dvh] overflow-hidden">
+        <PanelShell
+          tone={step.tone}
+          left={left}
+          fullBleedDevices={fullBleedDevices}
+          overlayCopy={overlayCopy}
+        >
+          <p className="text-sm font-semibold text-[var(--accent)]">
+            Passo {step.n}
+          </p>
+          <TextRevealOnScroll
+            as="h3"
+            text={step.title}
+            className="mt-4 text-4xl font-bold tracking-tight md:text-6xl"
+            mutedColor={muted}
+            activeColor={active}
+            scrollTargetRef={scrollRef}
+          />
+          <TextRevealOnScroll
+            text={step.body}
+            className="mt-5 max-w-xl text-lg leading-relaxed md:text-2xl"
+            mutedColor={muted}
+            activeColor={bodyActive}
+            scrollTargetRef={scrollRef}
+          />
+        </PanelShell>
+      </div>
+    </div>
   );
 }
