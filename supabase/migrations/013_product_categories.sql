@@ -98,10 +98,19 @@ create trigger trg_sync_product_category_text
 -- RLS
 alter table public.product_categories enable row level security;
 
+-- Anon cannot call current_user_role — keep policies split
 drop policy if exists "product_categories_select_active" on public.product_categories;
-create policy "product_categories_select_active"
+drop policy if exists "product_categories_select_anon_active" on public.product_categories;
+drop policy if exists "product_categories_select_authenticated" on public.product_categories;
+
+create policy "product_categories_select_anon_active"
   on public.product_categories for select
-  to anon, authenticated
+  to anon
+  using (active = true);
+
+create policy "product_categories_select_authenticated"
+  on public.product_categories for select
+  to authenticated
   using (
     active = true
     or public.current_user_role() = any (
