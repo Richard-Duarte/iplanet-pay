@@ -17,7 +17,7 @@ const STEPS = [
     id: "aporte",
     title: "Aporte via Pix",
     body: "Entre, reserve e pague aos poucos sem juros.",
-    tone: "soft" as const,
+    tone: "white" as const,
     icon: "pix" as const,
   },
   {
@@ -77,11 +77,9 @@ function PanelShell({
   const bg =
     tone === "light"
       ? "bg-gradient-to-b from-white via-[#f5f5f7] to-[#e8e8ec]"
-      : tone === "soft"
-        ? "bg-gradient-to-b from-white to-[#eef3fb]"
-        : tone === "white"
-          ? "bg-white"
-          : "bg-black";
+      : tone === "white"
+        ? "bg-white"
+        : "bg-black";
 
   const showUnboxing = tone === "unboxing";
 

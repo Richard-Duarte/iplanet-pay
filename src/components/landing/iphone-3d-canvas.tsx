@@ -10,7 +10,6 @@ import {
   Center,
 } from "@react-three/drei";
 import type { Group } from "three";
-import { DoubleSide } from "three";
 
 const MODEL_URL =
   "/models/iphone-18-pro-max/source/apple_iphone_18_pro_max_burgundy.glb";
@@ -33,26 +32,6 @@ function IphoneModel() {
         <primitive object={scene} />
       </group>
     </Center>
-  );
-}
-
-/** Faint circular floor ring — subtle on white */
-function FloorRing() {
-  return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, -1.18, 0]}
-      renderOrder={-1}
-    >
-      <ringGeometry args={[0.55, 0.58, 64]} />
-      <meshBasicMaterial
-        color="#111111"
-        transparent
-        opacity={0.08}
-        side={DoubleSide}
-        depthWrite={false}
-      />
-    </mesh>
   );
 }
 
@@ -88,14 +67,13 @@ function Scene() {
       />
       <Suspense fallback={null}>
         <IphoneModel />
-        <Environment preset="studio" environmentIntensity={0.45} />
+        <Environment preset="studio" environmentIntensity={0.28} />
       </Suspense>
-      <FloorRing />
       <ContactShadows
         position={[0, -1.2, 0]}
-        opacity={0.42}
+        opacity={0.18}
         scale={8}
-        blur={4.2}
+        blur={5.5}
         far={4.5}
         color="#000000"
       />
@@ -129,7 +107,7 @@ export default function Iphone3dCanvas() {
     <div className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]">
       {/* Faint concentric rings behind model */}
       <div
-        className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.12]"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]"
         aria-hidden
       >
         <div className="h-[78%] w-[78%] rounded-full border border-black/40" />
