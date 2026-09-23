@@ -4,7 +4,8 @@ export type EmailTemplate =
   | "confirm_account"
   | "welcome"
   | "aporte_confirmado"
-  | "aporte_reminder";
+  | "aporte_reminder"
+  | "withdrawal_approved";
 
 export interface SendEmailInput {
   to: string;

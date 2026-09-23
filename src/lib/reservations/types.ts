@@ -1,4 +1,11 @@
-export type ReservationStatus = "ativa" | "quitada" | "cancelada" | "retirada" | "trocada";
+export type ReservationStatus =
+  | "ativa"
+  | "quitada"
+  | "cancelada"
+  | "retirada"
+  | "trocada"
+  | "saque_pendente"
+  | "sacada";
 
 export interface Reservation {
   id: string;
@@ -56,6 +63,8 @@ export const ALL_RESERVATION_STATUSES: ReservationStatus[] = [
   "cancelada",
   "retirada",
   "trocada",
+  "saque_pendente",
+  "sacada",
 ];
 
 export function isReservationStatus(value: string): value is ReservationStatus {
@@ -98,6 +107,8 @@ export const STATUS_LABEL: Record<ReservationStatus, string> = {
   cancelada: "Cancelada",
   retirada: "Retirada",
   trocada: "Trocada",
+  saque_pendente: "Saque pendente",
+  sacada: "Sacada",
 };
 
 export type StatusTone = "neutral" | "accent" | "success" | "danger" | "lavender";
@@ -108,6 +119,8 @@ export const STATUS_TONE: Record<ReservationStatus, StatusTone> = {
   cancelada: "danger",
   retirada: "lavender",
   trocada: "neutral",
+  saque_pendente: "lavender",
+  sacada: "neutral",
 };
 
 export function reservationProgress(

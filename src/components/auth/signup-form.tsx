@@ -6,7 +6,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthDivider, GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { MotionModal } from "@/components/ui/motion";
 import { trackEvent } from "@/lib/analytics/track";
+import { TERMS_OF_USE_PT, TERMS_VERSION } from "@/lib/withdrawals/types";
 
 export function SignupForm({
   mockMode,
@@ -23,6 +25,8 @@ export function SignupForm({
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [referralCode, setReferralCode] = useState(initialReferralCode);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +36,10 @@ export function SignupForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!termsAccepted) {
+      setMessage("Aceite os Termos de Uso para criar a conta.");
+      return;
+    }
     setLoading(true);
     setMessage(null);
     try {
@@ -45,6 +53,8 @@ export function SignupForm({
           password,
           referral_code: referralCode || undefined,
           product: productSlug,
+          terms_accepted: true,
+          terms_version: TERMS_VERSION,
         }),
       });
       const data = await res.json();
@@ -136,7 +146,30 @@ export function SignupForm({
           required={!mockMode}
           minLength={mockMode ? undefined : 6}
         />
-        <Button type="submit" fullWidth disabled={loading}>
+
+        <label className="flex items-start gap-3 rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            required
+          />
+          <span className="text-[var(--ink-muted)]">
+            Li e aceito os{" "}
+            <button
+              type="button"
+              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              onClick={() => setTermsOpen(true)}
+            >
+              Termos de Uso
+            </button>
+            , incluindo a política de saque (70% para o cliente / 30% taxa) e
+            prazo de até 24h após aprovação.
+          </span>
+        </label>
+
+        <Button type="submit" fullWidth disabled={loading || !termsAccepted}>
           {loading ? "Criando..." : "Criar conta"}
         </Button>
         {message ? (
@@ -149,6 +182,31 @@ export function SignupForm({
           </Link>
         </p>
       </form>
+
+      <MotionModal
+        open={termsOpen}
+        onClose={() => setTermsOpen(false)}
+        labelledBy="terms-title"
+        className="max-w-xl"
+      >
+        <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-4">
+          <h2 id="terms-title" className="text-lg font-bold">
+            Termos de Uso
+          </h2>
+          <button
+            type="button"
+            className="text-sm font-semibold text-[var(--ink-muted)]"
+            onClick={() => setTermsOpen(false)}
+          >
+            Fechar
+          </button>
+        </div>
+        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-[var(--ink-muted)]">
+            {TERMS_OF_USE_PT}
+          </pre>
+        </div>
+      </MotionModal>
     </div>
   );
 }

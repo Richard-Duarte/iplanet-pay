@@ -108,7 +108,7 @@ export function OpsReservasPanel({
   }, [reservations, q]);
 
   const counts = useMemo(() => {
-    const base = { ativa: 0, quitada: 0, cancelada: 0, retirada: 0 };
+    const base: Record<string, number> = { ativa: 0, quitada: 0, cancelada: 0, retirada: 0, trocada: 0, saque_pendente: 0, sacada: 0 };
     for (const r of reservations) {
       if (r.status in base) base[r.status as keyof typeof base] += 1;
     }

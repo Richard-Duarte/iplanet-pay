@@ -12,6 +12,8 @@ const CHIP_LABEL: Record<string, string> = {
   cancelada: "Canceladas",
   retirada: "Retiradas",
   trocada: "Trocadas",
+  saque_pendente: "Saque pendente",
+  sacada: "Sacadas",
 };
 
 export function StatusFilterChips({

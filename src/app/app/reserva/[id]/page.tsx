@@ -10,12 +10,14 @@ import { ReservationStatusPill } from "@/components/reservations/status-pill";
 import { CancelReservationButton } from "@/components/reservations/cancel-button";
 import { SwitchDeviceButton } from "@/components/reservations/switch-device-button";
 import { ConfirmRetiradaButton } from "@/components/reservations/confirm-retirada-button";
+import { RequestSaqueButton } from "@/components/withdrawals/request-saque-button";
 import { GerarPixForm } from "@/components/pix/gerar-pix-form";
 import { ContributionList } from "@/components/wallet/contribution-list";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getReservationById } from "@/lib/reservations/queries";
 import { listCatalogProducts } from "@/lib/catalog/products";
 import { listContributionsForReservation } from "@/lib/wallet/queries";
+import { getConfirmedAportesCents } from "@/lib/withdrawals/queries";
 import {
   productSubtitle,
   reservationProgress,
@@ -53,12 +55,17 @@ export default async function ReservaDetailPage({
   if (!reservation) notFound();
 
   const { contributions } = await listContributionsForReservation(id);
+  const confirmedAportesCents = await getConfirmedAportesCents(id);
   const progress = reservationProgress(reservation);
   const remaining = reservationRemainingCents(reservation);
   const title = reservation.product?.name ?? "Reserva";
   const subtitle = productSubtitle(reservation.product, reservation.store);
   const isOwner = user?.id === reservation.user_id;
   const canCancel = isOwner && reservation.status === "ativa";
+  const canRequestSaque =
+    isOwner &&
+    reservation.status === "ativa" &&
+    confirmedAportesCents > 0;
   const canSwitchDevice =
     reservation.status === "ativa" &&
     (isOwner || user?.role === "staff" || user?.role === "admin");
@@ -136,6 +143,30 @@ export default async function ReservaDetailPage({
             </p>
           </div>
         ) : null}
+        {reservation.status === "saque_pendente" ? (
+          <div className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--bg-subtle)] px-4 py-3">
+            <p className="font-semibold text-[var(--ink)]">
+              Saque em análise
+            </p>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Sua solicitação está pendente de aprovação no Financeiro. O Pix
+              é efetuado em até 24h após a aprovação.
+            </p>
+          </div>
+        ) : null}
+
+        {reservation.status === "sacada" ? (
+          <div className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--bg-subtle)] px-4 py-3">
+            <p className="font-semibold text-[var(--ink)]">
+              Reserva sacada
+            </p>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Os aportes foram reembolsados (70% líquido). Esta reserva não
+              aceita novos aportes.
+            </p>
+          </div>
+        ) : null}
+
 
         <ProgressBar value={progress} label="Aportes" />
         <div className="grid gap-3 text-sm text-[var(--ink-muted)] sm:grid-cols-2">
@@ -161,9 +192,13 @@ export default async function ReservaDetailPage({
                 ? "Reserva concluída."
                 : reservation.status === "trocada"
                   ? "Esta reserva foi trocada — aportes encerrados aqui."
-                  : isOwner
-                    ? "Não é possível gerar Pix nesta reserva."
-                    : "Somente o dono da reserva pode gerar Pix."}
+                  : reservation.status === "saque_pendente"
+                    ? "Saque em análise — aportes pausados."
+                    : reservation.status === "sacada"
+                      ? "Reserva sacada — aportes encerrados."
+                      : isOwner
+                        ? "Não é possível gerar Pix nesta reserva."
+                        : "Somente o dono da reserva pode gerar Pix."}
           </p>
         )}
 
@@ -174,6 +209,14 @@ export default async function ReservaDetailPage({
             storeId={reservation.store_id}
             amountPaidCents={reservation.amount_paid_cents}
             products={catalogProducts}
+          />
+        ) : null}
+
+
+        {canRequestSaque ? (
+          <RequestSaqueButton
+            reservationId={reservation.id}
+            totalPaidCents={confirmedAportesCents}
           />
         ) : null}
 

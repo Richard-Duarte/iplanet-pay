@@ -4,14 +4,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ContributionList } from "@/components/wallet/contribution-list";
+import { AdminSaquesPanel } from "@/components/withdrawals/admin-saques-panel";
 import { getFinanceAggregates } from "@/lib/finance/queries";
+import { listWithdrawalRequests } from "@/lib/withdrawals/queries";
 import { formatCentsBRL } from "@/lib/utils";
 import { CreditCard, ArrowLeft } from "lucide-react";
 
 export const metadata = { title: "Financeiro" };
 
 export default async function AdminFinanceiroPage() {
-  const { aggregates, error } = await getFinanceAggregates(40);
+  const [{ aggregates, error }, withdrawals] = await Promise.all([
+    getFinanceAggregates(40),
+    listWithdrawalRequests(80),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -19,7 +24,7 @@ export default async function AdminFinanceiroPage() {
         <PageHeader
           eyebrow="Admin"
           title="Financeiro"
-          description="Aportes reais — sem GMV inventado."
+          description="Aportes reais e saques — sem GMV inventado."
           size="xl"
         />
         <Link href="/admin">
@@ -31,6 +36,9 @@ export default async function AdminFinanceiroPage() {
 
       {error ? (
         <p className="text-sm text-[var(--danger)]">{error}</p>
+      ) : null}
+      {withdrawals.error ? (
+        <p className="text-sm text-[var(--danger)]">{withdrawals.error}</p>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -48,8 +56,8 @@ export default async function AdminFinanceiroPage() {
             value: String(aggregates.pending_count),
           },
           {
-            label: "Pendentes (soma janela)",
-            value: formatCentsBRL(aggregates.pending_sum_cents),
+            label: "Saques pendentes",
+            value: `${withdrawals.pending_count} · ${formatCentsBRL(withdrawals.pending_refund_sum_cents)}`,
           },
         ].map((stat) => (
           <Card key={stat.label} className="bg-white">
@@ -60,6 +68,12 @@ export default async function AdminFinanceiroPage() {
           </Card>
         ))}
       </div>
+
+      <AdminSaquesPanel
+        items={withdrawals.items}
+        pendingCount={withdrawals.pending_count}
+        pendingRefundSumCents={withdrawals.pending_refund_sum_cents}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

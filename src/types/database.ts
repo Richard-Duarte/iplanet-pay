@@ -106,7 +106,14 @@ export interface ProductWithStock extends Product {
   }>;
 }
 
-export type ReservationStatus = "ativa" | "quitada" | "cancelada" | "retirada" | "trocada";
+export type ReservationStatus =
+  | "ativa"
+  | "quitada"
+  | "cancelada"
+  | "retirada"
+  | "trocada"
+  | "saque_pendente"
+  | "sacada";
 
 export interface Reservation {
   id: string;
@@ -159,4 +166,37 @@ export interface WalletLedgerEntry {
   amount_cents: number;
   memo: string | null;
   created_at: string;
+}
+
+export type WithdrawalStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+export type WithdrawalPayoutStatus =
+  | "pending_admin"
+  | "pending_gateway"
+  | "queued"
+  | "sent"
+  | "failed";
+
+export type PixKeyType = "cpf" | "cnpj" | "email" | "phone" | "random";
+
+export interface WithdrawalRequest {
+  id: string;
+  user_id: string;
+  reservation_id: string;
+  total_paid_cents: number;
+  fee_percentage: number;
+  fee_amount_cents: number;
+  refund_amount_cents: number;
+  pix_key: string;
+  pix_key_type: PixKeyType;
+  holder_full_name: string;
+  holder_cpf: string;
+  status: WithdrawalStatus;
+  payout_status: WithdrawalPayoutStatus;
+  admin_notes: string | null;
+  processed_at: string | null;
+  processed_by: string | null;
+  password_confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }

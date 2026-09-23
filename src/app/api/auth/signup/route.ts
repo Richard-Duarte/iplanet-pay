@@ -14,7 +14,16 @@ export async function POST(request: Request) {
     password?: string;
     phone?: string;
     referral_code?: string;
+    terms_accepted?: boolean;
+    terms_version?: string;
   };
+
+  if (!body.terms_accepted) {
+    return NextResponse.json(
+      { ok: false, error: "Aceite os Termos de Uso para criar a conta." },
+      { status: 400 },
+    );
+  }
 
   if (USE_MOCK_AUTH) {
     const user = {
@@ -56,6 +65,23 @@ export async function POST(request: Request) {
       { ok: false, error: error?.message ?? "Falha ao criar conta" },
       { status: 400 },
     );
+  }
+
+
+  if (data.user) {
+    try {
+      const { createServiceClient } = await import("@/lib/supabase/admin");
+      const admin = createServiceClient();
+      await admin
+        .from("profiles")
+        .update({
+          terms_accepted_at: new Date().toISOString(),
+          terms_version: body.terms_version || "withdrawal-v1",
+        })
+        .eq("id", data.user.id);
+    } catch {
+      /* non-fatal if service role missing */
+    }
   }
 
   const ref = (body.referral_code ?? "").trim();
