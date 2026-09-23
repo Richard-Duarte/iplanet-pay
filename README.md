@@ -4,7 +4,7 @@ PWA de layaway (crediário via Pix) para smartphones nas lojas **iPlanet** (Itai
 
 Stack desta fase: **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabase Auth · PWA**.
 
-> Fase atual: esqueleto + design system + auth (mock ou Supabase). Módulos financeiros são placeholders com TODO claros — sem fluxos de dinheiro inventados.
+> Fase atual: esqueleto + design system + auth + catálogo + reservas (hold de estoque). Pix / carteira / webhooks ainda são placeholders — sem fluxos de dinheiro inventados.
 
 ## Como rodar localmente
 
@@ -40,7 +40,8 @@ Aplique a migration:
 ```bash
 # via Supabase CLI ou SQL Editor
 supabase db push
-# ou cole supabase/migrations/001_init.sql no SQL Editor
+# ou cole supabase/migrations/001_init.sql, 002_products.sql e 003_reservations.sql no SQL Editor
+# (002 já está no projeto live — não reaplicar)
 ```
 
 ## Scripts
@@ -71,7 +72,7 @@ Primitivos em `src/components/ui/` (Button, Pill, Card, ProductHeroCard, Progres
 ## Supabase
 
 - Clients: `src/lib/supabase/{client,server,middleware}.ts`
-- Migration + RLS: `supabase/migrations/001_init.sql`
+- Migrations + RLS: `supabase/migrations/001_init.sql`, `002_products.sql`, `003_reservations.sql`
 - Edge stub Pix: `supabase/functions/pix-webhook/index.ts`
 
 ## PWA

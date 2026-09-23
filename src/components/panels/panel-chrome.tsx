@@ -9,17 +9,21 @@ import type { SidebarItem } from "@/components/ui/sidebar";
 const NAV: Record<"parceiro" | "staff" | "admin", SidebarItem[]> = {
   parceiro: [
     { href: "/parceiro", label: "Visão geral", icon: "layout-dashboard" },
+    { href: "/parceiro/reservas", label: "Reservas", icon: "bookmark" },
+    { href: "/parceiro#pedidos", label: "Retiradas", icon: "shopping-bag" },
     { href: "/parceiro#estoque", label: "Estoque", icon: "package" },
-    { href: "/parceiro#pedidos", label: "Pedidos", icon: "shopping-bag" },
   ],
   staff: [
     { href: "/staff", label: "Visão geral", icon: "layout-dashboard" },
+    { href: "/staff/reservas", label: "Reservas", icon: "bookmark" },
+    { href: "/staff#retiradas", label: "Retiradas", icon: "package" },
     { href: "/staff#clientes", label: "Clientes", icon: "users" },
     { href: "/staff#estoque", label: "Estoque", icon: "package" },
     { href: "/staff#avaliacoes", label: "Avaliações", icon: "clipboard-check" },
   ],
   admin: [
     { href: "/admin", label: "Overview", icon: "layout-dashboard" },
+    { href: "/admin/reservas", label: "Reservas", icon: "bookmark" },
     { href: "/admin#financeiro", label: "Financeiro", icon: "credit-card" },
     { href: "/admin#lojas", label: "Lojas", icon: "store" },
     { href: "/admin#gateways", label: "Gateways", icon: "settings" },

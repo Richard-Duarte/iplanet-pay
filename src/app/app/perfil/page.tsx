@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/session";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { redirect } from "next/navigation";
@@ -34,6 +36,9 @@ export default async function PerfilPage() {
           <p className="text-sm text-[var(--ink-muted)]">Papel</p>
           <p className="font-medium capitalize">{user.role}</p>
         </div>
+        <Link href="/app/reservas">
+          <Button variant="outline" size="md">Minhas reservas</Button>
+        </Link>
         <LogoutButton variant="outline" size="md" />
       </Card>
     </div>

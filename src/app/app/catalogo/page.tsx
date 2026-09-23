@@ -1,29 +1,36 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ReserveForm } from "@/components/reservations/reserve-form";
 import { Smartphone } from "lucide-react";
-import { formatCurrencyBRL } from "@/lib/utils";
-
-const PLACEHOLDER_PRODUCTS = [
-  { id: "1", name: "iPhone 16 Pro", storage: "256 GB", price: 9999 },
-  { id: "2", name: "iPhone 16", storage: "128 GB", price: 7499 },
-  { id: "3", name: "iPhone 15", storage: "128 GB", price: 5999 },
-];
+import { formatCentsBRL } from "@/lib/utils";
+import {
+  listCatalogProducts,
+  stockByStoreLabel,
+  totalStockQty,
+} from "@/lib/catalog/products";
 
 export const metadata = { title: "Catálogo" };
 
-export default function CatalogoPage() {
+export default async function CatalogoPage() {
+  const { products, error } = await listCatalogProducts();
+
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Produtos"
         title="Catálogo"
-        description="Lista placeholder — estoque real virá do Supabase."
+        description="iPhones disponíveis nas lojas iPlanet — estoque por unidade."
       />
 
-      {PLACEHOLDER_PRODUCTS.length === 0 ? (
+      {error ? (
+        <EmptyState
+          icon={<Smartphone className="h-6 w-6" />}
+          title="Não foi possível carregar"
+          description={error}
+        />
+      ) : products.length === 0 ? (
         <EmptyState
           icon={<Smartphone className="h-6 w-6" />}
           title="Nenhum produto"
@@ -31,19 +38,37 @@ export default function CatalogoPage() {
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {PLACEHOLDER_PRODUCTS.map((p) => (
-            <Card key={p.id} className="flex flex-col">
-              <div className="glow-lavender -mx-6 -mt-6 mb-4 h-36 rounded-t-[var(--radius-card)]" />
-              <Pill tone="neutral">{p.storage}</Pill>
-              <h3 className="mt-3 text-2xl font-bold tracking-tight">{p.name}</h3>
-              <p className="mt-1 text-[var(--accent)] font-semibold">
-                {formatCurrencyBRL(p.price)}
-              </p>
-              <Button className="mt-5" variant="outline" disabled>
-                Reservar (em breve)
-              </Button>
-            </Card>
-          ))}
+          {products.map((p) => {
+            const qty = totalStockQty(p);
+            const stores = stockByStoreLabel(p);
+            const subtitle = [p.storage, p.color].filter(Boolean).join(" · ");
+
+            return (
+              <Card key={p.id} className="flex flex-col">
+                <div className="glow-lavender -mx-6 -mt-6 mb-4 h-36 rounded-t-[var(--radius-card)]" />
+                <div className="flex flex-wrap gap-2">
+                  <Pill tone="neutral">{p.storage}</Pill>
+                  {p.color ? <Pill tone="lavender">{p.color}</Pill> : null}
+                  <Pill tone={qty > 0 ? "accent" : "neutral"}>
+                    {qty > 0 ? `${qty} em estoque` : "Esgotado"}
+                  </Pill>
+                </div>
+                <h3 className="mt-3 text-2xl font-bold tracking-tight">{p.name}</h3>
+                {subtitle ? (
+                  <p className="mt-1 text-sm text-[var(--ink-muted)]">{subtitle}</p>
+                ) : null}
+                <p className="mt-2 text-[var(--accent)] font-semibold">
+                  {formatCentsBRL(p.list_price_cents)}
+                </p>
+                {stores ? (
+                  <p className="mt-2 text-xs text-[var(--ink-muted)]">{stores}</p>
+                ) : null}
+                <div className="mt-auto">
+                  <ReserveForm product={p} />
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

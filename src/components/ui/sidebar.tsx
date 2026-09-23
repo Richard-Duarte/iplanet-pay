@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
+  Bookmark,
   ClipboardCheck,
   CreditCard,
   LayoutDashboard,
@@ -25,7 +26,8 @@ export type SidebarIcon =
   | "settings"
   | "trophy"
   | "credit-card"
-  | "clipboard-check";
+  | "clipboard-check"
+  | "bookmark";
 
 const icons: Record<SidebarIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -37,6 +39,7 @@ const icons: Record<SidebarIcon, LucideIcon> = {
   trophy: Trophy,
   "credit-card": CreditCard,
   "clipboard-check": ClipboardCheck,
+  bookmark: Bookmark,
 };
 
 export interface SidebarItem {

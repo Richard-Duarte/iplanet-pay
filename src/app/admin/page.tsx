@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   CreditCard,
@@ -8,10 +10,20 @@ import {
   Trophy,
 } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
+import { listRecentContributions } from "@/lib/wallet/queries";
+import { ContributionList } from "@/components/wallet/contribution-list";
+import { formatCentsBRL } from "@/lib/utils";
+import { listQuitadasForPickup } from "@/lib/reservations/queries";
+import { PickupQueue } from "@/components/reservations/pickup-queue";
 
 export const metadata = { title: "Admin" };
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const { contributions } = await listRecentContributions(10);
+  const { reservations: quitadas } = await listQuitadasForPickup({ limit: 12 });
+  const aporteTotal = contributions
+    .filter((c) => c.status === "confirmed")
+    .reduce((s, c) => s + c.amount_cents, 0);
   return (
     <div className="space-y-8">
       <PageHeader
@@ -24,7 +36,7 @@ export default function AdminPage() {
       <div className="grid gap-4 md:grid-cols-4">
         {[
           { label: "GMV (mês)", value: "—" },
-          { label: "Aportes Pix", value: "—" },
+          { label: "Aportes Pix", value: formatCentsBRL(aporteTotal) },
           { label: "Reservas ativas", value: "—" },
           { label: "Lojas", value: "2" },
         ].map((stat) => (
@@ -37,16 +49,46 @@ export default function AdminPage() {
         ))}
       </div>
 
+      <section id="reservas">
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Todas as reservas</h2>
+            <p className="mt-1 text-[var(--ink-muted)]">
+              Busca, filtros por status/loja, cancelar e confirmar retirada.
+            </p>
+          </div>
+          <Link href="/admin/reservas">
+            <Button variant="accent">Abrir reservas</Button>
+          </Link>
+        </Card>
+      </section>
+
+      <section id="retiradas">
+        <div className="mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Prontas para retirada
+          </h2>
+          <Pill tone="accent">{quitadas.length}</Pill>
+        </div>
+        <PickupQueue reservations={quitadas} />
+      </section>
+
       <section id="financeiro">
         <div className="mb-4 flex items-center gap-2">
           <h2 className="text-2xl font-bold tracking-tight">Financeiro</h2>
-          <Pill tone="accent">TODO</Pill>
+          <Pill tone="accent">aportes</Pill>
         </div>
-        <EmptyState
-          icon={<CreditCard className="h-6 w-6" />}
-          title="Overview financeiro"
-          description="TODO: consolidação de aportes, taxas de gateway e conciliação. Sem inventar fluxo monetário nesta fase."
-        />
+        {contributions.length === 0 ? (
+          <EmptyState
+            icon={<CreditCard className="h-6 w-6" />}
+            title="Sem aportes ainda"
+            description="Aportes confirmados e pendentes aparecerão aqui."
+          />
+        ) : (
+          <Card>
+            <ContributionList contributions={contributions} />
+          </Card>
+        )}
       </section>
 
       <section id="lojas" className="mt-8">

@@ -8,3 +8,7 @@ export function formatCurrencyBRL(value: number) {
     currency: "BRL",
   }).format(value);
 }
+
+export function formatCentsBRL(cents: number) {
+  return formatCurrencyBRL(cents / 100);
+}

@@ -114,5 +114,14 @@ values
   ('iPlanet São Caetano', 'sao-caetano', 'Centro', 'São Caetano do Sul')
 on conflict (slug) do nothing;
 
+-- Hardening: trigger fn not callable via API; role helper only for authenticated
+revoke all on function public.handle_new_user() from public;
+revoke all on function public.handle_new_user() from anon, authenticated;
+revoke all on function public.current_user_role() from public;
+revoke all on function public.current_user_role() from anon;
+grant execute on function public.current_user_role() to authenticated;
+
 -- TODO (próximas migrations):
--- products, reservations, wallet_ledger, pix_charges, webhooks_inbox
+-- wallet_ledger, pix_charges, webhooks_inbox
+-- products: ver 002_products.sql
+-- reservations: ver 003_reservations.sql (feito)

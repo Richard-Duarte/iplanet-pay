@@ -1,0 +1,110 @@
+import { getCurrentUser } from "@/lib/auth/session";
+import {
+  generatePixMercadoPago,
+  isPixGatewayConfigured,
+} from "@/lib/pix/mercadopago";
+import type { GeneratePixOutcome } from "@/lib/pix/types";
+import { createContribution } from "@/lib/wallet/mutations";
+import { mapWalletError } from "@/lib/wallet/errors";
+import { MIN_CONTRIBUTION_CENTS } from "@/lib/wallet/types";
+
+const GATEWAY_MISSING_PT =
+  "Gateway Pix não configurado. O aporte foi criado como pendente, mas o QR Code não pôde ser gerado. Peça ao time para definir MERCADOPAGO_ACCESS_TOKEN.";
+
+/**
+ * Cria contribution pending + tenta Mercado Pago.
+ * Sem token: retorna ok com gateway_configured=false (não inventa QR).
+ */
+export async function generatePixForReservation(params: {
+  reservationId: string;
+  amountCents: number;
+}): Promise<GeneratePixOutcome> {
+  const { reservationId, amountCents } = params;
+  if (!reservationId) return { ok: false, error: "Reserva inválida." };
+  if (!Number.isFinite(amountCents) || amountCents < MIN_CONTRIBUTION_CENTS) {
+    return { ok: false, error: "Valor mínimo de R$ 5,00 por aporte." };
+  }
+
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "Entre para continuar." };
+
+  const created = await createContribution(reservationId, amountCents);
+  if (!created.ok) return { ok: false, error: created.error };
+
+  if (!isPixGatewayConfigured()) {
+    return {
+      ok: true,
+      contribution_id: created.contribution_id,
+      amount_cents: created.amount_cents,
+      gateway_configured: false,
+      pix: null,
+      error: GATEWAY_MISSING_PT,
+    };
+  }
+
+  try {
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+      "http://localhost:3000";
+    const notificationUrl = `${appUrl}/api/webhooks/pix`;
+
+    const pix = await generatePixMercadoPago({
+      amountCents: created.amount_cents,
+      description: `Aporte iPlanet Pay · reserva ${reservationId.slice(0, 8)}`,
+      payerEmail: user.email,
+      contributionId: created.contribution_id,
+      notificationUrl,
+    });
+
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { error: attachError } = await supabase.rpc(
+      "set_own_contribution_pix",
+      {
+        p_contribution_id: created.contribution_id,
+        p_provider: pix.provider,
+        p_external_id: pix.external_id,
+        p_qr_copy_paste: pix.qr_copy_paste,
+        p_qr_base64: pix.qr_base64 || null,
+      },
+    );
+    if (attachError) {
+      return {
+        ok: true,
+        contribution_id: created.contribution_id,
+        amount_cents: created.amount_cents,
+        gateway_configured: true,
+        pix: {
+          copy_paste: pix.qr_copy_paste,
+          qr_base64: pix.qr_base64,
+          charge_id: pix.external_id,
+          provider: pix.provider,
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      contribution_id: created.contribution_id,
+      amount_cents: created.amount_cents,
+      gateway_configured: true,
+      pix: {
+        copy_paste: pix.qr_copy_paste,
+        qr_base64: pix.qr_base64,
+        charge_id: pix.external_id,
+        provider: pix.provider,
+      },
+    };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Falha ao gerar Pix no gateway";
+    return {
+      ok: true,
+      contribution_id: created.contribution_id,
+      amount_cents: created.amount_cents,
+      gateway_configured: false,
+      pix: null,
+      error: mapWalletError(message),
+    };
+  }
+}

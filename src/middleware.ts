@@ -9,13 +9,32 @@ import {
   homeForRole,
   roleAllowedForPath,
 } from "@/lib/auth/roles";
-import { updateSession } from "@/lib/supabase/middleware";
+import {
+  updateSession,
+  withSessionCookies,
+} from "@/lib/supabase/middleware";
 import type { UserRole } from "@/types/auth";
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+function redirectTo(
+  request: NextRequest,
+  pathname: string,
+  search?: Record<string, string>,
+) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  if (search) {
+    for (const [key, value] of Object.entries(search)) {
+      url.searchParams.set(key, value);
+    }
+  }
+  return NextResponse.redirect(url);
 }
 
 export async function middleware(request: NextRequest) {
@@ -26,42 +45,56 @@ export async function middleware(request: NextRequest) {
 
     if (isProtected(pathname)) {
       if (!user) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/entrar";
-        url.searchParams.set("next", pathname);
-        return NextResponse.redirect(url);
+        return redirectTo(request, "/entrar", { next: pathname });
       }
 
       if (!roleAllowedForPath(user.role as UserRole, pathname)) {
-        const url = request.nextUrl.clone();
-        url.pathname = homeForRole(user.role as UserRole);
-        return NextResponse.redirect(url);
+        return redirectTo(request, homeForRole(user.role as UserRole));
       }
     }
 
     if (user && (pathname === "/entrar" || pathname === "/criar-conta")) {
-      const url = request.nextUrl.clone();
-      url.pathname = homeForRole(user.role as UserRole);
-      return NextResponse.redirect(url);
+      return redirectTo(request, homeForRole(user.role as UserRole));
     }
 
     return NextResponse.next();
   }
 
-  const response = await updateSession(request);
+  const { response, user, supabase } = await updateSession(request);
 
-  // Proteção real: lê cookie de sessão via getUser no updateSession;
-  // aqui validamos presença mínima e papel via header interno opcional.
-  // Para RLS skeleton, redirecionamos não autenticados nas rotas protegidas.
-  const hasAuthCookie = request.cookies
-    .getAll()
-    .some((c) => c.name.includes("auth-token") || c.name.startsWith("sb-"));
+  if (isProtected(pathname)) {
+    if (!user || !supabase) {
+      return withSessionCookies(
+        redirectTo(request, "/entrar", { next: pathname }),
+        response,
+      );
+    }
 
-  if (isProtected(pathname) && !hasAuthCookie) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/entrar";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const role = (profile?.role ?? "cliente") as UserRole;
+
+    if (!roleAllowedForPath(role, pathname)) {
+      return withSessionCookies(
+        redirectTo(request, homeForRole(role)),
+        response,
+      );
+    }
+  }
+
+  if (user && supabase && (pathname === "/entrar" || pathname === "/criar-conta")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const role = (profile?.role ?? "cliente") as UserRole;
+    return withSessionCookies(redirectTo(request, homeForRole(role)), response);
   }
 
   return response;

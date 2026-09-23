@@ -7,10 +7,28 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ReservationCard } from "@/components/reservations/reservation-card";
+import { getCurrentUser } from "@/lib/auth/session";
+import { listMyReservations } from "@/lib/reservations/queries";
+import {
+  productSubtitle,
+  reservationProgress,
+  reservationRemainingCents,
+} from "@/lib/reservations/types";
+import { formatCentsBRL } from "@/lib/utils";
 
 export const metadata = { title: "Início" };
 
-export default function ClienteHomePage() {
+export default async function ClienteHomePage() {
+  const user = await getCurrentUser();
+  const { reservations, error } = user
+    ? await listMyReservations(user.id)
+    : { reservations: [], error: null };
+
+  const active = reservations.filter((r) => r.status === "ativa");
+  const [hero, ...rest] = active;
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -20,34 +38,86 @@ export default function ClienteHomePage() {
         size="lg"
       />
 
-      <ProductHeroCard
-        badge="Reserva ativa"
-        title="iPhone 15"
-        subtitle="128 GB · Preto · Itaim Bibi"
-        priceLabel="R$ 4.200 restantes"
-        footer={
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <ProgressRing value={42} label="quitado" />
-            <div className="flex-1 space-y-4">
-              <ProgressBar value={42} label="Progresso da reserva" />
-              <div className="flex flex-wrap gap-2">
-                <Link href="/app/reserva/demo-1">
-                  <Button size="sm">
-                    Ver reserva
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Button size="sm" variant="accent" leftIcon={<QrCode className="h-4 w-4" />}>
-                  Aporte Pix
-                </Button>
+      {error ? (
+        <EmptyState
+          icon={<Smartphone className="h-6 w-6" />}
+          title="Não foi possível carregar"
+          description={error}
+        />
+      ) : !hero ? (
+        <EmptyState
+          icon={<Smartphone className="h-6 w-6" />}
+          title="Nenhuma reserva ativa"
+          description="Escolha um iPhone no catálogo. O Pix de aporte chega em breve."
+          action={
+            <Link href="/app/catalogo">
+              <Button variant="accent" leftIcon={<Smartphone className="h-4 w-4" />}>
+                Ver catálogo
+              </Button>
+            </Link>
+          }
+        />
+      ) : (
+        <>
+          <ProductHeroCard
+            badge="Reserva ativa"
+            title={hero.product?.name ?? "Reserva"}
+            subtitle={productSubtitle(hero.product, hero.store)}
+            priceLabel={`${formatCentsBRL(reservationRemainingCents(hero))} restantes`}
+            footer={
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <ProgressRing
+                  value={reservationProgress(hero)}
+                  label="quitado"
+                />
+                <div className="flex-1 space-y-4">
+                  <ProgressBar
+                    value={reservationProgress(hero)}
+                    label="Progresso da reserva"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Link href={`/app/reserva/${hero.id}`}>
+                      <Button size="sm">
+                        Ver reserva
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="accent"
+                      disabled
+                      leftIcon={<QrCode className="h-4 w-4" />}
+                    >
+                      Aporte Pix (em breve)
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-[var(--ink-muted)]">
-                TODO: integrar geração Pix / webhook de crédito atômico.
-              </p>
+            }
+          />
+          {rest.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {rest.map((r) => (
+                <ReservationCard
+                  key={r.id}
+                  reservation={r}
+                  href={`/app/reserva/${r.id}`}
+                />
+              ))}
             </div>
-          </div>
-        }
-      />
+          ) : null}
+        </>
+      )}
+
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold tracking-tight">Minhas reservas</h2>
+        <Link
+          href="/app/reservas"
+          className="text-sm font-semibold text-[var(--accent)] hover:underline"
+        >
+          Ver todas →
+        </Link>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
