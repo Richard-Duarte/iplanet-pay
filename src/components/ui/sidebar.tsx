@@ -3,12 +3,46 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import {
+  ClipboardCheck,
+  CreditCard,
+  LayoutDashboard,
+  Package,
+  Settings,
+  ShoppingBag,
+  Store,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
+export type SidebarIcon =
+  | "layout-dashboard"
+  | "package"
+  | "shopping-bag"
+  | "users"
+  | "store"
+  | "settings"
+  | "trophy"
+  | "credit-card"
+  | "clipboard-check";
+
+const icons: Record<SidebarIcon, LucideIcon> = {
+  "layout-dashboard": LayoutDashboard,
+  package: Package,
+  "shopping-bag": ShoppingBag,
+  users: Users,
+  store: Store,
+  settings: Settings,
+  trophy: Trophy,
+  "credit-card": CreditCard,
+  "clipboard-check": ClipboardCheck,
+};
 
 export interface SidebarItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: SidebarIcon;
 }
 
 interface SidebarProps {
@@ -35,7 +69,8 @@ export function Sidebar({ title, subtitle, items, footer }: SidebarProps) {
         ) : null}
       </div>
       <nav className="flex flex-1 flex-col gap-1">
-        {items.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon }) => {
+          const Icon = icons[icon];
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link

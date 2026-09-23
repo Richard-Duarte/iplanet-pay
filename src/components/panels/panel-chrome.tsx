@@ -1,15 +1,4 @@
 import { redirect } from "next/navigation";
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingBag,
-  Users,
-  Store,
-  Settings,
-  Trophy,
-  CreditCard,
-  ClipboardCheck,
-} from "lucide-react";
 import { AppShell } from "@/components/ui/app-shell";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Pill } from "@/components/ui/pill";
@@ -19,22 +8,22 @@ import type { SidebarItem } from "@/components/ui/sidebar";
 
 const NAV: Record<"parceiro" | "staff" | "admin", SidebarItem[]> = {
   parceiro: [
-    { href: "/parceiro", label: "Visão geral", icon: LayoutDashboard },
-    { href: "/parceiro#estoque", label: "Estoque", icon: Package },
-    { href: "/parceiro#pedidos", label: "Pedidos", icon: ShoppingBag },
+    { href: "/parceiro", label: "Visão geral", icon: "layout-dashboard" },
+    { href: "/parceiro#estoque", label: "Estoque", icon: "package" },
+    { href: "/parceiro#pedidos", label: "Pedidos", icon: "shopping-bag" },
   ],
   staff: [
-    { href: "/staff", label: "Visão geral", icon: LayoutDashboard },
-    { href: "/staff#clientes", label: "Clientes", icon: Users },
-    { href: "/staff#estoque", label: "Estoque", icon: Package },
-    { href: "/staff#avaliacoes", label: "Avaliações", icon: ClipboardCheck },
+    { href: "/staff", label: "Visão geral", icon: "layout-dashboard" },
+    { href: "/staff#clientes", label: "Clientes", icon: "users" },
+    { href: "/staff#estoque", label: "Estoque", icon: "package" },
+    { href: "/staff#avaliacoes", label: "Avaliações", icon: "clipboard-check" },
   ],
   admin: [
-    { href: "/admin", label: "Overview", icon: LayoutDashboard },
-    { href: "/admin#financeiro", label: "Financeiro", icon: CreditCard },
-    { href: "/admin#lojas", label: "Lojas", icon: Store },
-    { href: "/admin#gateways", label: "Gateways", icon: Settings },
-    { href: "/admin#sorteios", label: "Sorteios", icon: Trophy },
+    { href: "/admin", label: "Overview", icon: "layout-dashboard" },
+    { href: "/admin#financeiro", label: "Financeiro", icon: "credit-card" },
+    { href: "/admin#lojas", label: "Lojas", icon: "store" },
+    { href: "/admin#gateways", label: "Gateways", icon: "settings" },
+    { href: "/admin#sorteios", label: "Sorteios", icon: "trophy" },
   ],
 };
 
