@@ -9,6 +9,15 @@ export interface Store {
   created_at?: string;
 }
 
+export interface ProductCategory {
+  id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+  active: boolean;
+  created_at?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -21,6 +30,7 @@ export interface Product {
   image_url: string | null;
   active: boolean;
   category?: string;
+  category_id?: string | null;
   created_at?: string;
 }
 

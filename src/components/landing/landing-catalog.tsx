@@ -9,16 +9,35 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 import { Button } from "@/components/ui/button";
 import { formatCentsBRL } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
-import type { Product } from "@/types/database";
+import type { Product, ProductCategory } from "@/types/database";
 
-const CATEGORIES = ["Todos", "iPhone", "MacBook", "Mac", "AirPods", "Watch"] as const;
+export type LandingCategory = Pick<ProductCategory, "id" | "name" | "slug">;
 
-export function LandingCatalog({ products }: { products: Product[] }) {
-  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("Todos");
+export function LandingCatalog({
+  products,
+  categories,
+}: {
+  products: Product[];
+  categories: LandingCategory[];
+}) {
+  const [cat, setCat] = useState<string>("Todos");
+
+  const tabs = useMemo(() => {
+    const withProducts = categories.filter((c) =>
+      products.some(
+        (p) =>
+          p.category === c.name ||
+          (p as Product & { category_id?: string | null }).category_id === c.id,
+      ),
+    );
+    // Show all active categories passed in; prefer those with products, else all
+    const list = withProducts.length > 0 ? withProducts : categories;
+    return ["Todos", ...list.map((c) => c.name)];
+  }, [categories, products]);
 
   const filtered = useMemo(() => {
     if (cat === "Todos") return products;
-    return products.filter((p) => (p as Product & { category?: string }).category === cat);
+    return products.filter((p) => p.category === cat);
   }, [products, cat]);
 
   function productHref(slug: string) {
@@ -85,7 +104,7 @@ export function LandingCatalog({ products }: { products: Product[] }) {
 
       <section id="catalogo" className="mx-auto max-w-6xl px-4 py-14 md:px-8">
         <div className="mb-8 flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
+          {tabs.map((c) => (
             <button
               key={c}
               type="button"
@@ -129,7 +148,7 @@ export function LandingCatalog({ products }: { products: Product[] }) {
                 </div>
                 <div className="space-y-1 px-5 pb-6 pt-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-                    {(p as Product & { category?: string }).category ?? "Apple"}
+                    {p.category ?? "Apple"}
                   </p>
                   <h3 className="text-xl font-bold tracking-tight text-[var(--ink)]">{p.name}</h3>
                   <p className="text-sm text-[var(--ink-muted)]">

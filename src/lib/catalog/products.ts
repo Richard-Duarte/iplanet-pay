@@ -14,6 +14,7 @@ export const MOCK_CATALOG: ProductWithStock[] = [
     image_url: "/products/iphone-17.png",
     active: true,
     category: "iPhone",
+    category_id: "cat-iphone",
     store_stock: [
       { qty_available: 9999, store: { id: "store-itaim", name: "iPlanet Itaim Bibi", slug: "itaim-bibi" } },
       { qty_available: 9999, store: { id: "store-sc", name: "iPlanet São Caetano", slug: "sao-caetano" } },
@@ -48,6 +49,7 @@ export async function listCatalogProducts(): Promise<{
         image_url,
         active,
         category,
+        category_id,
         store_stock (
           qty_available,
           store:stores (

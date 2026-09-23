@@ -26,6 +26,7 @@ const NAV: Record<"parceiro" | "staff" | "admin", SidebarItem[]> = {
     { href: "/admin/dashboards", label: "Dashboards", icon: "bar-chart" },
     { href: "/admin/reservas", label: "Reservas", icon: "bookmark" },
     { href: "/admin/clientes", label: "Clientes", icon: "users" },
+    { href: "/admin/produtos", label: "Produtos", icon: "package" },
     { href: "/admin/financeiro", label: "Financeiro", icon: "credit-card" },
     { href: "/admin/config", label: "Config", icon: "settings" },
     { href: "/admin/indicacoes", label: "Indicações", icon: "gift" },

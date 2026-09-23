@@ -10,6 +10,7 @@ import {
   BarChart3,
   Users,
   Gift,
+  Package,
 } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { listRecentContributions } from "@/lib/wallet/queries";
@@ -110,6 +111,19 @@ export default async function AdminPage() {
           </div>
           <Link href="/admin/clientes">
             <Button variant="outline" size="sm" leftIcon={<Users className="h-4 w-4" />}>
+              Abrir
+            </Button>
+          </Link>
+        </Card>
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Produtos</h2>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Catálogo, categorias e abas da landing.
+            </p>
+          </div>
+          <Link href="/admin/produtos">
+            <Button variant="outline" size="sm" leftIcon={<Package className="h-4 w-4" />}>
               Abrir
             </Button>
           </Link>
