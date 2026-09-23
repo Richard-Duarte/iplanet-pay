@@ -27,12 +27,12 @@ export function BottomNav() {
               <Link
                 href={href}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-1 py-3 text-[11px] font-medium",
+                  "flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium leading-tight sm:text-[11px]",
                   active ? "text-[var(--accent)]" : "text-[var(--ink-muted)]",
                 )}
               >
-                <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
-                {label}
+                <Icon className="h-5 w-5 shrink-0" strokeWidth={active ? 2.4 : 2} />
+                <span className="max-w-full truncate">{label}</span>
               </Link>
             </li>
           );

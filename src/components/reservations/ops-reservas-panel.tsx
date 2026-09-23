@@ -146,7 +146,7 @@ export function OpsReservasPanel({
         <button
           type="button"
           onClick={() => void toggleAportes(r.id)}
-          className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
+          className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
           aria-expanded={open}
           aria-label={open ? "Ocultar aportes" : "Ver aportes"}
           title="Ver aportes"
@@ -222,8 +222,8 @@ export function OpsReservasPanel({
       ) : (
         <>
           <Card className="hidden overflow-x-auto p-0 md:block">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="border-b border-[var(--line)] bg-[var(--bg-subtle)] text-xs uppercase tracking-wide text-[var(--ink-muted)]">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="sticky top-0 z-10 border-b border-[var(--line)] bg-[var(--bg-subtle)] text-xs uppercase tracking-wide text-[var(--ink-muted)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Cliente</th>
                   <th className="px-4 py-3 font-semibold">Produto</th>

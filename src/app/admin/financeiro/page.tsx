@@ -20,14 +20,14 @@ export default async function AdminFinanceiroPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           eyebrow="Admin"
           title="Financeiro"
           description="Aportes reais e saques — sem GMV inventado."
           size="xl"
         />
-        <Link href="/admin">
+        <Link href="/admin" className="shrink-0 self-start">
           <Button variant="outline" size="sm" leftIcon={<ArrowLeft className="h-4 w-4" />}>
             Voltar
           </Button>
@@ -41,7 +41,7 @@ export default async function AdminFinanceiroPage() {
         <p className="text-sm text-[var(--danger)]">{withdrawals.error}</p>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
           {
             label: "Confirmados (soma)",

@@ -38,7 +38,7 @@ export function StatusFilterChips({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden">
       {(["", ...ALL_RESERVATION_STATUSES] as const).map((key) => {
         const status = (key || null) as ReservationStatus | null;
         const active = (activeStatus ?? null) === status;
@@ -47,7 +47,7 @@ export function StatusFilterChips({
             key={key || "all"}
             href={hrefFor(status)}
             className={cn(
-              "rounded-[var(--radius-pill)] px-3 py-1.5 text-xs font-semibold tracking-wide transition",
+              "shrink-0 rounded-[var(--radius-pill)] px-3 py-2 text-xs font-semibold tracking-wide transition",
               active
                 ? "bg-[var(--accent)] text-white"
                 : "bg-[var(--bg-subtle)] text-[var(--ink-muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]",

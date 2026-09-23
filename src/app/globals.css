@@ -46,9 +46,11 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,

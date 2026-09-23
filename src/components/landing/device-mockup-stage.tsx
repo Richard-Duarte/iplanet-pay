@@ -31,7 +31,7 @@ export function DeviceMockupStage({
       <div
         className={
           fullBleed
-            ? "absolute inset-0 flex items-end justify-center gap-4 px-4 pb-[18%] pt-[8%] md:gap-8 md:px-10 md:pb-[14%] md:pt-[6%] lg:gap-10"
+            ? "absolute inset-0 flex items-end justify-center gap-2 px-2 pb-[18%] pt-[8%] sm:gap-4 sm:px-4 md:gap-8 md:px-10 md:pb-[14%] md:pt-[6%] lg:gap-10"
             : "relative flex items-end justify-center gap-3 px-2 md:gap-5"
         }
       >
@@ -39,7 +39,7 @@ export function DeviceMockupStage({
         <div
           className={
             fullBleed
-              ? "relative w-[52%] max-w-[720px] min-w-[200px]"
+              ? "relative w-[52%] max-w-[720px] min-w-0"
               : "relative w-[46%] max-w-[280px]"
           }
         >
@@ -85,7 +85,7 @@ export function DeviceMockupStage({
         <div
           className={
             fullBleed
-              ? "relative z-10 w-[22%] max-w-[280px] min-w-[110px] -translate-y-4 md:-translate-y-8"
+              ? "relative z-10 w-[22%] max-w-[280px] min-w-0 -translate-y-4 md:-translate-y-8"
               : "relative z-10 w-[24%] max-w-[140px] -translate-y-2"
           }
         >
@@ -131,7 +131,7 @@ export function DeviceMockupStage({
         <div
           className={
             fullBleed
-              ? "relative z-20 w-[18%] max-w-[220px] min-w-[96px] -translate-y-2 md:w-[16%] md:max-w-[240px] md:-translate-y-6"
+              ? "relative z-20 w-[18%] max-w-[220px] min-w-0 -translate-y-2 md:w-[16%] md:max-w-[240px] md:-translate-y-6"
               : "relative w-[16%] max-w-[92px] -translate-y-1"
           }
         >

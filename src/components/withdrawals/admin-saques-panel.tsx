@@ -94,7 +94,7 @@ export function AdminSaquesPanel({
           description="Quando clientes solicitarem saque de aportes, aparecerão aqui."
         />
       ) : (
-        <Card className="overflow-hidden p-0">
+        <Card className="overflow-x-auto p-0">
           <ul className="divide-y divide-[var(--line)]">
             {items.map((w) => (
               <li key={w.id} className="space-y-2 px-4 py-4 sm:px-5">

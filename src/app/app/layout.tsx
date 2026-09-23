@@ -18,17 +18,21 @@ export default async function ClienteLayout({
     <AppShell
       variant="cliente"
       topBar={
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="mb-6 flex min-w-0 items-center justify-between gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <BackButton fallbackHref="/app" />
-            <BrandLogo size={36} />
-            <div>
+            <BrandLogo size={36} className="shrink-0" />
+            <div className="min-w-0">
               <p className="text-sm text-[var(--ink-muted)]">Olá,</p>
-              <p className="text-lg font-bold tracking-tight">{user.full_name}</p>
+              <p className="truncate text-base font-bold tracking-tight sm:text-lg">
+                {user.full_name}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Pill tone="accent">{user.role}</Pill>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="hidden sm:inline-flex">
+              <Pill tone="accent">{user.role}</Pill>
+            </span>
             <LogoutButton />
           </div>
         </div>

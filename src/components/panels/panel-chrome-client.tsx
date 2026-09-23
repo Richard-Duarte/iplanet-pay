@@ -55,21 +55,23 @@ export function PanelChromeClient({
         </div>
       }
       topBar={
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <SidebarMenuButton
               open={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
             />
-            <BrandLogo size={32} className="lg:hidden" />
-            <div className="lg:hidden">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+            <BrandLogo size={32} className="shrink-0 lg:hidden" />
+            <div className="min-w-0 lg:hidden">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)] sm:text-xs">
                 iPlanet Pay
               </p>
-              <p className="text-lg font-bold">{title}</p>
+              <p className="truncate text-base font-bold sm:text-lg">{title}</p>
             </div>
           </div>
-          <LogoutButton />
+          <div className="shrink-0">
+            <LogoutButton />
+          </div>
         </div>
       }
     >

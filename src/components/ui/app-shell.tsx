@@ -28,7 +28,7 @@ export function AppShell({
   if (variant === "cliente") {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
-        <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 md:px-8 md:pb-10">
+        <div className="mx-auto max-w-5xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-6 md:px-8 md:pb-10">
           {topBar}
           {children}
         </div>
@@ -53,7 +53,7 @@ export function AppShell({
             {topBar}
           </div>
         ) : null}
-        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-auto px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
     </div>
   );

@@ -120,10 +120,10 @@ export function LandingCatalog({
   return (
     <div className="min-h-screen bg-white text-[var(--ink)]">
       <header className="sticky top-0 z-30 border-b border-black/5 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2.5 md:px-8 md:py-3">
           <a
             href="#hero"
-            className="inline-flex shrink-0"
+            className="inline-flex min-w-0 shrink scale-[0.85] origin-left sm:scale-100"
             aria-label="Voltar ao início"
             onClick={(e) => {
               e.preventDefault();
@@ -140,15 +140,15 @@ export function LandingCatalog({
           >
             <BrandLogo variant="wordmark" height={52} priority />
           </a>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Link href="/entrar">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="min-h-10 px-3">
                 Entrar
               </Button>
             </Link>
             <Link href="/criar-conta">
               <SpringPress>
-                <Button size="sm" variant="accent">
+                <Button size="sm" variant="accent" className="min-h-10 px-3">
                   Criar conta
                 </Button>
               </SpringPress>
@@ -179,7 +179,7 @@ export function LandingCatalog({
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
               iPlanet Pay
             </p>
-            <h1 className="max-w-4xl text-5xl font-bold leading-[1.02] tracking-tight text-white md:text-7xl">
+            <h1 className="max-w-4xl text-[2.5rem] font-bold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-7xl">
               iPhone 18 Pro
             </h1>
             <p className="mt-3 text-2xl font-medium tracking-tight text-white/90 md:text-3xl">
@@ -235,7 +235,7 @@ export function LandingCatalog({
             </div>
           </MotionFade>
 
-          <div className="mb-8 mt-8 flex flex-wrap gap-2">
+          <div className="-mx-4 mb-8 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
             {tabs.map((c) => (
               <motion.button
                 key={c}
@@ -249,8 +249,8 @@ export function LandingCatalog({
                 transition={chipSpring}
                 className={
                   cat === c
-                    ? "rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-white"
-                    : "rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink-muted)] hover:border-[var(--ink)]/20"
+                    ? "shrink-0 rounded-full bg-[var(--ink)] px-4 py-2.5 text-sm font-semibold text-white"
+                    : "shrink-0 rounded-full border border-[var(--line)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--ink-muted)] hover:border-[var(--ink)]/20"
                 }
               >
                 {c}
@@ -348,7 +348,7 @@ export function LandingCatalog({
             ))}
           </ul>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
             {STATS.map((s) => (
               <div
                 key={s.label}

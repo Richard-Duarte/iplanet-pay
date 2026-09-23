@@ -47,14 +47,14 @@ export function LiquidGlassFooter() {
   return (
     <footer className="px-3 pb-6 pt-4 md:px-6 md:pb-10">
       <div
-        className="mx-auto max-w-6xl overflow-hidden rounded-[40px] border border-black/[0.04] p-3 shadow-[0_24px_80px_rgba(17,17,17,0.08),0_2px_8px_rgba(17,17,17,0.04)] md:p-4"
+        className="mx-auto max-w-6xl overflow-hidden rounded-[28px] border border-black/[0.04] p-2.5 shadow-[0_24px_80px_rgba(17,17,17,0.08),0_2px_8px_rgba(17,17,17,0.04)] sm:rounded-[40px] md:p-4"
         style={{
           background:
             "linear-gradient(180deg, #e8e8ec 0%, #f7f7f8 45%, #ffffff 100%)",
         }}
       >
         <div
-          className="rounded-[32px] border border-white/60 px-5 py-8 md:px-10 md:py-10"
+          className="rounded-[22px] border border-white/60 px-4 py-7 sm:rounded-[32px] sm:px-5 sm:py-8 md:px-10 md:py-10"
           style={{
             background:
               "linear-gradient(135deg, rgba(245,245,247,0.92) 0%, rgba(255,255,255,0.75) 48%, rgba(232,242,252,0.55) 100%)",
