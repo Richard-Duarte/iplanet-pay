@@ -10,18 +10,19 @@ import {
 import { MotionFade } from "@/components/ui/motion";
 import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-client";
 
-/** Sticky runway height (vh). Phone stays pinned while foldProgress 0→1. */
-const PIN_VH = 160;
-/** Site header offset so the phone centers in the remaining viewport. */
+/**
+ * Scroll runway while the phone is pinned in the viewport (vh).
+ * Longer = slower unfold. Pin uses position:fixed (Lenis-safe).
+ */
+const PIN_VH = 145;
 const HEADER_PX = 64;
 /**
- * Scroll progress inside the pin runway (long open window = slower unfold):
- * 0–holdClosed: brief closed hold once centered
- * holdClosed–openEnd: slow unfold across most of the pin
- * openEnd–1: short hold open, then release to next Duo
+ * 0–holdClosed: closed, centered
+ * holdClosed–openEnd: smooth unfold (still centered)
+ * openEnd–1: fully open & readable, then release
  */
-const HOLD_CLOSED = 0.06;
-const OPEN_END = 0.88;
+const HOLD_CLOSED = 0.08;
+const OPEN_END = 0.78;
 
 const STEPS = [
   {
@@ -41,12 +42,14 @@ const STEPS = [
   },
 ] as const;
 
+type PinPhase = "before" | "pinned" | "after";
+
 function mapScrollToFold(t: number): number {
   if (t <= HOLD_CLOSED) return 0;
   if (t >= OPEN_END) return 1;
   const linear = (t - HOLD_CLOSED) / (OPEN_END - HOLD_CLOSED);
-  // Ease-out: more scroll early → slower visible open toward the end
-  return 1 - (1 - linear) * (1 - linear);
+  // Smoothstep — gentle open that finishes while still pinned
+  return linear * linear * (3 - 2 * linear);
 }
 
 function DuoPinnedStep({
@@ -56,28 +59,45 @@ function DuoPinnedStep({
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [foldProgress, setFoldProgress] = useState(0);
+  const [phase, setPhase] = useState<PinPhase>("before");
 
   const update = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const viewport = window.innerHeight;
-    // Sticky engages once track top hits HEADER_PX; progress = how far we've
-    // scrolled through (trackHeight - stickyViewport).
-    const stickyH = Math.max(1, viewport - HEADER_PX);
-    const range = Math.max(1, rect.height - stickyH);
-    const scrolled = Math.max(0, Math.min(range, HEADER_PX - rect.top));
-    const t = scrolled / range;
-    setFoldProgress(mapScrollToFold(t));
+    const pinH = Math.max(1, viewport - HEADER_PX);
+    const range = Math.max(1, rect.height - pinH);
+
+    // before: track hasn't reached the pin line yet
+    if (rect.top > HEADER_PX) {
+      setPhase("before");
+      setFoldProgress(0);
+      return;
+    }
+
+    // after: scrolled past the pin window — park phone at end of track
+    if (rect.bottom <= HEADER_PX + pinH) {
+      setPhase("after");
+      setFoldProgress(1);
+      return;
+    }
+
+    // pinned: keep phone fixed & centered; map scroll → fold
+    setPhase("pinned");
+    const scrolled = Math.min(range, Math.max(0, HEADER_PX - rect.top));
+    setFoldProgress(mapScrollToFold(scrolled / range));
   }, []);
 
   useEffect(() => {
     let raf = 0;
     const schedule = () => {
-      if (!raf) raf = requestAnimationFrame(() => {
-        raf = 0;
-        update();
-      });
+      if (!raf) {
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          update();
+        });
+      }
     };
     update();
     window.addEventListener("scroll", schedule, { passive: true, capture: true });
@@ -92,33 +112,48 @@ function DuoPinnedStep({
     };
   }, [update]);
 
-  const trackStyle: CSSProperties = {
-    height: `${PIN_VH}vh`,
-    position: "relative",
-    width: "100%",
-    // Pull the next Duo closer after the pin releases
-    marginBottom: "-4vh",
-  };
+  const pinH = `calc(100vh - ${HEADER_PX}px)`;
 
-  const pinStyle: CSSProperties = {
-    position: "sticky",
-    top: HEADER_PX,
-    height: `calc(100vh - ${HEADER_PX}px)`,
-    width: "100%",
-    display: "grid",
-    placeItems: "center",
-    overflow: "visible",
-    background: "#ffffff",
-  };
+  const stageStyle: CSSProperties =
+    phase === "pinned"
+      ? {
+          position: "fixed",
+          top: HEADER_PX,
+          left: 0,
+          right: 0,
+          height: pinH,
+          zIndex: 20 + step.n,
+          display: "grid",
+          placeItems: "center",
+          background: "#ffffff",
+        }
+      : phase === "after"
+        ? {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: pinH,
+            display: "grid",
+            placeItems: "center",
+            background: "#ffffff",
+          }
+        : {
+            position: "relative",
+            height: pinH,
+            display: "grid",
+            placeItems: "center",
+            background: "#ffffff",
+          };
 
   return (
     <div
       ref={trackRef}
-      className="w-full"
+      className="relative w-full"
       data-duo-step={step.n}
-      style={trackStyle}
+      style={{ height: `${PIN_VH}vh` }}
     >
-      <div style={pinStyle}>
+      <div style={stageStyle}>
         <div className="h-full w-full">
           <IphoneDuoScrollClient
             foldProgress={foldProgress}
@@ -150,10 +185,8 @@ function DuoPinnedStep({
 }
 
 /**
- * Variante B — three Framer iPhone Duo Scroll units (one per step).
- * Parent owns sticky pin: enter closed → hold centered → unfold → hold open → release.
- * Outer (right when open) keeps the step number; inner (left) shows written copy.
- * All three stay mounted so WebGL contexts stay valid.
+ * Three Framer iPhone Duo Scroll units (one per step).
+ * Fixed pin: enter closed → centered → slow open → hold open → release.
  */
 export function ComoFuncionaDuoScroll() {
   return (
