@@ -15,7 +15,13 @@ import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-cl
  * Longer = slower unfold. Pin uses position:fixed (Lenis-safe).
  */
 const PIN_VH = 145;
-const HEADER_PX = 64;
+/** Sticky landing header ~56–64px; keep a thin clearance so closed portrait isn’t clipped. */
+const PIN_TOP = 48;
+/**
+ * Optical lift: open landscape Duo reads low when truly centered in the
+ * leftover viewport — nudge up so it sits in the visual middle.
+ */
+const VISUAL_LIFT = "-9vh";
 /**
  * 0–holdClosed: closed, centered
  * holdClosed–openEnd: smooth unfold (still centered)
@@ -66,18 +72,18 @@ function DuoPinnedStep({
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const viewport = window.innerHeight;
-    const pinH = Math.max(1, viewport - HEADER_PX);
+    const pinH = Math.max(1, viewport - PIN_TOP);
     const range = Math.max(1, rect.height - pinH);
 
     // before: track hasn't reached the pin line yet
-    if (rect.top > HEADER_PX) {
+    if (rect.top > PIN_TOP) {
       setPhase("before");
       setFoldProgress(0);
       return;
     }
 
     // after: scrolled past the pin window — park phone at end of track
-    if (rect.bottom <= HEADER_PX + pinH) {
+    if (rect.bottom <= PIN_TOP + pinH) {
       setPhase("after");
       setFoldProgress(1);
       return;
@@ -85,7 +91,7 @@ function DuoPinnedStep({
 
     // pinned: keep phone fixed & centered; map scroll → fold
     setPhase("pinned");
-    const scrolled = Math.min(range, Math.max(0, HEADER_PX - rect.top));
+    const scrolled = Math.min(range, Math.max(0, PIN_TOP - rect.top));
     setFoldProgress(mapScrollToFold(scrolled / range));
   }, []);
 
@@ -112,13 +118,13 @@ function DuoPinnedStep({
     };
   }, [update]);
 
-  const pinH = `calc(100vh - ${HEADER_PX}px)`;
+  const pinH = `calc(100vh - ${PIN_TOP}px)`;
 
   const stageStyle: CSSProperties =
     phase === "pinned"
       ? {
           position: "fixed",
-          top: HEADER_PX,
+          top: PIN_TOP,
           left: 0,
           right: 0,
           height: pinH,
@@ -154,7 +160,10 @@ function DuoPinnedStep({
       style={{ height: `${PIN_VH}vh` }}
     >
       <div style={stageStyle}>
-        <div className="h-full w-full">
+        <div
+          className="h-full w-full"
+          style={{ transform: `translateY(${VISUAL_LIFT})` }}
+        >
           <IphoneDuoScrollClient
             foldProgress={foldProgress}
             interactionMode="scroll"
