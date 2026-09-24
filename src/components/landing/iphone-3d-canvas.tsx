@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   ContactShadows,
@@ -10,6 +10,7 @@ import {
   Center,
 } from "@react-three/drei";
 import type { Group } from "three";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 const MODEL_URL =
   "/models/iphone-18-pro-max/source/apple_iphone_18_pro_max_burgundy.glb";
@@ -17,12 +18,12 @@ const MODEL_URL =
 /** Native GLB ~0.163m tall — scale so phone fills ~65–75% of bracketed frame height. */
 const MODEL_SCALE = 7.2;
 
-function IphoneModel() {
+function IphoneModel({ spinning }: { spinning: boolean }) {
   const group = useRef<Group>(null);
   const { scene } = useGLTF(MODEL_URL);
 
   useFrame((_, delta) => {
-    if (!group.current) return;
+    if (!group.current || !spinning) return;
     group.current.rotation.y += delta * 0.18;
   });
 
@@ -35,16 +36,30 @@ function IphoneModel() {
   );
 }
 
-function Scene() {
+function Scene({
+  controlsEnabled,
+  onUserInteract,
+}: {
+  controlsEnabled: boolean;
+  onUserInteract: () => void;
+}) {
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    controls.enabled = controlsEnabled;
+    if (!controlsEnabled) {
+      controls.reset();
+    }
+  }, [controlsEnabled]);
+
   return (
     <>
       <color attach="background" args={["#ffffff"]} />
       <ambientLight intensity={0.55} />
-      {/* Softer key for white Material bg */}
       <directionalLight position={[3.5, 5.5, 2.5]} intensity={0.95} color="#ffffff" />
-      {/* Fill */}
       <directionalLight position={[-3, 2, 1]} intensity={0.42} color="#e8eef8" />
-      {/* Lavender rim — still readable on white */}
       <directionalLight
         position={[-2.5, 1.5, -4]}
         intensity={0.95}
@@ -57,7 +72,6 @@ function Scene() {
         penumbra={0.75}
         color="#ddd6fe"
       />
-      {/* Soft top specular */}
       <spotLight
         position={[0, 5.5, 1.5]}
         intensity={0.55}
@@ -66,7 +80,7 @@ function Scene() {
         color="#f8fafc"
       />
       <Suspense fallback={null}>
-        <IphoneModel />
+        <IphoneModel spinning={!controlsEnabled} />
         <Environment preset="studio" environmentIntensity={0.28} />
       </Suspense>
       <ContactShadows
@@ -78,6 +92,8 @@ function Scene() {
         color="#000000"
       />
       <OrbitControls
+        ref={controlsRef}
+        enabled={controlsEnabled}
         enablePan={false}
         minDistance={1.6}
         maxDistance={3.8}
@@ -85,6 +101,7 @@ function Scene() {
         minPolarAngle={Math.PI / 3.2}
         maxPolarAngle={Math.PI / 1.65}
         makeDefault
+        onStart={onUserInteract}
       />
     </>
   );
@@ -103,9 +120,33 @@ function CornerBrackets() {
 }
 
 export default function Iphone3dCanvas() {
+  const [active, setActive] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  const activate = useCallback(() => {
+    setActive(true);
+  }, []);
+
+  const deactivate = useCallback(() => {
+    setActive(false);
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActive(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active]);
+
   return (
-    <div className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]">
-      {/* Faint concentric rings behind model */}
+    <div
+      ref={shellRef}
+      className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]"
+      onPointerLeave={deactivate}
+      onBlur={deactivate}
+    >
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]"
         aria-hidden
@@ -119,13 +160,32 @@ export default function Iphone3dCanvas() {
         camera={{ position: [0, 0.12, 2.15], fov: 36 }}
         dpr={[1, 1.75]}
         gl={{ antialias: true, alpha: false }}
-        className="touch-none"
+        className={active ? "touch-none" : "touch-pan-y"}
+        style={{ pointerEvents: active ? "auto" : "none" }}
       >
-        <Scene />
+        <Scene controlsEnabled={active} onUserInteract={() => setActive(true)} />
       </Canvas>
-      <p className="pointer-events-none absolute bottom-5 left-0 right-0 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-        Arraste para girar · pinça para zoom
-      </p>
+
+      {!active ? (
+        <button
+          type="button"
+          className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center"
+          onClick={activate}
+          onPointerDown={activate}
+          aria-label="Clique para explorar o modelo 3D"
+        >
+          <span className="rounded-full border border-black/10 bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm">
+            Clique para explorar
+          </span>
+          <span className="pointer-events-none px-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+            Depois arraste para girar · pinça para zoom
+          </span>
+        </button>
+      ) : (
+        <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+          Arraste para girar · Esc ou saia da área para liberar o scroll
+        </p>
+      )}
     </div>
   );
 }

@@ -27,8 +27,9 @@ export function Experiencia3dSection() {
             transforme seu sonho em meta.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#6e6e73] md:text-base">
-            Arraste para orbitar, use pinça ou scroll para zoom — a mesma
-            experiência premium das lojas iPlanet.
+            Clique na tela 3D para ativar. Depois arraste para orbitar e use
+            pinça ou scroll para zoom — a mesma experiência premium das lojas
+            iPlanet.
           </p>
         </MotionFade>
         <div className="mt-10">
