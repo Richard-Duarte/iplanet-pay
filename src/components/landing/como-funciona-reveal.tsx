@@ -48,14 +48,14 @@ function StepIconCard({
   const Icon = icon === "pix" ? QrCode : PackageCheck;
   return (
     <div
-      className={`flex h-36 w-36 items-center justify-center rounded-[36px] md:h-52 md:w-52 ${
+      className={`flex h-28 w-28 items-center justify-center rounded-[28px] md:h-40 md:w-40 md:rounded-[36px] [@media(max-height:740px)]:h-24 [@media(max-height:740px)]:w-24 [@media(max-height:740px)]:rounded-[22px] [@media(min-height:900px)]:md:h-52 [@media(min-height:900px)]:md:w-52 ${
         dark
           ? "border border-white/15 bg-white/10 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-md"
           : "border border-white/80 bg-white text-[var(--accent)] shadow-[0_24px_60px_rgba(17,17,17,0.08)]"
       }`}
     >
       <Icon
-        className="h-16 w-16 md:h-24 md:w-24"
+        className="h-12 w-12 md:h-20 md:w-20 [@media(max-height:740px)]:h-10 [@media(max-height:740px)]:w-10 [@media(min-height:900px)]:md:h-24 [@media(min-height:900px)]:md:w-24"
         strokeWidth={1.35}
         aria-hidden
       />
@@ -88,9 +88,9 @@ function PanelShell({
 
   if (fullBleedDevices) {
     return (
-      <div className={`relative h-[100dvh] w-full overflow-hidden ${bg}`}>
+      <div className={`relative h-[100dvh] w-full min-h-0 overflow-hidden ${bg}`}>
         <DeviceMockupStage fullBleed />
-        <div className="absolute inset-0 z-10 flex flex-col justify-end px-5 pb-14 pt-20 md:px-10 md:pb-20 lg:max-w-xl lg:justify-end lg:pb-24">
+        <div className="absolute inset-0 z-10 flex min-h-0 flex-col justify-end px-5 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))] pt-16 md:px-10 md:pb-14 lg:max-w-xl lg:pb-16 [@media(max-height:740px)]:pb-8 [@media(max-height:740px)]:pt-12">
           {children}
         </div>
       </div>
@@ -99,8 +99,8 @@ function PanelShell({
 
   return (
     <div
-      className={`relative flex h-[100dvh] w-full ${
-        overlayCopy ? "items-end" : "items-center"
+      className={`relative flex h-[100dvh] w-full min-h-0 overflow-hidden ${
+        overlayCopy ? "items-end" : "items-center justify-center"
       } ${bg}`}
     >
       {showUnboxing ? (
@@ -121,8 +121,10 @@ function PanelShell({
       ) : null}
 
       <div
-        className={`relative z-10 mx-auto grid w-full max-w-6xl gap-8 px-4 py-16 md:gap-12 md:px-8 ${
-          overlayCopy ? "items-end pb-16 md:pb-24" : "items-center"
+        className={`relative z-10 mx-auto grid w-full max-w-6xl min-h-0 gap-6 px-4 py-[max(2rem,env(safe-area-inset-top,0px))] md:gap-10 md:px-8 [@media(max-height:740px)]:gap-4 [@media(max-height:740px)]:py-6 ${
+          overlayCopy
+            ? "items-end pb-[max(2.5rem,env(safe-area-inset-bottom,0px))] md:pb-16 [@media(max-height:740px)]:pb-8"
+            : "items-center"
         } ${
           showUnboxing
             ? ""
@@ -190,7 +192,7 @@ function StepPanel({
 
   return (
     <div ref={scrollRef} className="relative h-[220vh]">
-      <div className="sticky top-0 h-[100dvh] overflow-hidden">
+      <div className="sticky top-0 h-[100dvh] min-h-0 overflow-hidden">
         <PanelShell
           tone={step.tone}
           left={left}
@@ -200,14 +202,14 @@ function StepPanel({
           <TextRevealOnScroll
             as="h3"
             text={step.title}
-            className="text-4xl font-bold tracking-tight md:text-6xl"
+            className="text-[clamp(1.75rem,2.2vw+1rem,3.5rem)] font-bold tracking-tight [@media(max-height:740px)]:text-[clamp(1.5rem,1.6vw+0.9rem,2.25rem)]"
             mutedColor={muted}
             activeColor={active}
             progress={revealProgress}
           />
           <TextRevealOnScroll
             text={step.body}
-            className="mt-5 max-w-xl text-lg leading-relaxed md:text-2xl"
+            className="mt-3 max-w-xl text-[clamp(1rem,0.6vw+0.85rem,1.375rem)] leading-relaxed md:mt-4 [@media(max-height:740px)]:mt-2 [@media(max-height:740px)]:text-base [@media(max-height:740px)]:leading-snug"
             mutedColor={muted}
             activeColor={bodyActive}
             progress={revealProgress}
