@@ -1,9 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Fingerprint, QrCode, PackageCheck, type LucideIcon } from "lucide-react";
-import { DeviceMockupStage } from "@/components/landing/device-mockup-stage";
 import {
   FramerDeviceMockup,
   type DeviceMockupAngle,
@@ -179,45 +177,19 @@ function StepScreenContent({
   );
 }
 
+/** Como funciona — three device mockups only (Do toque à retirada). */
 export function ComoFuncionaReveal() {
   return (
     <section id="como-funciona" className="relative bg-white">
-      {/* ——— Tela 1: lineup grande ——— */}
-      <div className="relative min-h-[100dvh] overflow-hidden bg-gradient-to-b from-white via-[#f5f5f7] to-[#ececf0]">
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 pb-4 pt-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] md:items-end md:gap-10 md:px-8 md:pb-8 md:pt-20 lg:pt-24">
-          <motion.div {...fadeUp} className="max-w-xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
-              Como funciona
-            </p>
-            <h2 className="text-4xl font-bold tracking-tight text-[#111] md:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
-              Três passos. Ritmo seu.
-            </h2>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-[#5c5c66] md:text-lg">
-              Escolha o produto, aporte via Pix no seu tempo e retire na loja
-              iPlanet quando a reserva estiver quitada.
-            </p>
-          </motion.div>
-        </div>
-
-        <motion.div
-          {...fadeUp}
-          transition={{ ...fadeUp.transition, delay: 0.08 }}
-          className="relative mx-auto h-[min(62dvh,560px)] w-full max-w-6xl md:h-[min(68dvh,640px)]"
-        >
-          <DeviceMockupStage fullBleed />
-        </motion.div>
-      </div>
-
-      {/* ——— Tela 2: 3 iPhones com os passos ——— */}
       <div className="relative bg-white px-4 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-6xl">
           <motion.div {...fadeUp} className="mb-10 max-w-2xl md:mb-14">
             <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
               No app
             </p>
-            <h3 className="text-3xl font-bold tracking-tight text-[#111] md:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-[#111] md:text-4xl">
               Do toque à retirada.
-            </h3>
+            </h2>
             <p className="mt-3 text-base text-[#5c5c66] md:text-lg">
               Três telas. Sem rótulos de passo — só o fluxo.
             </p>
@@ -239,7 +211,6 @@ export function ComoFuncionaReveal() {
                     wallpaper={step.wallpaper}
                   />
                 </FramerDeviceMockup>
-                {/* Caption under device for a11y / mobile clarity */}
                 <div className="mt-5 text-center sm:px-1">
                   <p className="text-lg font-semibold tracking-tight text-[#111]">
                     {step.title}
@@ -251,39 +222,6 @@ export function ComoFuncionaReveal() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* ——— Tela 3: unboxing grande ——— */}
-      <div className="relative min-h-[100dvh] overflow-hidden bg-black">
-        <Image
-          src="/images/iphone-18-pro-max-unboxing.png"
-          alt=""
-          fill
-          className="object-cover"
-          sizes="100vw"
-          priority={false}
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25"
-          aria-hidden
-        />
-        <div className="relative z-10 flex min-h-[100dvh] items-end">
-          <motion.div
-            {...fadeUp}
-            className="mx-auto w-full max-w-6xl px-4 pb-[max(3rem,env(safe-area-inset-bottom,0px))] pt-24 md:px-8 md:pb-20"
-          >
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
-              Resultado
-            </p>
-            <h3 className="max-w-3xl text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
-              Seu iPhone, no seu ritmo
-            </h3>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/75 md:text-xl">
-              Da escolha à retirada: iPlanet Pay une as lojas físicas ao Pix no
-              seu tempo.
-            </p>
-          </motion.div>
         </div>
       </div>
     </section>
