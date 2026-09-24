@@ -1,10 +1,27 @@
 "use client";
 
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { MotionFade } from "@/components/ui/motion";
 import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-client";
 
-/** Sticky travel while pinned (vh). Longer = slower open + more hold time. */
-const SCROLL_LENGTH = 320;
+/** Sticky runway height (vh). Phone stays pinned while foldProgress 0→1. */
+const PIN_VH = 220;
+/** Site header offset so the phone centers in the remaining viewport. */
+const HEADER_PX = 64;
+/**
+ * Scroll progress inside the pin runway:
+ * 0–holdClosed: closed & centered
+ * holdClosed–openEnd: unfold animation
+ * openEnd–1: hold fully open (readable), then release to next
+ */
+const HOLD_CLOSED = 0.12;
+const OPEN_END = 0.55;
 
 const STEPS = [
   {
@@ -24,10 +41,115 @@ const STEPS = [
   },
 ] as const;
 
+function mapScrollToFold(t: number): number {
+  if (t <= HOLD_CLOSED) return 0;
+  if (t >= OPEN_END) return 1;
+  return (t - HOLD_CLOSED) / (OPEN_END - HOLD_CLOSED);
+}
+
+function DuoPinnedStep({
+  step,
+}: {
+  step: (typeof STEPS)[number];
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [foldProgress, setFoldProgress] = useState(0);
+
+  const update = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const viewport = window.innerHeight;
+    // Sticky engages once track top hits HEADER_PX; progress = how far we've
+    // scrolled through (trackHeight - stickyViewport).
+    const stickyH = Math.max(1, viewport - HEADER_PX);
+    const range = Math.max(1, rect.height - stickyH);
+    const scrolled = Math.max(0, Math.min(range, HEADER_PX - rect.top));
+    const t = scrolled / range;
+    setFoldProgress(mapScrollToFold(t));
+  }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true, capture: true });
+    window.addEventListener("resize", schedule);
+    const ro = new ResizeObserver(schedule);
+    if (trackRef.current) ro.observe(trackRef.current);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [update]);
+
+  const trackStyle: CSSProperties = {
+    height: `${PIN_VH}vh`,
+    position: "relative",
+    width: "100%",
+  };
+
+  const pinStyle: CSSProperties = {
+    position: "sticky",
+    top: HEADER_PX,
+    height: `calc(100vh - ${HEADER_PX}px)`,
+    width: "100%",
+    display: "grid",
+    placeItems: "center",
+    overflow: "visible",
+    background: "#ffffff",
+  };
+
+  return (
+    <div
+      ref={trackRef}
+      className="w-full"
+      data-duo-step={step.n}
+      style={trackStyle}
+    >
+      <div style={pinStyle}>
+        <div className="h-full w-full">
+          <IphoneDuoScrollClient
+            foldProgress={foldProgress}
+            interactionMode="scroll"
+            reverseAnimation={false}
+            phoneSize={1}
+            phoneFinish="star-white"
+            background="#ffffff"
+            screen="custom"
+            imageFit="cover"
+            outerImage={{ src: step.outer }}
+            innerImage={{ src: step.inner }}
+            lockScreenUI={{
+              showClock: false,
+              showWifi: false,
+              showQuickActions: false,
+            }}
+            screenBlur={1}
+            screenReflection={0}
+            loaderColor="#858580"
+            loaderOpacity={0.5}
+            loaderStyle="fold"
+            style={{ width: "100%", height: "100%" }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Variante B — three Framer iPhone Duo Scroll units (one per step).
- * Sticky pin: enter closed → hold centered → unfold → hold open → release.
- * All three stay mounted (no remount) so WebGL contexts stay valid.
+ * Parent owns sticky pin: enter closed → hold centered → unfold → hold open → release.
+ * Outer (right when open) keeps the step number; inner (left) shows written copy.
+ * All three stay mounted so WebGL contexts stay valid.
  */
 export function ComoFuncionaDuoScroll() {
   return (
@@ -55,31 +177,7 @@ export function ComoFuncionaDuoScroll() {
       </div>
 
       {STEPS.map((step) => (
-        <div key={step.n} className="w-full" data-duo-step={step.n}>
-          <IphoneDuoScrollClient
-            interactionMode="scroll"
-            scrollLength={SCROLL_LENGTH}
-            reverseAnimation={false}
-            phoneSize={1}
-            phoneFinish="star-white"
-            background="#ffffff"
-            screen="custom"
-            imageFit="cover"
-            outerImage={{ src: step.outer }}
-            innerImage={{ src: step.inner }}
-            lockScreenUI={{
-              showClock: false,
-              showWifi: false,
-              showQuickActions: false,
-            }}
-            screenBlur={1}
-            screenReflection={0}
-            loaderColor="#858580"
-            loaderOpacity={0.5}
-            loaderStyle="fold"
-            style={{ width: "100%" }}
-          />
-        </div>
+        <DuoPinnedStep key={step.n} step={step} />
       ))}
     </section>
   );

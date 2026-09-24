@@ -8,6 +8,8 @@ export type DuoScrollImage = { src: string; srcSet?: string };
 export type IphoneDuoScrollProps = {
   interactionMode?: "scroll" | "drag";
   scrollLength?: number;
+  /** 0–1 controlled fold; parent owns sticky scroll when set */
+  foldProgress?: number;
   reverseAnimation?: boolean;
   phoneSize?: number;
   phoneFinish?: "star-white" | "night-sky";
