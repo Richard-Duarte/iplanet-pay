@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/select";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { MotionModal } from "@/components/ui/motion";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { AvatarCropModal } from "@/components/profile/avatar-crop-modal";
 import {
   PIX_KEY_TYPE_LABEL,
   type PixKeyType,
@@ -58,6 +59,7 @@ export function ConfiguracoesForm({
 
   const [confirmKind, setConfirmKind] = useState<ConfirmKind>(null);
   const [confirmValue, setConfirmValue] = useState("");
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   function clearFeedback() {
     setMessage(null);
@@ -131,13 +133,31 @@ export function ConfiguracoesForm({
     }
   }
 
-  async function onAvatarChange(file: File | null) {
+
+  function closeCrop() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  function onAvatarPick(file: File | null) {
     if (!file) return;
+    clearFeedback();
+    if (!file.type.startsWith("image/")) {
+      setError("Escolha um arquivo de imagem.");
+      return;
+    }
+    // Any size allowed — client crops to a small JPEG before upload.
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(URL.createObjectURL(file));
+  }
+
+  async function onCropConfirm(blob: Blob) {
     clearFeedback();
     setAvatarLoading(true);
     try {
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", blob, "avatar.jpg");
       const res = await fetch("/api/profile/avatar", {
         method: "POST",
         body: form,
@@ -153,12 +173,12 @@ export function ConfiguracoesForm({
       }
       setAvatar(data.avatar_url);
       setMessage("Foto atualizada.");
+      closeCrop();
       router.refresh();
     } catch {
       setError("Erro de rede no upload.");
     } finally {
       setAvatarLoading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
@@ -235,9 +255,9 @@ export function ConfiguracoesForm({
             <input
               ref={fileRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
+              accept="image/*"
               className="hidden"
-              onChange={(e) => onAvatarChange(e.target.files?.[0] ?? null)}
+              onChange={(e) => onAvatarPick(e.target.files?.[0] ?? null)}
             />
             <Button
               type="button"
@@ -249,7 +269,7 @@ export function ConfiguracoesForm({
               {avatarLoading ? "Enviando…" : "Escolher foto"}
             </Button>
             <p className="text-xs text-[var(--ink-muted)]">
-              JPG, PNG ou WebP até 2&nbsp;MB.
+              Qualquer tamanho. Você ajusta o zoom e o recorte no círculo.
             </p>
           </div>
         </div>
@@ -460,6 +480,14 @@ export function ConfiguracoesForm({
           </Button>
         </div>
       </MotionModal>
+
+      <AvatarCropModal
+        open={Boolean(cropSrc)}
+        imageSrc={cropSrc}
+        onClose={closeCrop}
+        onConfirm={(blob) => void onCropConfirm(blob)}
+        confirming={avatarLoading}
+      />
     </div>
   );
 }

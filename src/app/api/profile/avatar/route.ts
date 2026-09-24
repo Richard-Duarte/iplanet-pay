@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 
-const MAX_BYTES = 2 * 1024 * 1024;
+const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = new Set([
   "image/jpeg",
   "image/png",
