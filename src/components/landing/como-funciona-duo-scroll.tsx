@@ -3,12 +3,33 @@
 import { MotionFade } from "@/components/ui/motion";
 import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-client";
 
-const INNER_SRC = "/images/duo-scroll/inner-screen.png";
-const OUTER_SRC = "/images/duo-scroll/outer-screen.png";
+const STEPS = [
+  {
+    n: 1,
+    title: "Escolha",
+    body: "Toque no produto e veja detalhes e defina uma meta.",
+    outer: "/images/duo-scroll/step-1-outer.png",
+    inner: "/images/duo-scroll/step-1-inner.png",
+  },
+  {
+    n: 2,
+    title: "Aporte via Pix",
+    body: "Entre, reserve e pague aos poucos sem juros.",
+    outer: "/images/duo-scroll/step-2-outer.png",
+    inner: "/images/duo-scroll/step-2-inner.png",
+  },
+  {
+    n: 3,
+    title: "Retire",
+    body: "Com a reserva quitada, retire na loja iPlanet.",
+    outer: "/images/duo-scroll/step-3-outer.png",
+    inner: "/images/duo-scroll/step-3-inner.png",
+  },
+] as const;
 
 /**
- * Variante B — Framer iPhone Duo Scroll (scroll-to-unfold).
- * Kept alongside `#como-funciona` for A/B comparison.
+ * Variante B — three Framer iPhone Duo Scroll units (one per step).
+ * Closed cover = step number; scroll unfolds = written step.
  */
 export function ComoFuncionaDuoScroll() {
   return (
@@ -22,9 +43,8 @@ export function ComoFuncionaDuoScroll() {
             Três passos. Ritmo seu.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#6e6e73] md:text-lg">
-            Role para desdobrar o iPhone Duo — a mesma animação 3D do componente
-            Framer, com telas iPlanet (Escolha · Aporte · Retire). Compare com a
-            variante A em{" "}
+            Cada passo é um iPhone Duo: fechado mostra o número; role para abrir
+            e ler o passo. Compare com a variante A em{" "}
             <a
               href="#como-funciona"
               className="font-medium text-[#111] underline decoration-black/20 underline-offset-4 hover:decoration-black/60"
@@ -36,31 +56,33 @@ export function ComoFuncionaDuoScroll() {
         </MotionFade>
       </div>
 
-      <div className="w-full">
-        <IphoneDuoScrollClient
-          interactionMode="scroll"
-          scrollLength={180}
-          reverseAnimation={false}
-          phoneSize={1}
-          phoneFinish="star-white"
-          background="#ffffff"
-          screen="custom"
-          imageFit="cover"
-          innerImage={{ src: INNER_SRC }}
-          outerImage={{ src: OUTER_SRC }}
-          lockScreenUI={{
-            showClock: false,
-            showWifi: false,
-            showQuickActions: false,
-          }}
-          screenBlur={1}
-          screenReflection={0}
-          loaderColor="#858580"
-          loaderOpacity={0.5}
-          loaderStyle="fold"
-          style={{ width: "100%" }}
-        />
-      </div>
+      {STEPS.map((step) => (
+        <div key={step.n} className="w-full">
+          <IphoneDuoScrollClient
+            interactionMode="scroll"
+            scrollLength={160}
+            reverseAnimation={false}
+            phoneSize={1}
+            phoneFinish="star-white"
+            background="#ffffff"
+            screen="custom"
+            imageFit="cover"
+            outerImage={{ src: step.outer }}
+            innerImage={{ src: step.inner }}
+            lockScreenUI={{
+              showClock: false,
+              showWifi: false,
+              showQuickActions: false,
+            }}
+            screenBlur={1}
+            screenReflection={0}
+            loaderColor="#858580"
+            loaderOpacity={0.5}
+            loaderStyle="fold"
+            style={{ width: "100%" }}
+          />
+        </div>
+      ))}
     </section>
   );
 }
