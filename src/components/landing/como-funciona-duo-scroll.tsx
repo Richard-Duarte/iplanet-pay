@@ -11,17 +11,17 @@ import { MotionFade } from "@/components/ui/motion";
 import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-client";
 
 /** Sticky runway height (vh). Phone stays pinned while foldProgress 0→1. */
-const PIN_VH = 108;
+const PIN_VH = 160;
 /** Site header offset so the phone centers in the remaining viewport. */
 const HEADER_PX = 64;
 /**
- * Scroll progress inside the pin runway (tuned short so open starts ASAP once centered):
- * 0–holdClosed: brief closed hold
- * holdClosed–openEnd: unfold
- * openEnd–1: hold open readable, then release
+ * Scroll progress inside the pin runway (long open window = slower unfold):
+ * 0–holdClosed: brief closed hold once centered
+ * holdClosed–openEnd: slow unfold across most of the pin
+ * openEnd–1: short hold open, then release to next Duo
  */
-const HOLD_CLOSED = 0.04;
-const OPEN_END = 0.72;
+const HOLD_CLOSED = 0.06;
+const OPEN_END = 0.88;
 
 const STEPS = [
   {
@@ -44,7 +44,9 @@ const STEPS = [
 function mapScrollToFold(t: number): number {
   if (t <= HOLD_CLOSED) return 0;
   if (t >= OPEN_END) return 1;
-  return (t - HOLD_CLOSED) / (OPEN_END - HOLD_CLOSED);
+  const linear = (t - HOLD_CLOSED) / (OPEN_END - HOLD_CLOSED);
+  // Ease-out: more scroll early → slower visible open toward the end
+  return 1 - (1 - linear) * (1 - linear);
 }
 
 function DuoPinnedStep({
@@ -95,7 +97,7 @@ function DuoPinnedStep({
     position: "relative",
     width: "100%",
     // Pull the next Duo closer after the pin releases
-    marginBottom: "-6vh",
+    marginBottom: "-4vh",
   };
 
   const pinStyle: CSSProperties = {
