@@ -17,8 +17,9 @@ import { ProductModal } from "@/components/catalog/product-modal";
 import { formatCentsBRL } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics/track";
 import type { Product, ProductCategory } from "@/types/database";
-import { ComoFuncionaReveal } from "@/components/landing/como-funciona-reveal";
 import { ComoFuncionaDuoScroll } from "@/components/landing/como-funciona-duo-scroll";
+import { SeuIphoneSection } from "@/components/landing/seu-iphone-section";
+import { ComoFuncionaReveal } from "@/components/landing/como-funciona-reveal";
 import { VelocityCatalogCarousel } from "@/components/landing/velocity-catalog-carousel";
 import { Experiencia3dSection } from "@/components/landing/iphone-3d-viewer";
 import { LiquidGlassFooter } from "@/components/landing/liquid-glass-footer";
@@ -209,9 +210,11 @@ export function LandingCatalog({
         </div>
       </section>
 
-      <ComoFuncionaReveal />
-
       <ComoFuncionaDuoScroll />
+
+      <SeuIphoneSection />
+
+      <ComoFuncionaReveal />
 
       <section id="catalogo" className="overflow-hidden bg-white py-14 md:py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-8">

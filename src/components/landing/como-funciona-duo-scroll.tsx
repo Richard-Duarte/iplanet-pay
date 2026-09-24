@@ -157,21 +157,14 @@ export function ComoFuncionaDuoScroll() {
       <div className="mx-auto max-w-6xl px-4 pb-6 pt-16 md:px-8 md:pt-24">
         <MotionFade>
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
-            Variante B · iPhone Duo Scroll
+            Como funciona
           </p>
           <h2 className="max-w-3xl text-4xl font-bold tracking-tight md:text-5xl">
             Três passos. Ritmo seu.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#6e6e73] md:text-lg">
             Cada passo é um iPhone Duo: fechado mostra o número; role para abrir
-            e ler o passo. Compare com a variante A em{" "}
-            <a
-              href="#como-funciona"
-              className="font-medium text-[#111] underline decoration-black/20 underline-offset-4 hover:decoration-black/60"
-            >
-              #como-funciona
-            </a>
-            .
+            e ler o passo — escolha, aporte via Pix e retire na loja.
           </p>
         </MotionFade>
       </div>
