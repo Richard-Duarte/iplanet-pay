@@ -162,7 +162,12 @@ function DuoPinnedStep({
       <div style={stageStyle}>
         <div
           className="h-full w-full"
-          style={{ transform: `translateY(${VISUAL_LIFT})` }}
+          style={{
+            // Only lift while pinned/after — lifting in "before" slides the
+            // white Duo canvas up over the section intro copy.
+            transform:
+              phase === "before" ? undefined : `translateY(${VISUAL_LIFT})`,
+          }}
         >
           <IphoneDuoScrollClient
             foldProgress={foldProgress}
@@ -200,7 +205,7 @@ function DuoPinnedStep({
 export function ComoFuncionaDuoScroll() {
   return (
     <section id="como-funciona-duo" className="relative bg-white text-[#111]">
-      <div className="mx-auto max-w-6xl px-4 pb-6 pt-16 md:px-8 md:pt-24">
+      <div className="relative z-30 mx-auto max-w-6xl px-4 pb-10 pt-16 md:px-8 md:pb-12 md:pt-24">
         <MotionFade>
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
             Como funciona
