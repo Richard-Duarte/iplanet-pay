@@ -92,7 +92,7 @@ export function ComoFuncionaReveal() {
                 key={step.id}
                 {...fadeUp}
                 transition={{ ...fadeUp.transition, delay: 0.06 * i }}
-                className="mx-auto w-full max-w-[280px] sm:max-w-none"
+                className="mx-auto w-full max-w-[230px] scale-[0.92] sm:max-w-[240px] sm:scale-100 md:max-w-none md:scale-[0.88]"
               >
                 <FramerDeviceMockup angle={step.angle} color={step.color}>
                   <ScreenImage src={step.screenSrc} alt={step.title} />
