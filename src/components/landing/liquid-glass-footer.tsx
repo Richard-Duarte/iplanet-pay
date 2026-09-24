@@ -94,7 +94,9 @@ export function LiquidGlassFooter() {
                   placeholder="Seu e-mail (opcional)"
                   aria-label="E-mail"
                   className="w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-muted)]"
+                  style={{ caretColor: "transparent" }}
                   readOnly
+                  suppressHydrationWarning
                   onFocus={(e) => e.currentTarget.blur()}
                 />
               </div>
