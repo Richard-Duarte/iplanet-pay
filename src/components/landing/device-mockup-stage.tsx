@@ -1,6 +1,9 @@
 "use client";
 
-/** Full-bleed Framer-style device stage — MacBook + iPad + large iPhone fills the panel. */
+/**
+ * Framer-style MacBook + iPad + iPhone lineup with glossy floor reflections.
+ * Matches /workspace/framer-refs/02-device-mockups.png aesthetic.
+ */
 export function DeviceMockupStage({
   fullBleed = false,
 }: {
@@ -10,205 +13,223 @@ export function DeviceMockupStage({
     <div
       className={
         fullBleed
-          ? "pointer-events-none absolute inset-0 select-none overflow-hidden"
-          : "relative mx-auto w-full max-w-3xl select-none"
+          ? "pointer-events-none relative h-full w-full min-h-0 select-none overflow-hidden"
+          : "relative mx-auto w-full max-w-5xl select-none"
       }
       aria-hidden={fullBleed || undefined}
     >
+      {/* Soft studio glow */}
       <div
         className={
           fullBleed
-            ? "pointer-events-none absolute inset-x-0 bottom-0 top-[8%] opacity-70 blur-3xl"
-            : "pointer-events-none absolute inset-x-0 top-1/3 h-2/3 rounded-full opacity-60 blur-3xl"
+            ? "pointer-events-none absolute inset-x-0 top-[10%] h-[55%] opacity-50 blur-3xl"
+            : "pointer-events-none absolute inset-x-0 top-1/4 h-1/2 rounded-full opacity-45 blur-3xl"
         }
         style={{
           background:
-            "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.14), transparent 65%)",
+            "radial-gradient(ellipse at 50% 35%, rgba(0,113,227,0.10), transparent 68%)",
         }}
         aria-hidden
       />
 
-      {/*
-        Height-fit: short 16:9 viewports scale the whole device cluster from the
-        bottom so laptop+tablet+phone+reflections never exceed ~100dvh.
-      */}
+      {/* Glossy floor plane */}
       <div
         className={
           fullBleed
-            ? "absolute inset-0 flex h-full max-h-[100dvh] min-h-0 items-end justify-center overflow-hidden px-2 pb-[min(8%,3.25rem)] pt-[min(5%,2rem)] sm:px-4 md:px-8 [@media(max-height:720px)]:pb-5 [@media(max-height:720px)]:pt-3"
-            : "relative flex items-end justify-center gap-3 px-2 md:gap-5"
+            ? "pointer-events-none absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-b from-transparent via-[#ececf0]/40 to-[#e4e4ea]/70"
+            : "pointer-events-none absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-b from-transparent to-[#e8e8ec]/55"
+        }
+        aria-hidden
+      />
+
+      <div
+        className={
+          fullBleed
+            ? "absolute inset-0 flex h-full max-h-[100dvh] min-h-0 items-end justify-center overflow-hidden px-3 pb-[min(10%,4rem)] pt-[min(6%,2.5rem)] sm:px-6 md:px-10"
+            : "relative flex items-end justify-center gap-4 px-2 pb-10 md:gap-8 md:pb-14"
         }
       >
         <div
           className={
             fullBleed
-              ? "flex origin-bottom items-end justify-center gap-2 sm:gap-4 md:gap-6 lg:gap-8 [@media(max-height:900px)]:scale-[0.92] [@media(max-height:820px)]:scale-[0.82] [@media(max-height:740px)]:scale-[0.72] [@media(max-height:680px)]:scale-[0.64]"
+              ? "flex origin-bottom items-end justify-center gap-3 sm:gap-5 md:gap-8 lg:gap-10 [@media(max-height:900px)]:scale-[0.92] [@media(max-height:820px)]:scale-[0.82] [@media(max-height:740px)]:scale-[0.72] [@media(max-height:680px)]:scale-[0.64]"
               : "contents"
           }
         >
-          {/* Laptop */}
+          {/* MacBook — left */}
           <div
             className={
               fullBleed
-                ? "relative w-[48%] max-w-[min(680px,50vw)] min-w-0"
-                : "relative w-[46%] max-w-[280px]"
+                ? "relative w-[48%] max-w-[min(720px,52vw)] min-w-0"
+                : "relative w-[48%] max-w-[340px]"
             }
           >
-            <div className="rounded-[10px] border border-[#2a2a2e] bg-[#1a1a1c] p-[6px] shadow-[0_28px_70px_rgba(0,0,0,0.28)] md:rounded-[14px] md:p-[8px]">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-[6px] bg-black md:rounded-[8px]">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at 30% 40%, #3a3a40 0%, #0a0a0c 70%)",
-                  }}
-                />
-                <svg
-                  className="absolute inset-0 h-full w-full opacity-80"
-                  viewBox="0 0 160 100"
-                  preserveAspectRatio="none"
-                  aria-hidden
-                >
-                  <path
-                    d="M10 80 C40 20, 50 90, 80 40 S120 10, 150 70"
-                    fill="none"
-                    stroke="#6b6b72"
-                    strokeWidth="14"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M0 60 C30 10, 60 90, 100 30 S140 50, 160 20"
-                    fill="none"
-                    stroke="#4a4a52"
-                    strokeWidth="10"
-                    strokeLinecap="round"
-                    opacity="0.7"
-                  />
-                </svg>
+            <div className="rounded-[12px] border border-[#3a3a3e] bg-[#1c1c1e] p-[7px] shadow-[0_32px_80px_rgba(0,0,0,0.28)] md:rounded-[16px] md:p-[9px]">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-[7px] bg-black md:rounded-[10px]">
+                <MacBookWallpaper />
               </div>
             </div>
-            <div className="mx-auto h-[6px] w-[108%] -translate-x-[4%] rounded-b-[8px] bg-gradient-to-b from-[#2c2c30] to-[#1a1a1c] md:h-[8px]" />
-            <div className="mx-auto h-[3px] w-[50%] rounded-b-full bg-[#111] md:h-[4px]" />
-            <Reflection className="opacity-40" />
+            <div className="mx-auto h-[7px] w-[110%] -translate-x-[4.5%] rounded-b-[10px] bg-gradient-to-b from-[#2e2e32] via-[#222226] to-[#161618] md:h-[9px]" />
+            <div className="mx-auto h-[3px] w-[42%] rounded-b-full bg-[#0c0c0e] md:h-[4px]" />
+            <GlossyReflection intensity={0.42} />
           </div>
 
-          {/* Tablet */}
+          {/* iPad — center */}
           <div
             className={
               fullBleed
-                ? "relative z-10 w-[20%] max-w-[min(250px,21vw)] min-w-0 -translate-y-3 md:-translate-y-6 [@media(max-height:740px)]:-translate-y-2"
-                : "relative z-10 w-[24%] max-w-[140px] -translate-y-2"
+                ? "relative z-10 w-[19%] max-w-[min(240px,20vw)] min-w-0 -translate-y-4 md:-translate-y-8 [@media(max-height:740px)]:-translate-y-2"
+                : "relative z-10 w-[22%] max-w-[150px] -translate-y-3"
             }
           >
-            <div className="rounded-[18px] border border-[#222] bg-[#111] p-[5px] shadow-[0_28px_60px_rgba(0,0,0,0.32)] md:rounded-[22px] md:p-[7px]">
-              <div className="relative aspect-[10/14] overflow-hidden rounded-[13px] bg-black md:rounded-[16px]">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #0a0a0c 0%, #111 40%, #0a0a0c 100%)",
-                  }}
-                />
-                <div
-                  className="absolute inset-y-0 left-[18%] w-[18%] blur-[1px]"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #4fc3f7, #ffe082, #ff8a65, #7e57c2)",
-                    opacity: 0.9,
-                  }}
-                />
-                <div
-                  className="absolute inset-y-0 left-[42%] w-[10%] blur-[2px]"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, transparent, #80deea, #fff59d, transparent)",
-                    opacity: 0.75,
-                  }}
-                />
-                <div
-                  className="absolute inset-y-0 right-[22%] w-[14%] blur-[1px]"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #ce93d8, #80cbc4, #ffcc80)",
-                    opacity: 0.85,
-                  }}
-                />
+            <div className="rounded-[20px] border border-[#1a1a1c] bg-[#0e0e10] p-[5px] shadow-[0_30px_70px_rgba(0,0,0,0.30)] md:rounded-[24px] md:p-[6px]">
+              <div className="relative aspect-[10/14] overflow-hidden rounded-[15px] bg-black md:rounded-[18px]">
+                <IpadWallpaper />
               </div>
             </div>
-            <Reflection className="opacity-45" />
+            <GlossyReflection intensity={0.48} />
           </div>
 
-          {/* Phone — prominent */}
+          {/* iPhone — right */}
           <div
             className={
               fullBleed
-                ? "relative z-20 w-[16%] max-w-[min(210px,17vw)] min-w-0 -translate-y-1 md:w-[15%] md:max-w-[min(230px,15vw)] md:-translate-y-4 [@media(max-height:740px)]:-translate-y-1"
-                : "relative w-[16%] max-w-[92px] -translate-y-1"
+                ? "relative z-20 w-[15%] max-w-[min(200px,16vw)] min-w-0 -translate-y-2 md:w-[14%] md:max-w-[min(220px,14vw)] md:-translate-y-5 [@media(max-height:740px)]:-translate-y-1"
+                : "relative w-[15%] max-w-[100px] -translate-y-2"
             }
           >
-            <div className="rounded-[22px] border border-[#2a2a2e] bg-[#1c1c1e] p-[5px] shadow-[0_28px_56px_rgba(0,0,0,0.34)] md:rounded-[28px] md:p-[7px]">
-              <div className="relative aspect-[9/19] overflow-hidden rounded-[17px] bg-[#121214] md:rounded-[22px]">
-                <div className="absolute left-1/2 top-2.5 z-10 h-[8px] w-[32%] -translate-x-1/2 rounded-full bg-black md:top-3 md:h-[10px]" />
-                <svg
-                  className="absolute inset-0 h-full w-full"
-                  viewBox="0 0 90 190"
-                  aria-hidden
-                >
-                  <circle
-                    cx="45"
-                    cy="95"
-                    r="28"
-                    fill="none"
-                    stroke="#3a3a40"
-                    strokeWidth="1"
-                  />
-                  <circle
-                    cx="45"
-                    cy="95"
-                    r="42"
-                    fill="none"
-                    stroke="#2e2e34"
-                    strokeWidth="1"
-                  />
-                  <circle
-                    cx="45"
-                    cy="95"
-                    r="56"
-                    fill="none"
-                    stroke="#26262c"
-                    strokeWidth="1"
-                  />
-                </svg>
+            <div className="rounded-[24px] border border-[#2c2c30] bg-[#1a1a1c] p-[5px] shadow-[0_28px_60px_rgba(0,0,0,0.32)] md:rounded-[30px] md:p-[6px]">
+              <div className="relative aspect-[9/19.5] overflow-hidden rounded-[19px] bg-[#0c0c0e] md:rounded-[24px]">
+                <div className="absolute left-1/2 top-2.5 z-10 h-[9px] w-[34%] -translate-x-1/2 rounded-full bg-black md:top-3 md:h-[11px]" />
+                <IphoneWallpaper />
               </div>
             </div>
-            <Reflection className="opacity-40" />
+            <GlossyReflection intensity={0.4} />
           </div>
         </div>
       </div>
-
-      {/* Soft floor fade so text overlay stays readable */}
-      {fullBleed ? (
-        <div
-          className="absolute inset-x-0 bottom-0 h-[min(42%,13rem)] bg-gradient-to-t from-[#f5f5f7] via-[#f5f5f7]/85 to-transparent [@media(max-height:740px)]:h-[36%]"
-          aria-hidden
-        />
-      ) : null}
     </div>
   );
 }
 
-function Reflection({ className }: { className?: string }) {
+function MacBookWallpaper() {
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 28% 42%, #3a3a42 0%, #121214 62%, #08080a 100%)",
+        }}
+      />
+      <svg
+        className="absolute inset-0 h-full w-full opacity-90"
+        viewBox="0 0 160 100"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path
+          d="M8 82 C38 18, 48 88, 78 38 S118 8, 152 68"
+          fill="none"
+          stroke="#6a6a72"
+          strokeWidth="16"
+          strokeLinecap="round"
+        />
+        <path
+          d="M0 58 C28 8, 58 88, 98 28 S138 48, 160 18"
+          fill="none"
+          stroke="#484850"
+          strokeWidth="11"
+          strokeLinecap="round"
+          opacity="0.75"
+        />
+        <path
+          d="M20 90 C50 40, 70 95, 100 55 S130 20, 160 50"
+          fill="none"
+          stroke="#2e2e36"
+          strokeWidth="8"
+          strokeLinecap="round"
+          opacity="0.55"
+        />
+      </svg>
+    </>
+  );
+}
+
+function IpadWallpaper() {
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, #08080a 0%, #101014 45%, #08080a 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-y-0 left-[16%] w-[20%] blur-[1.5px]"
+        style={{
+          background:
+            "linear-gradient(180deg, #4fc3f7, #ffe082, #ff8a65, #7e57c2)",
+          opacity: 0.92,
+        }}
+      />
+      <div
+        className="absolute inset-y-0 left-[40%] w-[11%] blur-[2.5px]"
+        style={{
+          background:
+            "linear-gradient(180deg, transparent, #80deea, #fff59d, transparent)",
+          opacity: 0.78,
+        }}
+      />
+      <div
+        className="absolute inset-y-0 right-[20%] w-[15%] blur-[1.5px]"
+        style={{
+          background:
+            "linear-gradient(180deg, #ce93d8, #80cbc4, #ffcc80)",
+          opacity: 0.88,
+        }}
+      />
+    </>
+  );
+}
+
+function IphoneWallpaper() {
+  return (
+    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 90 190" aria-hidden>
+      <rect width="90" height="190" fill="#0c0c0e" />
+      {[28, 42, 56, 70].map((r) => (
+        <rect
+          key={r}
+          x={45 - r / 2}
+          y={95 - r / 2}
+          width={r}
+          height={r}
+          rx={10}
+          fill="none"
+          stroke="#3a3a42"
+          strokeWidth="0.9"
+          opacity={0.55 + (70 - r) * 0.006}
+        />
+      ))}
+    </svg>
+  );
+}
+
+function GlossyReflection({ intensity }: { intensity: number }) {
   return (
     <div
-      className={`mt-1 h-8 w-full origin-top scale-y-[-1] overflow-hidden opacity-50 blur-[1px] md:h-11 [@media(max-height:820px)]:h-5 [@media(max-height:720px)]:hidden ${className ?? ""}`}
+      className="mt-1.5 h-10 w-full origin-top scale-y-[-1] overflow-hidden blur-[0.6px] md:h-14 [@media(max-height:820px)]:h-6 [@media(max-height:720px)]:hidden"
       aria-hidden
       style={{
-        maskImage: "linear-gradient(180deg, rgba(0,0,0,0.45), transparent)",
+        opacity: intensity,
+        maskImage:
+          "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 45%, transparent 100%)",
         WebkitMaskImage:
-          "linear-gradient(180deg, rgba(0,0,0,0.45), transparent)",
+          "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 45%, transparent 100%)",
       }}
     >
-      <div className="h-full w-full rounded-t-[8px] bg-gradient-to-b from-black/35 to-transparent" />
+      <div className="h-full w-full rounded-t-[10px] bg-gradient-to-b from-black/40 via-black/18 to-transparent" />
     </div>
   );
 }

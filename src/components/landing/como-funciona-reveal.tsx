@@ -1,146 +1,179 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
 import Image from "next/image";
-import { QrCode, PackageCheck } from "lucide-react";
-import {
-  TextRevealOnScroll,
-  useStickyRevealProgress,
-} from "@/components/landing/text-reveal-on-scroll";
+import { motion } from "framer-motion";
+import { Fingerprint, QrCode, PackageCheck, type LucideIcon } from "lucide-react";
 import { DeviceMockupStage } from "@/components/landing/device-mockup-stage";
+import {
+  FramerDeviceMockup,
+  type DeviceMockupAngle,
+  type DeviceMockupColor,
+} from "@/components/landing/framer-device-mockup";
 
-const STEPS = [
+const fadeUp = {
+  initial: { opacity: 0, y: 28 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.25 },
+  transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
+};
+
+const STEPS: {
+  id: string;
+  title: string;
+  body: string;
+  icon: LucideIcon;
+  angle: DeviceMockupAngle;
+  color: DeviceMockupColor;
+  wallpaper: string;
+}[] = [
   {
     id: "escolha",
     title: "Escolha",
     body: "Toque no produto e veja detalhes e defina uma meta.",
-    tone: "light" as const,
+    icon: Fingerprint,
+    angle: "left",
+    color: "silver",
+    wallpaper:
+      "radial-gradient(ellipse at 30% 20%, #1a3a5c 0%, #0a0a0c 55%, #050508 100%)",
   },
   {
     id: "aporte",
     title: "Aporte via Pix",
     body: "Entre, reserve e pague aos poucos sem juros.",
-    tone: "white" as const,
-    icon: "pix" as const,
+    icon: QrCode,
+    angle: "straight",
+    color: "silver",
+    wallpaper:
+      "radial-gradient(ellipse at 70% 15%, #0d2f1f 0%, #0a0a0c 50%, #050508 100%)",
   },
   {
     id: "retire",
     title: "Retire",
     body: "Com a reserva quitada, retire na loja iPlanet.",
-    tone: "white" as const,
-    icon: "retire" as const,
+    icon: PackageCheck,
+    angle: "right",
+    color: "silver",
+    wallpaper:
+      "radial-gradient(ellipse at 40% 25%, #2a1a4a 0%, #0a0a0c 55%, #050508 100%)",
   },
-  {
-    id: "ritmo",
-    title: "Seu iPhone, no seu ritmo",
-    body: "Da escolha à retirada: iPlanet Pay une as lojas físicas ao Pix no seu tempo.",
-    tone: "unboxing" as const,
-  },
-] as const;
+];
 
-function StepIconCard({
-  icon,
-  dark,
+/** Mini app UI designed in 402×874 space — fills the bezel screen slot. */
+function StepScreenContent({
+  title,
+  body,
+  icon: Icon,
+  wallpaper,
 }: {
-  icon: "pix" | "retire";
-  dark?: boolean;
+  title: string;
+  body: string;
+  icon: LucideIcon;
+  wallpaper: string;
 }) {
-  const Icon = icon === "pix" ? QrCode : PackageCheck;
   return (
     <div
-      className={`flex h-28 w-28 items-center justify-center rounded-[28px] md:h-40 md:w-40 md:rounded-[36px] [@media(max-height:740px)]:h-24 [@media(max-height:740px)]:w-24 [@media(max-height:740px)]:rounded-[22px] [@media(min-height:900px)]:md:h-52 [@media(min-height:900px)]:md:w-52 ${
-        dark
-          ? "border border-white/15 bg-white/10 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-md"
-          : "border border-white/80 bg-white text-[var(--accent)] shadow-[0_24px_60px_rgba(17,17,17,0.08)]"
-      }`}
+      style={{
+        width: 402,
+        height: 874,
+        background: wallpaper,
+        display: "flex",
+        flexDirection: "column",
+        padding: "72px 36px 48px",
+        boxSizing: "border-box",
+        color: "#f5f5f7",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
+      }}
     >
-      <Icon
-        className="h-12 w-12 md:h-20 md:w-20 [@media(max-height:740px)]:h-10 [@media(max-height:740px)]:w-10 [@media(min-height:900px)]:md:h-24 [@media(min-height:900px)]:md:w-24"
-        strokeWidth={1.35}
-        aria-hidden
-      />
-    </div>
-  );
-}
-
-function PanelShell({
-  tone,
-  children,
-  left,
-  fullBleedDevices,
-  overlayCopy,
-}: {
-  tone: (typeof STEPS)[number]["tone"];
-  children: ReactNode;
-  left?: ReactNode;
-  fullBleedDevices?: boolean;
-  /** Bottom-left / lower-third copy for overlay screens */
-  overlayCopy?: boolean;
-}) {
-  const bg =
-    tone === "light"
-      ? "bg-gradient-to-b from-white via-[#f5f5f7] to-[#e8e8ec]"
-      : tone === "white"
-        ? "bg-white"
-        : "bg-black";
-
-  const showUnboxing = tone === "unboxing";
-
-  if (fullBleedDevices) {
-    return (
-      <div className={`relative h-[100dvh] w-full min-h-0 overflow-hidden ${bg}`}>
-        <DeviceMockupStage fullBleed />
-        <div className="absolute inset-0 z-10 flex min-h-0 flex-col justify-end px-5 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))] pt-16 md:px-10 md:pb-14 lg:max-w-xl lg:pb-16 [@media(max-height:740px)]:pb-8 [@media(max-height:740px)]:pt-12">
-          {children}
-        </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 48,
+          opacity: 0.55,
+          fontSize: 15,
+          fontWeight: 500,
+          letterSpacing: "0.02em",
+        }}
+      >
+        <span>iPlanet Pay</span>
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: "#0071E3",
+            boxShadow: "0 0 12px rgba(0,113,227,0.7)",
+          }}
+        />
       </div>
-    );
-  }
-
-  return (
-    <div
-      className={`relative flex h-[100dvh] w-full min-h-0 overflow-hidden ${
-        overlayCopy ? "items-end" : "items-center justify-center"
-      } ${bg}`}
-    >
-      {showUnboxing ? (
-        <>
-          <Image
-            src="/images/iphone-18-pro-max-unboxing.png"
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority={false}
-          />
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/30"
-            aria-hidden
-          />
-        </>
-      ) : null}
 
       <div
-        className={`relative z-10 mx-auto grid w-full max-w-6xl min-h-0 gap-6 px-4 py-[max(2rem,env(safe-area-inset-top,0px))] md:gap-10 md:px-8 [@media(max-height:740px)]:gap-4 [@media(max-height:740px)]:py-6 ${
-          overlayCopy
-            ? "items-end pb-[max(2.5rem,env(safe-area-inset-bottom,0px))] md:pb-16 [@media(max-height:740px)]:pb-8"
-            : "items-center"
-        } ${
-          showUnboxing
-            ? ""
-            : left
-              ? "md:grid-cols-2"
-              : ""
-        }`}
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 28,
+        }}
       >
-        {left ? (
-          <div className="order-2 flex justify-center md:order-1">{left}</div>
-        ) : null}
         <div
-          className={`order-1 md:order-2 ${showUnboxing ? "max-w-3xl" : ""}`}
+          style={{
+            width: 88,
+            height: 88,
+            borderRadius: 28,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 20px 48px rgba(0,0,0,0.35)",
+          }}
         >
-          {children}
+          <Icon size={40} strokeWidth={1.4} color="#0071E3" aria-hidden />
         </div>
+
+        <div>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: 42,
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.1,
+            }}
+          >
+            {title}
+          </h3>
+          <p
+            style={{
+              margin: "16px 0 0",
+              fontSize: 20,
+              lineHeight: 1.45,
+              color: "rgba(245,245,247,0.72)",
+              maxWidth: 300,
+            }}
+          >
+            {body}
+          </p>
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: "auto",
+          padding: "18px 22px",
+          borderRadius: 20,
+          background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          fontSize: 14,
+          color: "rgba(245,245,247,0.55)",
+          letterSpacing: "0.01em",
+        }}
+      >
+        Sem juros · Ritmo seu
       </div>
     </div>
   );
@@ -149,73 +182,110 @@ function PanelShell({
 export function ComoFuncionaReveal() {
   return (
     <section id="como-funciona" className="relative bg-white">
-      <div className="mx-auto max-w-6xl px-4 pb-4 pt-16 md:px-8 md:pt-20">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
-          Como funciona
-        </p>
-        <h2 className="max-w-3xl text-4xl font-bold tracking-tight md:text-5xl">
-          Três passos. Ritmo seu.
-        </h2>
-      </div>
+      {/* ——— Tela 1: lineup grande ——— */}
+      <div className="relative min-h-[100dvh] overflow-hidden bg-gradient-to-b from-white via-[#f5f5f7] to-[#ececf0]">
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 pb-4 pt-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] md:items-end md:gap-10 md:px-8 md:pb-8 md:pt-20 lg:pt-24">
+          <motion.div {...fadeUp} className="max-w-xl">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+              Como funciona
+            </p>
+            <h2 className="text-4xl font-bold tracking-tight text-[#111] md:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
+              Três passos. Ritmo seu.
+            </h2>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-[#5c5c66] md:text-lg">
+              Escolha o produto, aporte via Pix no seu tempo e retire na loja
+              iPlanet quando a reserva estiver quitada.
+            </p>
+          </motion.div>
+        </div>
 
-      {STEPS.map((step, idx) => (
-        <StepPanel key={step.id} step={step} idx={idx} />
-      ))}
-    </section>
-  );
-}
-
-function StepPanel({
-  step,
-  idx,
-}: {
-  step: (typeof STEPS)[number];
-  idx: number;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const revealProgress = useStickyRevealProgress(scrollRef);
-  const isDark = step.tone === "unboxing";
-  // Light screens: muted dark gray, active near-black — never white active on light
-  const muted = isDark ? "#6e6e73" : "#a1a1a6";
-  const active = isDark ? "#ffffff" : "#111111";
-  const bodyActive = isDark ? "#f5f5f7" : "#1d1d1f";
-
-  let left: ReactNode = null;
-  const fullBleedDevices = idx === 0;
-  const overlayCopy = idx === 0 || step.tone === "unboxing";
-
-  if (idx === 0) {
-    left = null;
-  } else if ("icon" in step && step.icon) {
-    left = <StepIconCard icon={step.icon} dark={isDark} />;
-  }
-
-  return (
-    <div ref={scrollRef} className="relative h-[220vh]">
-      <div className="sticky top-0 h-[100dvh] min-h-0 overflow-hidden">
-        <PanelShell
-          tone={step.tone}
-          left={left}
-          fullBleedDevices={fullBleedDevices}
-          overlayCopy={overlayCopy}
+        <motion.div
+          {...fadeUp}
+          transition={{ ...fadeUp.transition, delay: 0.08 }}
+          className="relative mx-auto h-[min(62dvh,560px)] w-full max-w-6xl md:h-[min(68dvh,640px)]"
         >
-          <TextRevealOnScroll
-            as="h3"
-            text={step.title}
-            className="text-[clamp(1.75rem,2.2vw+1rem,3.5rem)] font-bold tracking-tight [@media(max-height:740px)]:text-[clamp(1.5rem,1.6vw+0.9rem,2.25rem)]"
-            mutedColor={muted}
-            activeColor={active}
-            progress={revealProgress}
-          />
-          <TextRevealOnScroll
-            text={step.body}
-            className="mt-3 max-w-xl text-[clamp(1rem,0.6vw+0.85rem,1.375rem)] leading-relaxed md:mt-4 [@media(max-height:740px)]:mt-2 [@media(max-height:740px)]:text-base [@media(max-height:740px)]:leading-snug"
-            mutedColor={muted}
-            activeColor={bodyActive}
-            progress={revealProgress}
-          />
-        </PanelShell>
+          <DeviceMockupStage fullBleed />
+        </motion.div>
       </div>
-    </div>
+
+      {/* ——— Tela 2: 3 iPhones com os passos ——— */}
+      <div className="relative bg-white px-4 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <motion.div {...fadeUp} className="mb-10 max-w-2xl md:mb-14">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+              No app
+            </p>
+            <h3 className="text-3xl font-bold tracking-tight text-[#111] md:text-4xl">
+              Do toque à retirada.
+            </h3>
+            <p className="mt-3 text-base text-[#5c5c66] md:text-lg">
+              Três telas. Sem rótulos de passo — só o fluxo.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 items-start gap-10 sm:grid-cols-3 sm:gap-5 md:gap-8">
+            {STEPS.map((step, i) => (
+              <motion.div
+                key={step.id}
+                {...fadeUp}
+                transition={{ ...fadeUp.transition, delay: 0.06 * i }}
+                className="mx-auto w-full max-w-[280px] sm:max-w-none"
+              >
+                <FramerDeviceMockup angle={step.angle} color={step.color}>
+                  <StepScreenContent
+                    title={step.title}
+                    body={step.body}
+                    icon={step.icon}
+                    wallpaper={step.wallpaper}
+                  />
+                </FramerDeviceMockup>
+                {/* Caption under device for a11y / mobile clarity */}
+                <div className="mt-5 text-center sm:px-1">
+                  <p className="text-lg font-semibold tracking-tight text-[#111]">
+                    {step.title}
+                  </p>
+                  <p className="mt-1 text-sm leading-snug text-[#5c5c66]">
+                    {step.body}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ——— Tela 3: unboxing grande ——— */}
+      <div className="relative min-h-[100dvh] overflow-hidden bg-black">
+        <Image
+          src="/images/iphone-18-pro-max-unboxing.png"
+          alt=""
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority={false}
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25"
+          aria-hidden
+        />
+        <div className="relative z-10 flex min-h-[100dvh] items-end">
+          <motion.div
+            {...fadeUp}
+            className="mx-auto w-full max-w-6xl px-4 pb-[max(3rem,env(safe-area-inset-bottom,0px))] pt-24 md:px-8 md:pb-20"
+          >
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+              Resultado
+            </p>
+            <h3 className="max-w-3xl text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
+              Seu iPhone, no seu ritmo
+            </h3>
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/75 md:text-xl">
+              Da escolha à retirada: iPlanet Pay une as lojas físicas ao Pix no
+              seu tempo.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </section>
   );
 }
