@@ -11,17 +11,17 @@ import { MotionFade } from "@/components/ui/motion";
 import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-client";
 
 /** Sticky runway height (vh). Phone stays pinned while foldProgress 0→1. */
-const PIN_VH = 220;
+const PIN_VH = 140;
 /** Site header offset so the phone centers in the remaining viewport. */
 const HEADER_PX = 64;
 /**
- * Scroll progress inside the pin runway:
- * 0–holdClosed: closed & centered
- * holdClosed–openEnd: unfold animation
- * openEnd–1: hold fully open (readable), then release to next
+ * Scroll progress inside the pin runway (tuned short so open starts ASAP once centered):
+ * 0–holdClosed: brief closed hold
+ * holdClosed–openEnd: unfold
+ * openEnd–1: hold open readable, then release
  */
-const HOLD_CLOSED = 0.12;
-const OPEN_END = 0.55;
+const HOLD_CLOSED = 0.02;
+const OPEN_END = 0.38;
 
 const STEPS = [
   {
