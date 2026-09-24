@@ -14,6 +14,9 @@ export const MOCK_USERS: Record<UserRole, AuthUser> = {
     phone: "+55 11 90000-0001",
     role: "cliente",
     store_id: null,
+    avatar_url: null,
+    pix_key: null,
+    pix_key_type: null,
   },
   parceiro: {
     id: "mock-parceiro",
@@ -22,6 +25,9 @@ export const MOCK_USERS: Record<UserRole, AuthUser> = {
     phone: "+55 11 90000-0002",
     role: "parceiro",
     store_id: "store-itaim",
+    avatar_url: null,
+    pix_key: null,
+    pix_key_type: null,
   },
   staff: {
     id: "mock-staff",
@@ -30,6 +36,9 @@ export const MOCK_USERS: Record<UserRole, AuthUser> = {
     phone: "+55 11 90000-0003",
     role: "staff",
     store_id: "store-itaim",
+    avatar_url: null,
+    pix_key: null,
+    pix_key_type: null,
   },
   admin: {
     id: "mock-admin",
@@ -38,6 +47,9 @@ export const MOCK_USERS: Record<UserRole, AuthUser> = {
     phone: "+55 11 90000-0004",
     role: "admin",
     store_id: null,
+    avatar_url: null,
+    pix_key: null,
+    pix_key_type: null,
   },
 };
 

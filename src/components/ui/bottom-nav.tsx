@@ -10,7 +10,7 @@ const items = [
   { href: "/app/catalogo", label: "Catálogo", icon: Smartphone },
   { href: "/app/carteira", label: "Carteira", icon: Wallet },
   { href: "/app/indicacoes", label: "Indicações", icon: Gift },
-  { href: "/app/perfil", label: "Perfil", icon: UserRound },
+  { href: "/app/configuracoes", label: "Conta", icon: UserRound },
 ];
 
 export function BottomNav() {

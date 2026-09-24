@@ -5,7 +5,16 @@ import {
   USE_MOCK_AUTH,
   parseMockSession,
 } from "@/lib/auth/mock";
-import type { AuthUser } from "@/types/auth";
+import type { AuthUser, PixKeyType } from "@/types/auth";
+
+const PIX_TYPES: PixKeyType[] = ["cpf", "cnpj", "email", "phone", "random"];
+
+function asPixKeyType(value: unknown): PixKeyType | null {
+  if (typeof value !== "string") return null;
+  return PIX_TYPES.includes(value as PixKeyType)
+    ? (value as PixKeyType)
+    : null;
+}
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
   if (USE_MOCK_AUTH) {
@@ -23,7 +32,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, phone, role, store_id")
+    .select("full_name, phone, role, store_id, avatar_url, pix_key, pix_key_type")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -34,6 +43,9 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     phone: profile?.phone ?? null,
     role: profile?.role ?? "cliente",
     store_id: profile?.store_id ?? null,
+    avatar_url: profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null,
+    pix_key: profile?.pix_key ?? null,
+    pix_key_type: asPixKeyType(profile?.pix_key_type),
   };
 }
 
