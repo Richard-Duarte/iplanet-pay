@@ -3,8 +3,8 @@ import type { AuthUser, UserRole } from "@/types/auth";
 export const MOCK_COOKIE = "iplanet_mock_session";
 export const USE_MOCK_AUTH =
   process.env.USE_MOCK_AUTH === "true" ||
-  !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
+  !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
 export const MOCK_USERS: Record<UserRole, AuthUser> = {
   cliente: {

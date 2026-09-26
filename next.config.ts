@@ -13,7 +13,25 @@ const withPWA = withPWAInit({
 
 const framerShim = path.resolve(__dirname, "src/vendor/framer-shim.ts");
 
+/** Production defaults when Vercel project env keys exist but are empty. */
+const defaultPublicSupabaseUrl = "https://zjnikfrledckmjahwnsb.supabase.co";
+const defaultPublicSupabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqbmlrZnJsZWRja21qYWh3bnNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNjg5MjAsImV4cCI6MjEwNTc0NDkyMH0.6teIFzZMLo0CNl9fqmO5KcdHfac05yAx9hF5rVvIfAw";
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL:
+      process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
+      defaultPublicSupabaseUrl,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+      defaultPublicSupabaseAnonKey,
+    NEXT_PUBLIC_APP_URL:
+      process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+      "https://iplanet-pay.vercel.app",
+    EMAIL_FROM:
+      process.env.EMAIL_FROM?.trim() || "noreply@iplanet.com.br",
+  },
   reactStrictMode: true,
   // Vendored Framer marketplace JS (THREE / USD parsers) ships as plain ESM.
   turbopack: {
