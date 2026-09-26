@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { pickWeightedWinner } from "@/lib/raffle/queries";
+import { pickWeightedWinner } from "@/lib/raffle/utils";
 import { Sparkles } from "lucide-react";
 
 export type RaffleDrawEntry = {
