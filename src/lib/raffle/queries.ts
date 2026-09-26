@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export type RaffleRankingRow = {
   user_id: string;
@@ -34,7 +34,7 @@ export function daysUntilNextRaffle(from = new Date()) {
 }
 
 export async function getUserTickets(userId: string): Promise<number> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const { data } = await supabase.rpc("user_raffle_tickets", {
     p_user_id: userId,
   });
@@ -45,7 +45,7 @@ export async function getAporteRanking(limit = 50): Promise<{
   rows: RaffleRankingRow[];
   error: string | null;
 }> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("contributions")
     .select("user_id, amount_cents, status")
@@ -66,8 +66,11 @@ export async function getAporteRanking(limit = 50): Promise<{
     .select("id, full_name")
     .in("id", userIds);
 
-  const nameMap = new Map(
-    (profiles ?? []).map((p) => [p.id, p.full_name ?? "Cliente"]),
+  const nameMap = new Map<string, string>(
+    (profiles ?? []).map((p: { id: string; full_name: string | null }) => [
+      p.id,
+      p.full_name ?? "Cliente",
+    ]),
   );
 
   const rows = userIds

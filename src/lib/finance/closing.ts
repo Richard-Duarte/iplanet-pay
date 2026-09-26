@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 export type FinancialClosing = {
@@ -23,7 +23,7 @@ export async function previewClosing(
   net_cents: number;
   error: string | null;
 }> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const start = `${periodStart}T00:00:00.000Z`;
   const end = `${periodEnd}T23:59:59.999Z`;
 
@@ -45,7 +45,7 @@ export async function previewClosing(
   }
 
   const total_revenue_cents = (contribs ?? []).reduce(
-    (s, c) => s + c.amount_cents,
+    (s: number, c: { amount_cents: number }) => s + c.amount_cents,
     0,
   );
 
@@ -67,7 +67,10 @@ export async function previewClosing(
   }
 
   const total_withdrawals_cents = (withdrawals ?? []).reduce(
-    (s, w) => s + w.refund_amount_cents + w.fee_amount_cents,
+    (
+      s: number,
+      w: { refund_amount_cents: number; fee_amount_cents: number },
+    ) => s + w.refund_amount_cents + w.fee_amount_cents,
     0,
   );
 
@@ -122,7 +125,7 @@ export async function listClosings(): Promise<{
   closings: FinancialClosing[];
   error: string | null;
 }> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("financial_closings")
     .select("*")
