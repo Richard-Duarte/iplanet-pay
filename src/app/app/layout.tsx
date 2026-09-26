@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
+import { FichasIndicator } from "@/components/raffle/fichas-indicator";
 
 export default async function ClienteLayout({
   children,
@@ -51,7 +52,15 @@ export default async function ClienteLayout({
         </div>
       }
     >
+      <div className="mb-6">
+        <FichasIndicator userId={user.id} />
+      </div>
       {children}
+      <p className="mt-10 text-center text-xs text-[var(--ink-muted)]">
+        <Link href="/termos" className="underline">
+          Termos de uso
+        </Link>
+      </p>
     </AppShell>
   );
 }

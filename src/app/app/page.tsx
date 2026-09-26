@@ -17,6 +17,7 @@ import {
   reservationRemainingCents,
 } from "@/lib/reservations/types";
 import { formatCentsBRL } from "@/lib/utils";
+import { ReferralBonusCard } from "@/components/referrals/referral-bonus-card";
 
 export const metadata = { title: "Início" };
 
@@ -44,6 +45,16 @@ export default async function ClienteHomePage() {
         description="Acompanhe o aporte, pague com Pix e explore o catálogo."
         size="lg"
       />
+
+      {user && (user.referral_bonus_balance_cents ?? 0) > 0 ? (
+        <ReferralBonusCard
+          balanceCents={user.referral_bonus_balance_cents ?? 0}
+          activeReservations={active.map((r) => ({
+            id: r.id,
+            label: r.product?.name ?? `Reserva ${r.id.slice(0, 8)}`,
+          }))}
+        />
+      ) : null}
 
       {error ? (
         <EmptyState
@@ -89,6 +100,16 @@ export default async function ClienteHomePage() {
             <Button variant="outline" leftIcon={<Smartphone className="h-4 w-4" />}>
               Abrir catálogo
             </Button>
+          </Link>
+        </Card>
+        <Card>
+          <Pill tone="lavender">Ranking</Pill>
+          <h3 className="mt-3 text-2xl font-bold tracking-tight">Fichas & posição</h3>
+          <p className="mt-2 text-[var(--ink-muted)]">
+            Acompanhe o ranking de aportes e suas fichas para o sorteio.
+          </p>
+          <Link href="/app/ranking" className="mt-5 inline-block">
+            <Button variant="outline">Ver ranking →</Button>
           </Link>
         </Card>
         <Card>

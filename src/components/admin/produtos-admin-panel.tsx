@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatCentsBRL } from "@/lib/utils";
 import type { AdminProduct } from "@/lib/catalog/admin-products";
 import type { ProductCategory } from "@/types/database";
+import { ProductVariantsPanel } from "@/components/admin/product-variants-panel";
 
 const NEW_CAT = "__new__";
 
@@ -445,6 +446,7 @@ export function ProdutosAdminPanel({
               ) : null}
             </div>
           </form>
+          {form.id ? <ProductVariantsPanel productId={form.id} /> : null}
         </Card>
 
         <Card>

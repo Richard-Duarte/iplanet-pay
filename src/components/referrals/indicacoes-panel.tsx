@@ -107,8 +107,9 @@ export function IndicacoesPanel({
           {referralCode ?? "…"}
         </p>
         <p className="mt-3 text-center text-sm text-[var(--ink-muted)]">
-          Ganhe {formatCentsBRL(bonusCents)} quando o indicado confirmar o primeiro aporte
-          (limiar mínimo).
+          Ganhe {formatCentsBRL(bonusCents)} quando o indicado confirmar{" "}
+          <strong className="text-[var(--ink)]">R$ 100,00</strong> ou mais em aportes.
+          O bônus aparece na home para você direcionar a uma reserva ativa.
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Button

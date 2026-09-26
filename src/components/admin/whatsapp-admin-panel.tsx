@@ -41,6 +41,17 @@ export function WhatsappAdminPanel({
   >("clients_phone");
   const [paste, setPaste] = useState("");
   const [broadcastTpl, setBroadcastTpl] = useState(initial[0]?.id ?? "");
+  const [newTplName, setNewTplName] = useState("");
+  const [newTplBody, setNewTplBody] = useState("");
+  const [leads, setLeads] = useState<
+    Array<{
+      user_id: string;
+      full_name: string;
+      phone: string;
+      active: boolean;
+    }>
+  >([]);
+  const [leadsLoaded, setLeadsLoaded] = useState(false);
 
   function pick(id: string) {
     setSelectedId(id);
@@ -74,6 +85,57 @@ export function WhatsappAdminPanel({
       router.refresh();
     } catch {
       setError("Erro de rede.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function createTemplate(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/whatsapp/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newTplName,
+          kind: "aviso",
+          body: newTplBody,
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string; id?: string };
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? "Falha ao criar.");
+        return;
+      }
+      setMessage("Template criado.");
+      setNewTplName("");
+      setNewTplBody("");
+      router.refresh();
+    } catch {
+      setError("Erro de rede.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadLeads() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/whatsapp/leads");
+      const data = (await res.json()) as {
+        ok?: boolean;
+        leads?: typeof leads;
+        error?: string;
+      };
+      if (data.ok && data.leads) {
+        setLeads(data.leads);
+        setLeadsLoaded(true);
+      } else {
+        setError(data.error ?? "Falha ao carregar leads.");
+      }
     } finally {
       setLoading(false);
     }
@@ -199,12 +261,61 @@ export function WhatsappAdminPanel({
         </Card>
 
         <Card>
+          <h2 className="text-xl font-bold tracking-tight">Novo template</h2>
+          <form className="mt-4 space-y-3" onSubmit={createTemplate}>
+            <input
+              className="w-full rounded-xl border border-[var(--line)] px-3 py-2 text-sm"
+              placeholder="nome_do_template"
+              value={newTplName}
+              onChange={(e) => setNewTplName(e.target.value)}
+              required
+            />
+            <Textarea
+              label="Corpo"
+              value={newTplBody}
+              onChange={(e) => setNewTplBody(e.target.value)}
+              className="min-h-28 font-mono text-sm"
+            />
+            <Button type="submit" variant="outline" disabled={loading}>
+              Adicionar template
+            </Button>
+          </form>
+        </Card>
+
+        <Card>
           <h2 className="text-xl font-bold tracking-tight">Preview</h2>
           <div className="mt-4 whitespace-pre-wrap rounded-[20px] border border-[var(--line)] bg-[var(--bg-subtle)] p-4 text-sm leading-relaxed">
             {previewBody(body || selected?.body || "…")}
           </div>
         </Card>
       </section>
+
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xl font-bold tracking-tight">Leads de disparo</h2>
+          <Button type="button" variant="outline" size="sm" disabled={loading} onClick={() => void loadLeads()}>
+            {leadsLoaded ? "Atualizar" : "Carregar leads"}
+          </Button>
+        </div>
+        <p className="mt-1 text-xs text-[var(--ink-muted)]">
+          Inativo = sem movimentação há mais de 45 dias.
+        </p>
+        {leadsLoaded ? (
+          <ul className="mt-4 max-h-64 divide-y divide-[var(--line)] overflow-y-auto text-sm">
+            {leads.map((l) => (
+              <li key={l.user_id} className="flex items-center justify-between py-2">
+                <span>
+                  {l.full_name}{" "}
+                  <span className="text-[var(--ink-muted)]">{l.phone}</span>
+                </span>
+                <Pill tone={l.active ? "success" : "neutral"}>
+                  {l.active ? "Ativo" : "Inativo"}
+                </Pill>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </Card>
 
       <Card>
         <h2 className="text-xl font-bold tracking-tight">Broadcast</h2>

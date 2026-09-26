@@ -12,6 +12,7 @@ export interface AuthUser {
   avatar_url?: string | null;
   pix_key?: string | null;
   pix_key_type?: PixKeyType | null;
+  referral_bonus_balance_cents?: number;
 }
 
 export interface Profile {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  createWhatsappTemplate,
   listWhatsappTemplates,
   updateWhatsappTemplate,
 } from "@/lib/whatsapp/admin";
@@ -10,6 +11,30 @@ export async function GET() {
     return NextResponse.json({ ok: false, error }, { status: 403 });
   }
   return NextResponse.json({ ok: true, templates });
+}
+
+export async function POST(request: Request) {
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "JSON inválido." },
+      { status: 400 },
+    );
+  }
+  const result = await createWhatsappTemplate({
+    name: String(body.name ?? ""),
+    kind: String(body.kind ?? "aviso"),
+    body: String(body.body ?? ""),
+  });
+  if (!result.ok) {
+    return NextResponse.json(
+      { ok: false, error: result.error },
+      { status: 400 },
+    );
+  }
+  return NextResponse.json({ ok: true, id: result.id });
 }
 
 export async function PATCH(request: Request) {

@@ -68,29 +68,34 @@ export function calcWithdrawalAmounts(
   return { fee_amount_cents: fee, refund_amount_cents: refund, fee_percentage: feePct };
 }
 
-export const TERMS_VERSION = "withdrawal-v1";
+export const TERMS_VERSION = "platform-v2";
 
 export const TERMS_OF_USE_PT = `
-TERMOS DE USO — iPlanet Pay (versão withdrawal-v1)
+TERMOS DE USO — iPlanet Pay (versão platform-v2)
 
 1. Aportes e reserva
 Ao reservar um produto e realizar aportes via Pix, você concorda com as regras da plataforma iPlanet Pay.
 
 2. Política de saque (reembolso de aportes)
-Você pode solicitar o saque dos aportes confirmados de uma reserva ativa. Sobre o valor total dos aportes confirmados:
+Saques liberados após 15 dias de conta ativa e apenas quando os aportes confirmados na reserva superarem R$ 1.000,00.
+Sobre o valor total dos aportes confirmados elegíveis:
 • Você recebe 70% (reembolso líquido).
 • A plataforma retém 30% a título de taxa administrativa.
-Bônus, cashback e valores não confirmados não são reembolsáveis.
+Bônus de indicação não aplicados e valores não confirmados não entram na base de saque.
 
-3. Prazo
-Após a aprovação do saque pela equipe Financeiro, o Pix de reembolso é efetuado em até 24 horas úteis (prazo estimado; sujeito à configuração do gateway de pagamento).
+3. Retirada do aparelho
+Com 100% quitado, você pode solicitar retirada na loja ou envio (frete + seguro via Pix).
+Com 70% ou mais, a entrega antecipada exige assinatura de contrato de empréstimo do aparelho até quitação total.
 
-4. Dados do Pix
-Na solicitação você deve informar: chave Pix, tipo da chave, nome completo e CPF do titular da chave. Dados incorretos podem atrasar ou impedir o pagamento.
+4. Indicações
+O indicado deve aportar no mínimo R$ 100,00 confirmados para liberar o bônus ao indicador, que poderá direcionar o valor a uma reserva ativa.
 
-5. Efeito na reserva
-Ao solicitar o saque, a reserva fica com status "saque pendente". Após aprovação, a reserva é marcada como "sacada" e deixa de estar disponível para novos aportes ou retirada do aparelho. Em caso de rejeição, a reserva volta a "ativa".
+5. Fichas e sorteio
+A cada R$ 100,00 em aportes confirmados você recebe 1 ficha para o sorteio mensal (dia 1). Mais fichas aumentam suas chances de liberação antecipada do aparelho.
 
-6. Aceite
-Ao criar conta e marcar o aceite destes Termos, você declara ter lido e concordado com esta política de saque e demais condições de uso da iPlanet Pay.
+6. Prazo de reembolso Pix
+Após aprovação do saque pelo Financeiro, o Pix é efetuado em até 24 horas úteis (estimativa).
+
+7. Aceite
+Ao criar conta e marcar os aceites, você declara ter lido estes termos, política de saque, regras de retirada, indicação e sorteio.
 `.trim();

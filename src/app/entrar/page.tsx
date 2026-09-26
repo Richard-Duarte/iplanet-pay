@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { USE_MOCK_AUTH } from "@/lib/auth/mock";
+import { ReferralLoginTeaser } from "@/components/auth/referral-login-teaser";
 
 export const metadata = { title: "Entrar" };
 
@@ -35,6 +36,7 @@ export default async function EntrarPage({
         <Card className="mt-8">
           <LoginForm mockMode={USE_MOCK_AUTH} nextPath={next} productSlug={product} />
         </Card>
+        <ReferralLoginTeaser />
         <p className="mt-4 text-center text-sm text-[var(--ink-muted)]">
           Ainda não tem conta?{" "}
           <Link
@@ -43,6 +45,12 @@ export default async function EntrarPage({
           >
             Criar conta
           </Link>
+        </p>
+        <p className="mt-6 text-center text-xs text-[var(--ink-muted)]">
+          <Link href="/termos" className="underline">
+            Termos de uso
+          </Link>{" "}
+          · saque, retirada, indicação e sorteio (platform-v2)
         </p>
       </div>
     </div>

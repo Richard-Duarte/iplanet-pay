@@ -208,6 +208,21 @@ export async function processPixWebhook(params: {
     } catch {
       /* non-fatal */
     }
+    try {
+      const { data: contrib } = await supabase
+        .from("contributions")
+        .select("reservation_id")
+        .eq("id", contributionId)
+        .maybeSingle();
+      if (contrib?.reservation_id) {
+        const { maybeNotifyAdminContributionMilestones } = await import(
+          "@/lib/milestones/admin-whatsapp"
+        );
+        void maybeNotifyAdminContributionMilestones(contrib.reservation_id);
+      }
+    } catch {
+      /* non-fatal */
+    }
   }
 
   return {

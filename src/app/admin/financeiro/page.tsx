@@ -9,13 +9,16 @@ import { getFinanceAggregates } from "@/lib/finance/queries";
 import { listWithdrawalRequests } from "@/lib/withdrawals/queries";
 import { formatCentsBRL } from "@/lib/utils";
 import { CreditCard, ArrowLeft } from "lucide-react";
+import { FinancialClosingPanel } from "@/components/finance/financial-closing-panel";
+import { listClosings } from "@/lib/finance/closing";
 
 export const metadata = { title: "Financeiro" };
 
 export default async function AdminFinanceiroPage() {
-  const [{ aggregates, error }, withdrawals] = await Promise.all([
+  const [{ aggregates, error }, withdrawals, { closings }] = await Promise.all([
     getFinanceAggregates(40),
     listWithdrawalRequests(80),
+    listClosings(),
   ]);
 
   return (
@@ -141,6 +144,8 @@ export default async function AdminFinanceiroPage() {
           </Card>
         )}
       </section>
+
+      <FinancialClosingPanel closings={closings} />
     </div>
   );
 }

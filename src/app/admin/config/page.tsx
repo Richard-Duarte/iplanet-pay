@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { GatewayStatusPanel } from "@/components/admin/gateway-status";
 import {
+  MilestoneWhatsappSettingsForm,
   ReferralSettingsForm,
   SupportAndAgentSettingsForm,
 } from "@/components/admin/settings-form";
@@ -14,6 +15,7 @@ export default async function AdminConfigPage() {
     "whatsapp_support",
     "agent_enabled",
     "whatsapp_admin",
+    "admin_whatsapp_e164",
   ]);
 
   const whatsappAdminConfigured = Boolean(
@@ -34,6 +36,9 @@ export default async function AdminConfigPage() {
         <GatewayStatusPanel />
         <ReferralSettingsForm
           initialBonusCents={settings.referral_bonus_amount_cents ?? "5000"}
+        />
+        <MilestoneWhatsappSettingsForm
+          initialAdminE164={settings.admin_whatsapp_e164 ?? ""}
         />
       </section>
 

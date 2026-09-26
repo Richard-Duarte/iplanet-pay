@@ -10,9 +10,9 @@ import { ReservationStatusPill } from "@/components/reservations/status-pill";
 import { CancelReservationButton } from "@/components/reservations/cancel-button";
 import { SwitchDeviceButton } from "@/components/reservations/switch-device-button";
 import { ConfirmRetiradaButton } from "@/components/reservations/confirm-retirada-button";
-import { RequestSaqueButton } from "@/components/withdrawals/request-saque-button";
 import { GerarPixForm } from "@/components/pix/gerar-pix-form";
-import { ContributionList } from "@/components/wallet/contribution-list";
+import { ContributionHistoryPanel } from "@/components/wallet/contribution-history-panel";
+import { SolicitarRetiradaWizard } from "@/components/pickup/solicitar-retirada-wizard";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getReservationById } from "@/lib/reservations/queries";
 import { listCatalogProducts } from "@/lib/catalog/products";
@@ -25,6 +25,10 @@ import {
   shortReservationId,
 } from "@/lib/reservations/types";
 import { formatCentsBRL } from "@/lib/utils";
+import {
+  getLatestPickupRequest,
+  pickupStatusLabel,
+} from "@/lib/pickup/queries";
 import { Package } from "lucide-react";
 import { ProductImage } from "@/components/products/product-image";
 
@@ -57,6 +61,7 @@ export default async function ReservaDetailPage({
 
   const { contributions } = await listContributionsForReservation(id);
   const confirmedAportesCents = await getConfirmedAportesCents(id);
+  const pickupRequest = await getLatestPickupRequest(id);
   const progress = reservationProgress(reservation);
   const remaining = reservationRemainingCents(reservation);
   const title = reservation.product?.name ?? "Reserva";
@@ -120,7 +125,18 @@ export default async function ReservaDetailPage({
           </div>
         </div>
 
-        {reservation.status === "quitada" ? (
+        {pickupRequest ? (
+          <div className="rounded-[var(--radius-card)] border border-[var(--accent)]/30 bg-[var(--bg-subtle)] px-4 py-3">
+            <p className="font-semibold text-[var(--ink)]">
+              Retirada / envio — {pickupStatusLabel(pickupRequest.status)}
+            </p>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              {pickupRequest.mode === "store"
+                ? `Compareça à ${storeName} com documento com foto.`
+                : `Envio ${pickupRequest.shipping_method ?? ""} — frete ${formatCentsBRL(pickupRequest.freight_cents + pickupRequest.insurance_cents)}.`}
+            </p>
+          </div>
+        ) : reservation.status === "quitada" ? (
           <div className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--bg-subtle)] px-4 py-3">
             <p className="font-semibold text-[var(--ink)]">
               Pronto para retirada na loja {storeName}
@@ -227,10 +243,15 @@ export default async function ReservaDetailPage({
         ) : null}
 
 
-        {canRequestSaque ? (
-          <RequestSaqueButton
+        {(progress >= 70 || reservation.status === "quitada") &&
+        isOwner &&
+        !pickupRequest &&
+        reservation.status !== "retirada" &&
+        reservation.status !== "sacada" ? (
+          <SolicitarRetiradaWizard
             reservationId={reservation.id}
-            totalPaidCents={confirmedAportesCents}
+            progressPct={progress}
+            storeName={storeName}
           />
         ) : null}
 
@@ -251,13 +272,13 @@ export default async function ReservaDetailPage({
         ) : null}
       </Card>
 
-      <Card className="space-y-4">
-        <h2 className="text-xl font-bold tracking-tight">Histórico de aportes</h2>
-        <ContributionList
-          contributions={contributions}
-          emptyLabel="Nenhum aporte nesta reserva ainda."
-        />
-      </Card>
+      <ContributionHistoryPanel
+        contributions={contributions}
+        showSaque={canRequestSaque}
+        reservationId={reservation.id}
+        totalPaidCents={confirmedAportesCents}
+        emptyLabel="Nenhum aporte nesta reserva ainda."
+      />
     </div>
   );
 }

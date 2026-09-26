@@ -26,6 +26,8 @@ export function SignupForm({
   const [password, setPassword] = useState("");
   const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [acceptSaqueRules, setAcceptSaqueRules] = useState(false);
+  const [acceptRetiradaSorteio, setAcceptRetiradaSorteio] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,8 +38,8 @@ export function SignupForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!termsAccepted) {
-      setMessage("Aceite os Termos de Uso para criar a conta.");
+    if (!termsAccepted || !acceptSaqueRules || !acceptRetiradaSorteio) {
+      setMessage("Marque todos os aceites dos Termos de Uso para criar a conta.");
       return;
     }
     setLoading(true);
@@ -147,29 +149,59 @@ export function SignupForm({
           minLength={mockMode ? undefined : 6}
         />
 
-        <label className="flex items-start gap-3 rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm">
-          <input
-            type="checkbox"
-            className="mt-1 h-4 w-4 accent-[var(--accent)]"
-            checked={termsAccepted}
-            onChange={(e) => setTermsAccepted(e.target.checked)}
-            required
-          />
-          <span className="text-[var(--ink-muted)]">
-            Li e aceito os{" "}
-            <button
-              type="button"
-              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
-              onClick={() => setTermsOpen(true)}
-            >
-              Termos de Uso
-            </button>
-            , incluindo a política de saque (70% para o cliente / 30% taxa) e
-            prazo de até 24h após aprovação.
-          </span>
-        </label>
+        <div className="space-y-2 rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 accent-[var(--accent)]"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+            />
+            <span className="text-[var(--ink-muted)]">
+              Li os{" "}
+              <button
+                type="button"
+                className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+                onClick={() => setTermsOpen(true)}
+              >
+                Termos de Uso (platform-v2)
+              </button>{" "}
+              — posso abrir o pop-up agora.
+            </span>
+          </label>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 accent-[var(--accent)]"
+              checked={acceptSaqueRules}
+              onChange={(e) => setAcceptSaqueRules(e.target.checked)}
+            />
+            <span className="text-[var(--ink-muted)]">
+              Aceito regras de saque: conta ativa 15 dias, mínimo R$ 1.000 em
+              aportes, reembolso 70% (taxa 30%).
+            </span>
+          </label>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 accent-[var(--accent)]"
+              checked={acceptRetiradaSorteio}
+              onChange={(e) => setAcceptRetiradaSorteio(e.target.checked)}
+            />
+            <span className="text-[var(--ink-muted)]">
+              Aceito retirada/envio, contrato de empréstimo a partir de 70%,
+              indicação (R$ 100 do indicado) e sorteio mensal de fichas.
+            </span>
+          </label>
+        </div>
 
-        <Button type="submit" fullWidth disabled={loading || !termsAccepted}>
+        <Button
+          type="submit"
+          fullWidth
+          disabled={
+            loading || !termsAccepted || !acceptSaqueRules || !acceptRetiradaSorteio
+          }
+        >
           {loading ? "Criando..." : "Criar conta"}
         </Button>
         {message ? (

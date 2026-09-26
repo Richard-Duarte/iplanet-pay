@@ -19,10 +19,12 @@ export function RequestSaqueButton({
   reservationId,
   totalPaidCents,
   feePct = WITHDRAWAL_FEE_PCT_DEFAULT,
+  size = "md",
 }: {
   reservationId: string;
   totalPaidCents: number;
   feePct?: number;
+  size?: "sm" | "md" | "lg";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -78,7 +80,7 @@ export function RequestSaqueButton({
       <Button
         type="button"
         variant="outline"
-        size="md"
+        size={size}
         leftIcon={<Wallet className="h-4 w-4" />}
         onClick={() => setOpen(true)}
       >

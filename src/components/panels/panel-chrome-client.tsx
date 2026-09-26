@@ -16,6 +16,7 @@ const ADMIN_NAV: SidebarItem[] = [
   { href: "/admin/produtos", label: "Produtos", icon: "package" },
   { href: "/admin/whatsapp", label: "WhatsApp", icon: "message-circle" },
   { href: "/admin/financeiro", label: "Financeiro", icon: "credit-card" },
+  { href: "/admin/sorteio", label: "Sorteio", icon: "sparkles" },
   { href: "/admin/config", label: "Config", icon: "settings" },
   { href: "/admin/indicacoes", label: "Indicações", icon: "gift" },
 ];

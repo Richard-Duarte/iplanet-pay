@@ -76,6 +76,63 @@ export function ReferralSettingsForm({
   );
 }
 
+export function MilestoneWhatsappSettingsForm({
+  initialAdminE164,
+}: {
+  initialAdminE164: string;
+}) {
+  const router = useRouter();
+  const [value, setValue] = useState(initialAdminE164);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const data = await saveSetting(
+        "admin_whatsapp_e164",
+        value.replace(/\D/g, ""),
+      );
+      if (!data.ok) {
+        setError(data.error ?? "Falha ao salvar.");
+        return;
+      }
+      setMessage("Salvo — alertas 50% e 70% serão enfileirados neste número.");
+      router.refresh();
+    } catch {
+      setError("Erro de rede.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Card>
+      <h3 className="text-lg font-bold tracking-tight">Alertas de aporte (50% / 70%)</h3>
+      <p className="mt-1 text-sm text-[var(--ink-muted)]">
+        WhatsApp do administrador que recebe aviso quando o cliente atinge marcos do aporte.
+      </p>
+      <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+        <Input
+          label="admin_whatsapp_e164"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="5511999999999"
+        />
+        {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+        {message ? <p className="text-sm text-[var(--accent)]">{message}</p> : null}
+        <Button type="submit" variant="accent" disabled={loading}>
+          {loading ? "Salvando…" : "Salvar"}
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
 export function SupportAndAgentSettingsForm({
   initialWhatsapp,
   initialWhatsappAdmin,

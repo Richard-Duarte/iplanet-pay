@@ -43,6 +43,118 @@ export async function listWhatsappTemplates(): Promise<{
   }
 }
 
+export async function createWhatsappTemplate(input: {
+  name: string;
+  kind: string;
+  body: string;
+}): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { ok: false, error: "Somente admin." };
+  }
+  const name = input.name.trim().toLowerCase().replace(/\s+/g, "_");
+  if (!name) return { ok: false, error: "Nome inválido." };
+  if (USE_MOCK_AUTH) return { ok: true, id: "mock-new" };
+  try {
+    const { createServiceClient } = await import("@/lib/supabase/admin");
+    const admin = createServiceClient();
+    const { data, error } = await admin
+      .from("whatsapp_templates")
+      .insert({
+        name,
+        kind: input.kind || "aviso",
+        body: input.body,
+        active: true,
+      })
+      .select("id")
+      .single();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, id: data.id as string };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Falha",
+    };
+  }
+}
+
+export type WhatsappLeadRow = {
+  user_id: string;
+  full_name: string;
+  phone: string;
+  active: boolean;
+  last_activity_at: string | null;
+};
+
+export async function listWhatsappBroadcastLeads(): Promise<{
+  leads: WhatsappLeadRow[];
+  error: string | null;
+}> {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { leads: [], error: "Somente admin." };
+  }
+  if (USE_MOCK_AUTH) {
+    return {
+      leads: [
+        {
+          user_id: "1",
+          full_name: "Maria",
+          phone: "5511999999999",
+          active: true,
+          last_activity_at: new Date().toISOString(),
+        },
+      ],
+      error: null,
+    };
+  }
+  try {
+    const { createServiceClient } = await import("@/lib/supabase/admin");
+    const admin = createServiceClient();
+    const cutoff = new Date(Date.now() - 45 * 86_400_000).toISOString();
+    const { data: profiles } = await admin
+      .from("profiles")
+      .select("id, full_name, phone, role")
+      .eq("role", "cliente")
+      .not("phone", "is", null);
+
+    const ids = (profiles ?? []).map((p) => p.id);
+    const { data: contribs } = ids.length
+      ? await admin
+          .from("contributions")
+          .select("user_id, created_at")
+          .in("user_id", ids)
+          .order("created_at", { ascending: false })
+      : { data: [] as Array<{ user_id: string; created_at: string }> };
+
+    const lastMap = new Map<string, string>();
+    for (const c of contribs ?? []) {
+      if (!lastMap.has(c.user_id)) lastMap.set(c.user_id, c.created_at);
+    }
+
+    const leads: WhatsappLeadRow[] = (profiles ?? [])
+      .filter((p) => p.phone)
+      .map((p) => {
+        const last = lastMap.get(p.id) ?? null;
+        const active = Boolean(last && last >= cutoff);
+        return {
+          user_id: p.id,
+          full_name: p.full_name ?? "Cliente",
+          phone: p.phone as string,
+          active,
+          last_activity_at: last,
+        };
+      });
+
+    return { leads, error: null };
+  } catch (err) {
+    return {
+      leads: [],
+      error: err instanceof Error ? err.message : "Falha",
+    };
+  }
+}
+
 export async function updateWhatsappTemplate(input: {
   id: string;
   body: string;
