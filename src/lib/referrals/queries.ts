@@ -48,7 +48,7 @@ export async function listMyReferrals(userId: string): Promise<{
 
     const rows = (data ?? []) as Referral[];
     const ids = [...new Set(rows.map((r) => r.referred_id))];
-    let nameMap: Record<string, string | null> = {};
+    const nameMap: Record<string, string | null> = {};
     if (ids.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")

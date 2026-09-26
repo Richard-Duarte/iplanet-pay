@@ -23,6 +23,7 @@ const eslintConfig = [
       "public/fallback-*.js",
       "public/swe-worker-*.js",
       "supabase/functions/**",
+      "src/vendor/**",
     ],
   },
 ];
