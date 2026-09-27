@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { MessageCircle, X, Send } from "lucide-react";
 import { ruleBasedResponder, matchFaq } from "@/lib/agent/faq";
 import { cn } from "@/lib/utils";
@@ -11,11 +13,16 @@ interface Msg {
   handoff?: boolean;
 }
 
+const FAB_SIZE_PX = 56;
+const FAB_GAP_PX = 12;
+
 export function FaqChat({
   whatsappDigits,
 }: {
   whatsappDigits?: string | null;
 }) {
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([
@@ -24,6 +31,31 @@ export function FaqChat({
       text: "Olá! Posso ajudar com Pix, lojas, reserva e retirada. Em que posso ajudar?",
     },
   ]);
+
+  const hasBottomNav =
+    pathname.startsWith("/app") && !pathname.startsWith("/app/reserva/");
+
+  const fabStyle = useMemo(
+    () =>
+      ({
+        right: "max(1rem, env(safe-area-inset-right, 0px))",
+        bottom: hasBottomNav
+          ? "calc(3.25rem + env(safe-area-inset-bottom, 0px) + 0.75rem)"
+          : "max(1rem, env(safe-area-inset-bottom, 0px))",
+      }) as const,
+    [hasBottomNav],
+  );
+
+  const panelStyle = useMemo(
+    () =>
+      ({
+        right: "max(1rem, env(safe-area-inset-right, 0px))",
+        bottom: hasBottomNav
+          ? `calc(3.25rem + env(safe-area-inset-bottom, 0px) + 0.75rem + ${FAB_SIZE_PX + FAB_GAP_PX}px)`
+          : `calc(max(1rem, env(safe-area-inset-bottom, 0px)) + ${FAB_SIZE_PX + FAB_GAP_PX}px)`,
+      }) as const,
+    [hasBottomNav],
+  );
 
   const waLink = useMemo(() => {
     const digits = (whatsappDigits ?? "").replace(/\D/g, "");
@@ -40,7 +72,10 @@ export function FaqChat({
     setInput("");
     setMsgs((m) => [...m, { role: "user", text: q }]);
     const raw = await ruleBasedResponder.answer(q);
-    const handoff = raw === "__HANDOFF__" || matchFaq(q) === "__HANDOFF__" || /humano|whatsapp|atendente|suporte|problema/i.test(q);
+    const handoff =
+      raw === "__HANDOFF__" ||
+      matchFaq(q) === "__HANDOFF__" ||
+      /humano|whatsapp|atendente|suporte|problema/i.test(q);
     const text = handoff
       ? "Entendi. Posso te conectar com um atendente no WhatsApp."
       : raw === "__HANDOFF__"
@@ -50,24 +85,35 @@ export function FaqChat({
   }
 
   useEffect(() => {
-    const open = () => setOpen(true);
-    window.addEventListener("iplanet:open-faq", open);
-    return () => window.removeEventListener("iplanet:open-faq", open);
+    setMounted(true);
   }, []);
 
-  return (
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("iplanet:open-faq", onOpen);
+    return () => window.removeEventListener("iplanet:open-faq", onOpen);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--ink)] text-white shadow-lg transition hover:scale-105 md:bottom-8 md:right-8"
+        style={fabStyle}
+        className="fixed z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-[var(--ink)] text-white shadow-[0_8px_28px_rgba(17,17,17,0.28)] transition hover:scale-105 active:scale-95 touch-manipulation"
         aria-label="Abrir chat FAQ"
+        aria-expanded={open}
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
       </button>
 
       {open ? (
-        <div className="fixed bottom-40 right-4 z-40 flex w-[min(100vw-2rem,380px)] flex-col overflow-hidden rounded-[24px] border border-[var(--line)] bg-white shadow-2xl md:bottom-28 md:right-8">
+        <div
+          style={panelStyle}
+          className="fixed z-[90] flex w-[min(calc(100vw-2rem),380px)] flex-col overflow-hidden rounded-[24px] border border-[var(--line)] bg-white shadow-2xl"
+        >
           <div className="bg-[var(--ink)] px-4 py-3 text-white">
             <p className="text-sm font-semibold">Ajuda iPlanet</p>
             <p className="text-xs text-white/70">FAQ · WhatsApp se precisar</p>
@@ -120,7 +166,7 @@ export function FaqChat({
             />
             <button
               type="submit"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ink)] text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--ink)] text-white"
               aria-label="Enviar"
             >
               <Send className="h-4 w-4" />
@@ -128,6 +174,7 @@ export function FaqChat({
           </form>
         </div>
       ) : null}
-    </>
+    </>,
+    document.body,
   );
 }
