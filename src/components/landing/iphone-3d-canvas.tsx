@@ -26,11 +26,33 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 const MODEL_URL =
   "/models/iphone-18-pro-max/source/apple_iphone_18_pro_max_burgundy.glb";
 
-/** Native GLB ~0.163m tall — scale so phone fills ~65–75% of bracketed frame height. */
-const MODEL_SCALE = 7.2;
+type ViewProfile = {
+  modelScale: number;
+  modelYOffset: number;
+  camera: { position: [number, number, number]; fov: number };
+  orbit: { minDistance: number; maxDistance: number };
+  shadowY: number;
+};
+
+const DESKTOP_VIEW: ViewProfile = {
+  modelScale: 7.2,
+  modelYOffset: 0,
+  camera: { position: [0, 0.12, 2.15], fov: 36 },
+  orbit: { minDistance: 1.6, maxDistance: 3.8 },
+  shadowY: -1.2,
+};
+
+/** Mobile: câmera mais perto + escala maior para preencher o grid. */
+const MOBILE_VIEW: ViewProfile = {
+  modelScale: 12.8,
+  modelYOffset: -0.22,
+  camera: { position: [0, 0.08, 1.38], fov: 40 },
+  orbit: { minDistance: 1.05, maxDistance: 2.6 },
+  shadowY: -1.05,
+};
 
 const INLINE_SHELL_CLASS =
-  "min-h-[70vh] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]";
+  "min-h-[min(78vh,110vw)] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] max-md:aspect-[4/5] max-md:min-h-[min(82vh,120vw)] md:min-h-[720px] md:h-[780px] md:max-h-none md:aspect-auto";
 
 function useCoarsePointer() {
   const [coarse, setCoarse] = useState(false);
@@ -44,7 +66,13 @@ function useCoarsePointer() {
   return coarse;
 }
 
-function IphoneModel({ spinning }: { spinning: boolean }) {
+function IphoneModel({
+  spinning,
+  view,
+}: {
+  spinning: boolean;
+  view: ViewProfile;
+}) {
   const group = useRef<Group>(null);
   const { scene } = useGLTF(MODEL_URL);
 
@@ -55,7 +83,11 @@ function IphoneModel({ spinning }: { spinning: boolean }) {
 
   return (
     <Center>
-      <group ref={group} scale={MODEL_SCALE}>
+      <group
+        ref={group}
+        scale={view.modelScale}
+        position={[0, view.modelYOffset, 0]}
+      >
         <primitive object={scene} />
       </group>
     </Center>
@@ -65,9 +97,11 @@ function IphoneModel({ spinning }: { spinning: boolean }) {
 function Scene({
   controlsEnabled,
   onUserInteract,
+  view,
 }: {
   controlsEnabled: boolean;
   onUserInteract: () => void;
+  view: ViewProfile;
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -114,13 +148,13 @@ function Scene({
           </Html>
         }
       >
-        <IphoneModel spinning={!controlsEnabled} />
+        <IphoneModel spinning={!controlsEnabled} view={view} />
         <Environment preset="studio" environmentIntensity={0.28} />
       </Suspense>
       <ContactShadows
-        position={[0, -1.2, 0]}
+        position={[0, view.shadowY, 0]}
         opacity={0.18}
-        scale={8}
+        scale={view.modelScale > 10 ? 10 : 8}
         blur={5.5}
         far={4.5}
         color="#000000"
@@ -129,8 +163,8 @@ function Scene({
         ref={controlsRef}
         enabled={controlsEnabled}
         enablePan={false}
-        minDistance={1.6}
-        maxDistance={3.8}
+        minDistance={view.orbit.minDistance}
+        maxDistance={view.orbit.maxDistance}
         target={[0, 0, 0]}
         minPolarAngle={Math.PI / 3.2}
         maxPolarAngle={Math.PI / 1.65}
@@ -216,6 +250,7 @@ function ViewerFrame({
   onUserInteract,
   showExploreButton,
   footerHint,
+  mobileLayout,
 }: {
   shellClassName: string;
   controlsEnabled: boolean;
@@ -223,7 +258,9 @@ function ViewerFrame({
   onUserInteract: () => void;
   showExploreButton: boolean;
   footerHint?: ReactNode;
+  mobileLayout: boolean;
 }) {
+  const view = mobileLayout ? MOBILE_VIEW : DESKTOP_VIEW;
   return (
     <div
       className={`relative overflow-hidden ${shellClassName}`}
@@ -240,13 +277,20 @@ function ViewerFrame({
       </div>
       <CornerBrackets />
       <Canvas
-        camera={{ position: [0, 0.12, 2.15], fov: 36 }}
-        dpr={[1, 1.75]}
+        camera={{
+          position: view.camera.position,
+          fov: view.camera.fov,
+        }}
+        dpr={mobileLayout ? [1, 2] : [1, 1.75]}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-        className={controlsEnabled ? "touch-none" : "touch-pan-y"}
+        className={`absolute inset-0 h-full w-full ${controlsEnabled ? "touch-none" : "touch-pan-y"}`}
         style={{ pointerEvents: controlsEnabled ? "auto" : "none" }}
       >
-        <Scene controlsEnabled={controlsEnabled} onUserInteract={onUserInteract} />
+        <Scene
+          controlsEnabled={controlsEnabled}
+          onUserInteract={onUserInteract}
+          view={view}
+        />
       </Canvas>
 
       {showExploreButton ? <ExploreButtons onActivate={onActivate} /> : null}
@@ -336,6 +380,7 @@ export default function Iphone3dCanvas() {
         ) : null}
 
         <ViewerFrame
+          mobileLayout={coarsePointer}
           shellClassName={
             coarsePointer && mobileExpanded
               ? "min-h-0 flex-1 rounded-none border-0 shadow-none"
