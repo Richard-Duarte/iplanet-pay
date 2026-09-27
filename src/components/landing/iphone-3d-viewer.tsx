@@ -17,7 +17,12 @@ const Iphone3dCanvas = dynamic(
 
 export function Experiencia3dSection() {
   return (
-    <section id="experiencia-3d" className="bg-white text-[#111]">
+    <section
+      id="experiencia-3d"
+      className="bg-white text-[#111]"
+      data-lenis-prevent
+      data-lenis-prevent-touch
+    >
       <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-24">
         <MotionFade>
           <h2 className="text-center text-3xl font-bold tracking-tight text-[#111] md:text-5xl lg:text-6xl">

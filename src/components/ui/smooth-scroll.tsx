@@ -18,6 +18,9 @@ export function SmoothScroll() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       touchMultiplier: 1.1,
+      prevent: (node) =>
+        document.body.classList.contains("iphone-3d-modal-open") ||
+        Boolean(node.closest?.("[data-lenis-prevent-touch]")),
     });
 
     let raf = 0;

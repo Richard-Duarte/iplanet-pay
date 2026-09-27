@@ -28,10 +28,15 @@ const MODEL_URL =
 /** Native GLB ~0.163m tall — scale so phone fills ~65–75% of bracketed frame height. */
 const MODEL_SCALE = 7.2;
 
+function prefersFullscreenExplore() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
+}
+
 function useIsMobile() {
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
+    const mq = window.matchMedia("(max-width: 767px), (pointer: coarse)");
     const sync = () => setMobile(mq.matches);
     sync();
     mq.addEventListener("change", sync);
@@ -156,8 +161,20 @@ function ViewerFrame({
   showExploreOverlay: boolean;
   footerHint?: ReactNode;
 }) {
+  const lastTapRef = useRef(0);
+  const fireActivate = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 350) return;
+    lastTapRef.current = now;
+    onActivate();
+  };
+
   return (
-    <div className={`relative overflow-hidden ${shellClassName}`}>
+    <div
+      className={`relative overflow-hidden ${shellClassName}`}
+      data-lenis-prevent
+      data-lenis-prevent-touch
+    >
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]"
         aria-hidden
@@ -181,10 +198,17 @@ function ViewerFrame({
         <button
           type="button"
           className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center touch-manipulation"
+          data-lenis-prevent
+          data-lenis-prevent-touch
           onClick={(e) => {
-            e.preventDefault();
             e.stopPropagation();
-            onActivate();
+            fireActivate();
+          }}
+          onPointerUp={(e) => {
+            if (e.pointerType === "touch") {
+              e.stopPropagation();
+              fireActivate();
+            }
           }}
           aria-label="Clique para explorar o modelo 3D"
         >
@@ -221,9 +245,11 @@ function MobileFullscreenModal({
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("iphone-3d-modal-open");
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      document.body.classList.remove("iphone-3d-modal-open");
     };
   }, [open, onClose]);
 
@@ -237,6 +263,8 @@ function MobileFullscreenModal({
           aria-modal="true"
           aria-label="Explorar iPhone 18 Pro Max em 3D"
           className="fixed inset-0 z-[200] flex flex-col bg-white"
+          data-lenis-prevent
+          data-lenis-prevent-touch
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -279,12 +307,12 @@ export default function Iphone3dCanvas() {
   const [desktopActive, setDesktopActive] = useState(false);
 
   const activate = useCallback(() => {
-    if (isMobile) {
+    if (prefersFullscreenExplore()) {
       setMobileModalOpen(true);
     } else {
       setDesktopActive(true);
     }
-  }, [isMobile]);
+  }, []);
 
   const deactivateDesktop = useCallback(() => {
     setDesktopActive(false);
@@ -326,7 +354,7 @@ export default function Iphone3dCanvas() {
       </div>
 
       <MobileFullscreenModal
-        open={isMobile && mobileModalOpen}
+        open={mobileModalOpen}
         onClose={() => setMobileModalOpen(false)}
       />
     </>
