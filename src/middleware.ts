@@ -10,6 +10,7 @@ import {
   roleAllowedForPath,
 } from "@/lib/auth/roles";
 import {
+  shouldRefreshSession,
   updateSession,
   withSessionCookies,
 } from "@/lib/supabase/middleware";
@@ -52,6 +53,10 @@ export async function middleware(request: NextRequest) {
   // Parceiro / staff panels removed — only cliente + admin
   if (pathname.startsWith("/parceiro") || pathname.startsWith("/staff")) {
     return redirectTo(request, "/entrar");
+  }
+
+  if (!USE_MOCK_AUTH && !shouldRefreshSession(pathname, request)) {
+    return NextResponse.next();
   }
 
   if (USE_MOCK_AUTH) {
@@ -116,6 +121,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icons|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icons|manifest.webmanifest|videos|models|vendor|products|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm|glb|avif|woff2|ico|zip|pdf)$).*)",
   ],
 };
