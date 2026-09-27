@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type MouseEvent,
@@ -30,7 +31,11 @@ type ViewProfile = {
   modelScale: number;
   modelYOffset: number;
   camera: { position: [number, number, number]; fov: number };
-  orbit: { minDistance: number; maxDistance: number };
+  orbit: {
+    minDistance: number;
+    maxDistance: number;
+    target: [number, number, number];
+  };
   shadowY: number;
 };
 
@@ -38,25 +43,37 @@ const DESKTOP_VIEW: ViewProfile = {
   modelScale: 7.2,
   modelYOffset: 0,
   camera: { position: [0, 0.12, 2.15], fov: 36 },
-  orbit: { minDistance: 1.6, maxDistance: 3.8 },
+  orbit: { minDistance: 1.6, maxDistance: 3.8, target: [0, 0, 0] },
   shadowY: -1.2,
 };
 
-/** Mobile: câmera mais perto + escala maior para preencher o grid. */
+/** Mobile: preenche o grid — escala alta, FOV estreito, câmera próxima. */
 const MOBILE_VIEW: ViewProfile = {
-  modelScale: 12.8,
-  modelYOffset: -0.22,
-  camera: { position: [0, 0.08, 1.38], fov: 40 },
-  orbit: { minDistance: 1.05, maxDistance: 2.6 },
-  shadowY: -1.05,
+  modelScale: 24,
+  modelYOffset: 0.08,
+  camera: { position: [0, 0.22, 0.88], fov: 30 },
+  orbit: { minDistance: 0.75, maxDistance: 2.2, target: [0, -0.42, 0] },
+  shadowY: -0.72,
 };
 
 const INLINE_SHELL_CLASS =
-  "min-h-[min(78vh,110vw)] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] max-md:aspect-[4/5] max-md:min-h-[min(82vh,120vw)] md:min-h-[720px] md:h-[780px] md:max-h-none md:aspect-auto";
+  "w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] max-md:h-[min(92vw,480px)] max-md:min-h-0 md:min-h-[720px] md:h-[780px]";
+
+function useMobileLayout() {
+  const [mobile, setMobile] = useState(false);
+  useLayoutEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return mobile;
+}
 
 function useCoarsePointer() {
   const [coarse, setCoarse] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mq = window.matchMedia("(max-width: 767px), (pointer: coarse)");
     const sync = () => setCoarse(mq.matches);
     sync();
@@ -165,7 +182,7 @@ function Scene({
         enablePan={false}
         minDistance={view.orbit.minDistance}
         maxDistance={view.orbit.maxDistance}
-        target={[0, 0, 0]}
+        target={view.orbit.target}
         minPolarAngle={Math.PI / 3.2}
         maxPolarAngle={Math.PI / 1.65}
         makeDefault
@@ -263,7 +280,7 @@ function ViewerFrame({
   const view = mobileLayout ? MOBILE_VIEW : DESKTOP_VIEW;
   return (
     <div
-      className={`relative overflow-hidden ${shellClassName}`}
+      className={`relative isolate overflow-hidden ${shellClassName}`}
       data-lenis-prevent
       data-lenis-prevent-touch
     >
@@ -277,6 +294,7 @@ function ViewerFrame({
       </div>
       <CornerBrackets />
       <Canvas
+        key={mobileLayout ? "mobile-3d" : "desktop-3d"}
         camera={{
           position: view.camera.position,
           fov: view.camera.fov,
@@ -300,17 +318,18 @@ function ViewerFrame({
 }
 
 export default function Iphone3dCanvas() {
+  const mobileLayout = useMobileLayout();
   const coarsePointer = useCoarsePointer();
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [desktopActive, setDesktopActive] = useState(false);
 
   const activate = useCallback(() => {
-    if (coarsePointer) {
+    if (mobileLayout || prefersFullscreenExplore()) {
       setMobileExpanded(true);
     } else {
       setDesktopActive(true);
     }
-  }, [coarsePointer]);
+  }, [mobileLayout]);
 
   const closeMobile = useCallback(() => {
     setMobileExpanded(false);
@@ -345,27 +364,28 @@ export default function Iphone3dCanvas() {
     return () => window.removeEventListener("keydown", onKey);
   }, [desktopActive, coarsePointer]);
 
-  const controlsEnabled = coarsePointer ? mobileExpanded : desktopActive;
-  const showExploreButton = coarsePointer ? !mobileExpanded : !desktopActive;
+  const touchMode = mobileLayout || coarsePointer;
+  const controlsEnabled = touchMode ? mobileExpanded : desktopActive;
+  const showExploreButton = touchMode ? !mobileExpanded : !desktopActive;
 
   return (
     <div className="relative w-full">
-      {coarsePointer && mobileExpanded ? (
+      {touchMode && mobileExpanded ? (
         <div className={INLINE_SHELL_CLASS} aria-hidden />
       ) : null}
 
       <div
         className={
-          coarsePointer && mobileExpanded
+          touchMode && mobileExpanded
             ? "fixed inset-0 z-[200] flex flex-col bg-white"
             : "relative w-full"
         }
         data-lenis-prevent
         data-lenis-prevent-touch
-        onPointerLeave={coarsePointer ? undefined : deactivateDesktop}
-        onBlur={coarsePointer ? undefined : deactivateDesktop}
+        onPointerLeave={touchMode ? undefined : deactivateDesktop}
+        onBlur={touchMode ? undefined : deactivateDesktop}
       >
-        {coarsePointer && mobileExpanded ? (
+        {touchMode && mobileExpanded ? (
           <div className="flex shrink-0 items-center justify-between border-b border-black/8 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
             <p className="text-sm font-semibold text-[#111]">iPhone 18 Pro Max</p>
             <button
@@ -380,25 +400,25 @@ export default function Iphone3dCanvas() {
         ) : null}
 
         <ViewerFrame
-          mobileLayout={coarsePointer}
+          mobileLayout={mobileLayout}
           shellClassName={
-            coarsePointer && mobileExpanded
+            touchMode && mobileExpanded
               ? "min-h-0 flex-1 rounded-none border-0 shadow-none"
               : INLINE_SHELL_CLASS
           }
           controlsEnabled={controlsEnabled}
           onActivate={activate}
           onUserInteract={() => {
-            if (coarsePointer) setMobileExpanded(true);
+            if (touchMode) setMobileExpanded(true);
             else setDesktopActive(true);
           }}
           showExploreButton={showExploreButton}
           footerHint={
-            coarsePointer && mobileExpanded ? (
+            touchMode && mobileExpanded ? (
               <p className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-0 right-0 z-10 px-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
                 Arraste com o dedo para girar · pinça para zoom
               </p>
-            ) : !coarsePointer && desktopActive ? (
+            ) : !touchMode && desktopActive ? (
               <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
                 Arraste para girar · Esc ou saia da área para liberar o scroll
               </p>
