@@ -4,17 +4,17 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
+  type MouseEvent,
+  type PointerEvent,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   ContactShadows,
   Environment,
+  Html,
   OrbitControls,
   useGLTF,
   Center,
@@ -29,27 +29,24 @@ const MODEL_URL =
 /** Native GLB ~0.163m tall — scale so phone fills ~65–75% of bracketed frame height. */
 const MODEL_SCALE = 7.2;
 
-function prefersFullscreenExplore() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
-}
+const INLINE_SHELL_CLASS =
+  "min-h-[70vh] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]";
 
-function useIsMobile() {
-  const [mobile, setMobile] = useState(false);
+function useCoarsePointer() {
+  const [coarse, setCoarse] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px), (pointer: coarse)");
-    const sync = () => setMobile(mq.matches);
+    const sync = () => setCoarse(mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
-  return mobile;
+  return coarse;
 }
 
 function IphoneModel({ spinning }: { spinning: boolean }) {
   const group = useRef<Group>(null);
   const { scene } = useGLTF(MODEL_URL);
-  const model = useMemo(() => scene.clone(true), [scene]);
 
   useFrame((_, delta) => {
     if (!group.current || !spinning) return;
@@ -59,7 +56,7 @@ function IphoneModel({ spinning }: { spinning: boolean }) {
   return (
     <Center>
       <group ref={group} scale={MODEL_SCALE}>
-        <primitive object={model} />
+        <primitive object={scene} />
       </group>
     </Center>
   );
@@ -108,7 +105,15 @@ function Scene({
         penumbra={0.9}
         color="#f8fafc"
       />
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={
+          <Html center>
+            <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-[#111] shadow-md">
+              Carregando modelo…
+            </span>
+          </Html>
+        }
+      >
         <IphoneModel spinning={!controlsEnabled} />
         <Environment preset="studio" environmentIntensity={0.28} />
       </Suspense>
@@ -148,21 +153,7 @@ function CornerBrackets() {
   );
 }
 
-function ViewerFrame({
-  shellClassName,
-  controlsEnabled,
-  onActivate,
-  onUserInteract,
-  exploreOverlay,
-  footerHint,
-}: {
-  shellClassName: string;
-  controlsEnabled: boolean;
-  onActivate: () => void;
-  onUserInteract: () => void;
-  exploreOverlay: "none" | "full" | "compact";
-  footerHint?: ReactNode;
-}) {
+function ExploreButtons({ onActivate }: { onActivate: () => void }) {
   const lastTapRef = useRef(0);
   const fireActivate = () => {
     const now = Date.now();
@@ -171,6 +162,68 @@ function ViewerFrame({
     onActivate();
   };
 
+  const bind = {
+    "data-lenis-prevent": true,
+    "data-lenis-prevent-touch": true,
+    onClick: (e: MouseEvent) => {
+      e.stopPropagation();
+      fireActivate();
+    },
+    onPointerUp: (e: PointerEvent) => {
+      if (e.pointerType === "touch") {
+        e.stopPropagation();
+        fireActivate();
+      }
+    },
+  };
+
+  return (
+    <>
+      {/* Desktop: overlay central */}
+      <button
+        type="button"
+        className="absolute inset-0 z-20 hidden cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center touch-manipulation md:flex"
+        aria-label="Clique para explorar o modelo 3D"
+        {...bind}
+      >
+        <span className="rounded-full border border-black/10 bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm">
+          Clique para explorar
+        </span>
+        <span className="pointer-events-none px-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+          Depois arraste para girar · pinça para zoom
+        </span>
+      </button>
+
+      {/* Mobile: chip embaixo — modelo visível acima */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4 md:hidden">
+        <button
+          type="button"
+          className="pointer-events-auto rounded-full border border-black/10 bg-white/95 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm touch-manipulation"
+          aria-label="Abrir modelo 3D em tela cheia"
+          {...bind}
+        >
+          Clique para explorar
+        </button>
+      </div>
+    </>
+  );
+}
+
+function ViewerFrame({
+  shellClassName,
+  controlsEnabled,
+  onActivate,
+  onUserInteract,
+  showExploreButton,
+  footerHint,
+}: {
+  shellClassName: string;
+  controlsEnabled: boolean;
+  onActivate: () => void;
+  onUserInteract: () => void;
+  showExploreButton: boolean;
+  footerHint?: ReactNode;
+}) {
   return (
     <div
       className={`relative overflow-hidden ${shellClassName}`}
@@ -188,162 +241,35 @@ function ViewerFrame({
       <CornerBrackets />
       <Canvas
         camera={{ position: [0, 0.12, 2.15], fov: 36 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false }}
+        dpr={[1, 1.75]}
+        gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
         className={controlsEnabled ? "touch-none" : "touch-pan-y"}
         style={{ pointerEvents: controlsEnabled ? "auto" : "none" }}
       >
         <Scene controlsEnabled={controlsEnabled} onUserInteract={onUserInteract} />
       </Canvas>
 
-      {exploreOverlay === "full" ? (
-        <button
-          type="button"
-          className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center touch-manipulation"
-          data-lenis-prevent
-          data-lenis-prevent-touch
-          onClick={(e) => {
-            e.stopPropagation();
-            fireActivate();
-          }}
-          onPointerUp={(e) => {
-            if (e.pointerType === "touch") {
-              e.stopPropagation();
-              fireActivate();
-            }
-          }}
-          aria-label="Clique para explorar o modelo 3D"
-        >
-          <span className="rounded-full border border-black/10 bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm">
-            Clique para explorar
-          </span>
-          <span className="pointer-events-none px-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-            Depois arraste para girar · pinça para zoom
-          </span>
-        </button>
-      ) : null}
-
-      {exploreOverlay === "compact" ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4">
-          <button
-            type="button"
-            className="pointer-events-auto rounded-full border border-black/10 bg-white/95 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm touch-manipulation"
-            data-lenis-prevent
-            data-lenis-prevent-touch
-            onClick={(e) => {
-              e.stopPropagation();
-              fireActivate();
-            }}
-            onPointerUp={(e) => {
-              if (e.pointerType === "touch") {
-                e.stopPropagation();
-                fireActivate();
-              }
-            }}
-            aria-label="Abrir modelo 3D em tela cheia"
-          >
-            Clique para explorar
-          </button>
-        </div>
-      ) : null}
-
+      {showExploreButton ? <ExploreButtons onActivate={onActivate} /> : null}
       {footerHint}
     </div>
   );
 }
 
-function MobileFullscreenModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.body.classList.add("iphone-3d-modal-open");
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-      document.body.classList.remove("iphone-3d-modal-open");
-    };
-  }, [open, onClose]);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Explorar iPhone 18 Pro Max em 3D"
-          className="fixed inset-0 z-[200] flex flex-col bg-white"
-          data-lenis-prevent
-          data-lenis-prevent-touch
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.22 }}
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-black/8 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-            <p className="text-sm font-semibold text-[#111]">iPhone 18 Pro Max</p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#111] shadow-sm touch-manipulation"
-              aria-label="Fechar visualização 3D"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <ViewerFrame
-            shellClassName="min-h-0 flex-1 rounded-none border-0 shadow-none"
-            controlsEnabled
-            onActivate={() => {}}
-            onUserInteract={() => {}}
-            exploreOverlay="none"
-            footerHint={
-              <p className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-0 right-0 z-10 px-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                Arraste com o dedo para girar · pinça para zoom
-              </p>
-            }
-          />
-        </motion.div>
-      ) : null}
-    </AnimatePresence>,
-    document.body,
-  );
-}
-
 export default function Iphone3dCanvas() {
-  const isMobile = useIsMobile();
-  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const coarsePointer = useCoarsePointer();
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   const [desktopActive, setDesktopActive] = useState(false);
-  const [previewKey, setPreviewKey] = useState(0);
 
   const activate = useCallback(() => {
-    if (prefersFullscreenExplore()) {
-      setMobileModalOpen(true);
+    if (coarsePointer) {
+      setMobileExpanded(true);
     } else {
       setDesktopActive(true);
     }
-  }, []);
+  }, [coarsePointer]);
 
-  const closeMobileModal = useCallback(() => {
-    setMobileModalOpen(false);
-    setPreviewKey((k) => k + 1);
+  const closeMobile = useCallback(() => {
+    setMobileExpanded(false);
   }, []);
 
   const deactivateDesktop = useCallback(() => {
@@ -351,56 +277,91 @@ export default function Iphone3dCanvas() {
   }, []);
 
   useEffect(() => {
-    if (!desktopActive || isMobile) return;
+    if (!mobileExpanded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("iphone-3d-modal-open");
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileExpanded(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.body.classList.remove("iphone-3d-modal-open");
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileExpanded]);
+
+  useEffect(() => {
+    if (!desktopActive || coarsePointer) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDesktopActive(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [desktopActive, isMobile]);
+  }, [desktopActive, coarsePointer]);
 
-  const inlineShellClass =
-    "min-h-[70vh] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]";
-
-  const showInlinePreview = !mobileModalOpen;
+  const controlsEnabled = coarsePointer ? mobileExpanded : desktopActive;
+  const showExploreButton = coarsePointer ? !mobileExpanded : !desktopActive;
 
   return (
-    <>
-      <div
-        className="relative w-full"
-        onPointerLeave={isMobile ? undefined : deactivateDesktop}
-        onBlur={isMobile ? undefined : deactivateDesktop}
-      >
-        {showInlinePreview ? (
-          <ViewerFrame
-            key={previewKey}
-            shellClassName={inlineShellClass}
-            controlsEnabled={!isMobile && desktopActive}
-            onActivate={activate}
-            onUserInteract={() => setDesktopActive(true)}
-            exploreOverlay={
-              isMobile ? "compact" : desktopActive ? "none" : "full"
-            }
-            footerHint={
-              !isMobile && desktopActive ? (
-                <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-                  Arraste para girar · Esc ou saia da área para liberar o scroll
-                </p>
-              ) : null
-            }
-          />
-        ) : (
-          <div
-            className={`${inlineShellClass} flex items-center justify-center bg-white`}
-            aria-hidden
-          >
-            <p className="text-sm text-black/40">Explorando em tela cheia…</p>
-          </div>
-        )}
-      </div>
+    <div className="relative w-full">
+      {coarsePointer && mobileExpanded ? (
+        <div className={INLINE_SHELL_CLASS} aria-hidden />
+      ) : null}
 
-      <MobileFullscreenModal open={mobileModalOpen} onClose={closeMobileModal} />
-    </>
+      <div
+        className={
+          coarsePointer && mobileExpanded
+            ? "fixed inset-0 z-[200] flex flex-col bg-white"
+            : "relative w-full"
+        }
+        data-lenis-prevent
+        data-lenis-prevent-touch
+        onPointerLeave={coarsePointer ? undefined : deactivateDesktop}
+        onBlur={coarsePointer ? undefined : deactivateDesktop}
+      >
+        {coarsePointer && mobileExpanded ? (
+          <div className="flex shrink-0 items-center justify-between border-b border-black/8 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <p className="text-sm font-semibold text-[#111]">iPhone 18 Pro Max</p>
+            <button
+              type="button"
+              onClick={closeMobile}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#111] shadow-sm touch-manipulation"
+              aria-label="Fechar visualização 3D"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        ) : null}
+
+        <ViewerFrame
+          shellClassName={
+            coarsePointer && mobileExpanded
+              ? "min-h-0 flex-1 rounded-none border-0 shadow-none"
+              : INLINE_SHELL_CLASS
+          }
+          controlsEnabled={controlsEnabled}
+          onActivate={activate}
+          onUserInteract={() => {
+            if (coarsePointer) setMobileExpanded(true);
+            else setDesktopActive(true);
+          }}
+          showExploreButton={showExploreButton}
+          footerHint={
+            coarsePointer && mobileExpanded ? (
+              <p className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-0 right-0 z-10 px-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
+                Arraste com o dedo para girar · pinça para zoom
+              </p>
+            ) : !coarsePointer && desktopActive ? (
+              <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+                Arraste para girar · Esc ou saia da área para liberar o scroll
+              </p>
+            ) : null
+          }
+        />
+      </div>
+    </div>
   );
 }
 
