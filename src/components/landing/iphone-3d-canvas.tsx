@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -48,6 +49,7 @@ function useIsMobile() {
 function IphoneModel({ spinning }: { spinning: boolean }) {
   const group = useRef<Group>(null);
   const { scene } = useGLTF(MODEL_URL);
+  const model = useMemo(() => scene.clone(true), [scene]);
 
   useFrame((_, delta) => {
     if (!group.current || !spinning) return;
@@ -57,7 +59,7 @@ function IphoneModel({ spinning }: { spinning: boolean }) {
   return (
     <Center>
       <group ref={group} scale={MODEL_SCALE}>
-        <primitive object={scene} />
+        <primitive object={model} />
       </group>
     </Center>
   );
@@ -151,14 +153,14 @@ function ViewerFrame({
   controlsEnabled,
   onActivate,
   onUserInteract,
-  showExploreOverlay,
+  exploreOverlay,
   footerHint,
 }: {
   shellClassName: string;
   controlsEnabled: boolean;
   onActivate: () => void;
   onUserInteract: () => void;
-  showExploreOverlay: boolean;
+  exploreOverlay: "none" | "full" | "compact";
   footerHint?: ReactNode;
 }) {
   const lastTapRef = useRef(0);
@@ -194,7 +196,7 @@ function ViewerFrame({
         <Scene controlsEnabled={controlsEnabled} onUserInteract={onUserInteract} />
       </Canvas>
 
-      {showExploreOverlay ? (
+      {exploreOverlay === "full" ? (
         <button
           type="button"
           className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center touch-manipulation"
@@ -219,6 +221,30 @@ function ViewerFrame({
             Depois arraste para girar · pinça para zoom
           </span>
         </button>
+      ) : null}
+
+      {exploreOverlay === "compact" ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4">
+          <button
+            type="button"
+            className="pointer-events-auto rounded-full border border-black/10 bg-white/95 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm touch-manipulation"
+            data-lenis-prevent
+            data-lenis-prevent-touch
+            onClick={(e) => {
+              e.stopPropagation();
+              fireActivate();
+            }}
+            onPointerUp={(e) => {
+              if (e.pointerType === "touch") {
+                e.stopPropagation();
+                fireActivate();
+              }
+            }}
+            aria-label="Abrir modelo 3D em tela cheia"
+          >
+            Clique para explorar
+          </button>
+        </div>
       ) : null}
 
       {footerHint}
@@ -287,7 +313,7 @@ function MobileFullscreenModal({
             controlsEnabled
             onActivate={() => {}}
             onUserInteract={() => {}}
-            showExploreOverlay={false}
+            exploreOverlay="none"
             footerHint={
               <p className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-0 right-0 z-10 px-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
                 Arraste com o dedo para girar · pinça para zoom
@@ -305,6 +331,7 @@ export default function Iphone3dCanvas() {
   const isMobile = useIsMobile();
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [desktopActive, setDesktopActive] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   const activate = useCallback(() => {
     if (prefersFullscreenExplore()) {
@@ -312,6 +339,11 @@ export default function Iphone3dCanvas() {
     } else {
       setDesktopActive(true);
     }
+  }, []);
+
+  const closeMobileModal = useCallback(() => {
+    setMobileModalOpen(false);
+    setPreviewKey((k) => k + 1);
   }, []);
 
   const deactivateDesktop = useCallback(() => {
@@ -330,6 +362,8 @@ export default function Iphone3dCanvas() {
   const inlineShellClass =
     "min-h-[70vh] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]";
 
+  const showInlinePreview = !mobileModalOpen;
+
   return (
     <>
       <div
@@ -337,26 +371,35 @@ export default function Iphone3dCanvas() {
         onPointerLeave={isMobile ? undefined : deactivateDesktop}
         onBlur={isMobile ? undefined : deactivateDesktop}
       >
-        <ViewerFrame
-          shellClassName={inlineShellClass}
-          controlsEnabled={!isMobile && desktopActive}
-          onActivate={activate}
-          onUserInteract={() => setDesktopActive(true)}
-          showExploreOverlay={isMobile || !desktopActive}
-          footerHint={
-            !isMobile && desktopActive ? (
-              <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-                Arraste para girar · Esc ou saia da área para liberar o scroll
-              </p>
-            ) : null
-          }
-        />
+        {showInlinePreview ? (
+          <ViewerFrame
+            key={previewKey}
+            shellClassName={inlineShellClass}
+            controlsEnabled={!isMobile && desktopActive}
+            onActivate={activate}
+            onUserInteract={() => setDesktopActive(true)}
+            exploreOverlay={
+              isMobile ? "compact" : desktopActive ? "none" : "full"
+            }
+            footerHint={
+              !isMobile && desktopActive ? (
+                <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+                  Arraste para girar · Esc ou saia da área para liberar o scroll
+                </p>
+              ) : null
+            }
+          />
+        ) : (
+          <div
+            className={`${inlineShellClass} flex items-center justify-center bg-white`}
+            aria-hidden
+          >
+            <p className="text-sm text-black/40">Explorando em tela cheia…</p>
+          </div>
+        )}
       </div>
 
-      <MobileFullscreenModal
-        open={mobileModalOpen}
-        onClose={() => setMobileModalOpen(false)}
-      />
+      <MobileFullscreenModal open={mobileModalOpen} onClose={closeMobileModal} />
     </>
   );
 }
