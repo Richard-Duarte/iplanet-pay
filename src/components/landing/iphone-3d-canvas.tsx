@@ -1,6 +1,15 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   ContactShadows,
@@ -9,6 +18,7 @@ import {
   useGLTF,
   Center,
 } from "@react-three/drei";
+import { X } from "lucide-react";
 import type { Group } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
@@ -17,6 +27,18 @@ const MODEL_URL =
 
 /** Native GLB ~0.163m tall — scale so phone fills ~65–75% of bracketed frame height. */
 const MODEL_SCALE = 7.2;
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return mobile;
+}
 
 function IphoneModel({ spinning }: { spinning: boolean }) {
   const group = useRef<Group>(null);
@@ -119,34 +141,23 @@ function CornerBrackets() {
   );
 }
 
-export default function Iphone3dCanvas() {
-  const [active, setActive] = useState(false);
-  const shellRef = useRef<HTMLDivElement>(null);
-
-  const activate = useCallback(() => {
-    setActive(true);
-  }, []);
-
-  const deactivate = useCallback(() => {
-    setActive(false);
-  }, []);
-
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActive(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [active]);
-
+function ViewerFrame({
+  shellClassName,
+  controlsEnabled,
+  onActivate,
+  onUserInteract,
+  showExploreOverlay,
+  footerHint,
+}: {
+  shellClassName: string;
+  controlsEnabled: boolean;
+  onActivate: () => void;
+  onUserInteract: () => void;
+  showExploreOverlay: boolean;
+  footerHint?: ReactNode;
+}) {
   return (
-    <div
-      ref={shellRef}
-      className="relative min-h-[70vh] w-full overflow-hidden rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]"
-      onPointerLeave={deactivate}
-      onBlur={deactivate}
-    >
+    <div className={`relative overflow-hidden ${shellClassName}`}>
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]"
         aria-hidden
@@ -158,20 +169,23 @@ export default function Iphone3dCanvas() {
       <CornerBrackets />
       <Canvas
         camera={{ position: [0, 0.12, 2.15], fov: 36 }}
-        dpr={[1, 1.75]}
+        dpr={[1, 2]}
         gl={{ antialias: true, alpha: false }}
-        className={active ? "touch-none" : "touch-pan-y"}
-        style={{ pointerEvents: active ? "auto" : "none" }}
+        className={controlsEnabled ? "touch-none" : "touch-pan-y"}
+        style={{ pointerEvents: controlsEnabled ? "auto" : "none" }}
       >
-        <Scene controlsEnabled={active} onUserInteract={() => setActive(true)} />
+        <Scene controlsEnabled={controlsEnabled} onUserInteract={onUserInteract} />
       </Canvas>
 
-      {!active ? (
+      {showExploreOverlay ? (
         <button
           type="button"
-          className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center"
-          onClick={activate}
-          onPointerDown={activate}
+          className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center touch-manipulation"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onActivate();
+          }}
           aria-label="Clique para explorar o modelo 3D"
         >
           <span className="rounded-full border border-black/10 bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm">
@@ -181,12 +195,141 @@ export default function Iphone3dCanvas() {
             Depois arraste para girar · pinça para zoom
           </span>
         </button>
-      ) : (
-        <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-          Arraste para girar · Esc ou saia da área para liberar o scroll
-        </p>
-      )}
+      ) : null}
+
+      {footerHint}
     </div>
+  );
+}
+
+function MobileFullscreenModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Explorar iPhone 18 Pro Max em 3D"
+          className="fixed inset-0 z-[200] flex flex-col bg-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22 }}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-black/8 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <p className="text-sm font-semibold text-[#111]">iPhone 18 Pro Max</p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#111] shadow-sm touch-manipulation"
+              aria-label="Fechar visualização 3D"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <ViewerFrame
+            shellClassName="min-h-0 flex-1 rounded-none border-0 shadow-none"
+            controlsEnabled
+            onActivate={() => {}}
+            onUserInteract={() => {}}
+            showExploreOverlay={false}
+            footerHint={
+              <p className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-0 right-0 z-10 px-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
+                Arraste com o dedo para girar · pinça para zoom
+              </p>
+            }
+          />
+        </motion.div>
+      ) : null}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
+export default function Iphone3dCanvas() {
+  const isMobile = useIsMobile();
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const [desktopActive, setDesktopActive] = useState(false);
+
+  const activate = useCallback(() => {
+    if (isMobile) {
+      setMobileModalOpen(true);
+    } else {
+      setDesktopActive(true);
+    }
+  }, [isMobile]);
+
+  const deactivateDesktop = useCallback(() => {
+    setDesktopActive(false);
+  }, []);
+
+  useEffect(() => {
+    if (!desktopActive || isMobile) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDesktopActive(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [desktopActive, isMobile]);
+
+  const inlineShellClass =
+    "min-h-[70vh] w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] md:min-h-[720px] md:h-[780px]";
+
+  return (
+    <>
+      <div
+        className="relative w-full"
+        onPointerLeave={isMobile ? undefined : deactivateDesktop}
+        onBlur={isMobile ? undefined : deactivateDesktop}
+      >
+        <ViewerFrame
+          shellClassName={inlineShellClass}
+          controlsEnabled={!isMobile && desktopActive}
+          onActivate={activate}
+          onUserInteract={() => setDesktopActive(true)}
+          showExploreOverlay={isMobile || !desktopActive}
+          footerHint={
+            !isMobile && desktopActive ? (
+              <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+                Arraste para girar · Esc ou saia da área para liberar o scroll
+              </p>
+            ) : null
+          }
+        />
+      </div>
+
+      <MobileFullscreenModal
+        open={isMobile && mobileModalOpen}
+        onClose={() => setMobileModalOpen(false)}
+      />
+    </>
   );
 }
 
