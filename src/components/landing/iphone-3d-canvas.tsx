@@ -47,14 +47,18 @@ const DESKTOP_VIEW: ViewProfile = {
   shadowY: -1.2,
 };
 
-/** Mobile: preenche o grid — escala alta, FOV estreito, câmera próxima. */
+/** Mobile: um pouco maior que desktop, aparelho inteiro visível. */
 const MOBILE_VIEW: ViewProfile = {
-  modelScale: 24,
-  modelYOffset: 0.08,
-  camera: { position: [0, 0.22, 0.88], fov: 30 },
-  orbit: { minDistance: 0.75, maxDistance: 2.2, target: [0, -0.42, 0] },
-  shadowY: -0.72,
+  modelScale: 8,
+  modelYOffset: 0,
+  camera: { position: [0, 0.1, 2.28], fov: 37 },
+  orbit: { minDistance: 1.6, maxDistance: 3.8, target: [0, 0, 0] },
+  shadowY: -1.18,
 };
+
+/** Evita preview “de perfil” puro (parece zoom excessivo). */
+const MOBILE_PREVIEW_YAW = 0.55;
+const MOBILE_PREVIEW_WOBBLE = 0.18;
 
 /** Alinhado ao breakpoint `md` do Tailwind — escala mobile só abaixo disso. */
 const DESKTOP_CANVAS_MQ = "(min-width: 768px)";
@@ -80,15 +84,23 @@ function useMobileCanvasLayout() {
 function IphoneModel({
   spinning,
   view,
+  mobilePreview,
 }: {
   spinning: boolean;
   view: ViewProfile;
+  mobilePreview?: boolean;
 }) {
   const group = useRef<Group>(null);
   const { scene } = useGLTF(MODEL_URL);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!group.current || !spinning) return;
+    if (mobilePreview) {
+      group.current.rotation.y =
+        MOBILE_PREVIEW_YAW +
+        Math.sin(state.clock.elapsedTime * 0.55) * MOBILE_PREVIEW_WOBBLE;
+      return;
+    }
     group.current.rotation.y += delta * 0.18;
   });
 
@@ -109,10 +121,12 @@ function Scene({
   controlsEnabled,
   onUserInteract,
   view,
+  mobileLayout,
 }: {
   controlsEnabled: boolean;
   onUserInteract: () => void;
   view: ViewProfile;
+  mobileLayout: boolean;
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -159,7 +173,11 @@ function Scene({
           </Html>
         }
       >
-        <IphoneModel spinning={!controlsEnabled} view={view} />
+        <IphoneModel
+          spinning={!controlsEnabled}
+          view={view}
+          mobilePreview={mobileLayout && !controlsEnabled}
+        />
         <Environment preset="studio" environmentIntensity={0.28} />
       </Suspense>
       <ContactShadows
@@ -302,6 +320,7 @@ function ViewerFrame({
           controlsEnabled={controlsEnabled}
           onUserInteract={onUserInteract}
           view={view}
+          mobileLayout={mobileLayout}
         />
       </Canvas>
 
