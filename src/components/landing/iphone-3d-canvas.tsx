@@ -56,31 +56,25 @@ const MOBILE_VIEW: ViewProfile = {
   shadowY: -0.72,
 };
 
+/** Alinhado ao breakpoint `md` do Tailwind — escala mobile só abaixo disso. */
+const DESKTOP_CANVAS_MQ = "(min-width: 768px)";
+
 const INLINE_SHELL_CLASS =
   "w-full rounded-[28px] border border-black/8 bg-white shadow-[0_24px_80px_rgba(17,17,17,0.08)] max-md:h-[min(92vw,480px)] max-md:min-h-0 md:min-h-[720px] md:h-[780px]";
 
-function useMobileLayout() {
-  const [mobile, setMobile] = useState(false);
+function useMobileCanvasLayout() {
+  const [mobile, setMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !window.matchMedia(DESKTOP_CANVAS_MQ).matches;
+  });
   useLayoutEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    const sync = () => setMobile(mq.matches);
+    const mq = window.matchMedia(DESKTOP_CANVAS_MQ);
+    const sync = () => setMobile(!mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
   return mobile;
-}
-
-function useCoarsePointer() {
-  const [coarse, setCoarse] = useState(false);
-  useLayoutEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px), (pointer: coarse)");
-    const sync = () => setCoarse(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-  return coarse;
 }
 
 function IphoneModel({
@@ -171,7 +165,7 @@ function Scene({
       <ContactShadows
         position={[0, view.shadowY, 0]}
         opacity={0.18}
-        scale={view.modelScale > 10 ? 10 : 8}
+        scale={view === MOBILE_VIEW ? 10 : 8}
         blur={5.5}
         far={4.5}
         color="#000000"
@@ -318,13 +312,12 @@ function ViewerFrame({
 }
 
 export default function Iphone3dCanvas() {
-  const mobileLayout = useMobileLayout();
-  const coarsePointer = useCoarsePointer();
+  const mobileLayout = useMobileCanvasLayout();
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [desktopActive, setDesktopActive] = useState(false);
 
   const activate = useCallback(() => {
-    if (mobileLayout || prefersFullscreenExplore()) {
+    if (mobileLayout) {
       setMobileExpanded(true);
     } else {
       setDesktopActive(true);
@@ -356,15 +349,15 @@ export default function Iphone3dCanvas() {
   }, [mobileExpanded]);
 
   useEffect(() => {
-    if (!desktopActive || coarsePointer) return;
+    if (!desktopActive || mobileLayout) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDesktopActive(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [desktopActive, coarsePointer]);
+  }, [desktopActive, mobileLayout]);
 
-  const touchMode = mobileLayout || coarsePointer;
+  const touchMode = mobileLayout;
   const controlsEnabled = touchMode ? mobileExpanded : desktopActive;
   const showExploreButton = touchMode ? !mobileExpanded : !desktopActive;
 
