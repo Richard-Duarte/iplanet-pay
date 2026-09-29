@@ -63,7 +63,11 @@ export function PanelChromeClient({
               open={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
             />
-            <BrandLogo size={32} className="shrink-0 lg:hidden" />
+            <BrandLogo
+              variant="wordmark"
+              height={28}
+              className="shrink-0 lg:hidden"
+            />
             <div className="min-w-0 lg:hidden">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)] sm:text-xs">
                 iPlanet Pay

@@ -9,7 +9,7 @@ interface BrandLogoProps {
   priority?: boolean;
   /**
    * wordmark = horizontal logo-iplanet-pay (landing header).
-   * mark = compact square logo-iplanet (app chrome).
+   * mark = same pay wordmark, scaled for compact chrome (sidebar collapsed, top bar).
    */
   variant?: "mark" | "wordmark";
   /** Explicit height for wordmark (width auto). Default 48. */
@@ -44,18 +44,21 @@ export function BrandLogo({
     );
   }
 
+  const h = size;
+  const w = Math.round(h * (1175 / 296));
   return (
     <Image
-      src="/logo-iplanet.png"
-      alt="iPlanet"
-      width={size}
-      height={size}
+      src="/logo-iplanet-pay.png"
+      alt="iPlanet Pay"
+      width={w}
+      height={h}
       priority={priority}
       className={cn(
-        "rounded-2xl object-contain",
+        "h-auto w-auto max-w-full object-contain",
         onDark && "brightness-0 invert",
         className,
       )}
+      style={{ height: h, width: "auto", maxWidth: "100%" }}
     />
   );
 }

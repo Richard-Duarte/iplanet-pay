@@ -248,8 +248,10 @@ export function Sidebar({
         }}
       >
         {collapsed ? (
-          <div className="mb-4 flex flex-col items-center gap-3">
-            <BrandLogo variant="mark" size={36} priority />
+          <div className="mb-4 flex w-full flex-col items-center gap-3">
+            <div className="flex w-full max-w-[3.25rem] justify-center px-0.5">
+              <BrandLogo variant="wordmark" height={22} priority className="w-full" />
+            </div>
             {collapseBtn}
           </div>
         ) : (
