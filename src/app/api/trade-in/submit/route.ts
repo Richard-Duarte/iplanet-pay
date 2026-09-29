@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import { getCurrentUser } from "@/lib/auth/session";
-import { createServiceClient } from "@/lib/supabase/admin";
+import { getReservationById } from "@/lib/reservations/queries";
+import { createClient } from "@/lib/supabase/server";
 import { MAX_USED_DEVICE_PHOTOS } from "@/lib/trade-in/constants";
+import {
+  mockHasPendingOffer,
+  mockInsertOffer,
+} from "@/lib/trade-in/mock";
 
 const BUCKET = "used-device-photos";
 
@@ -10,6 +16,15 @@ function parseBrlToCents(raw: string): number | null {
   const n = Number(normalized);
   if (!Number.isFinite(n) || n <= 0) return null;
   return Math.round(n * 100);
+}
+
+function mapSubmitRpcError(message: string | undefined): string {
+  if (!message) return "Não foi possível enviar.";
+  const m = message.toLowerCase();
+  if (m.includes("create_used_device_offer")) {
+    return "Recurso de avaliação ainda não está ativo no banco. Aplique a migration 023_trade_in_client_submit.";
+  }
+  return message;
 }
 
 export async function POST(req: Request) {
@@ -26,7 +41,14 @@ export async function POST(req: Request) {
     const expectedCents = parseBrlToCents(String(form.get("expected_value_brl") ?? ""));
     const minimumCents = parseBrlToCents(String(form.get("minimum_value_brl") ?? ""));
     const maintenanceRaw = String(form.get("maintenance_options") ?? "[]");
-    const liquidExposure = String(form.get("liquid_exposure") ?? "false") === "true";
+    const liquidRaw = String(form.get("liquid_exposure") ?? "").trim();
+    if (liquidRaw !== "true" && liquidRaw !== "false") {
+      return NextResponse.json(
+        { ok: false, error: "Selecione Sim ou Não para exposição a líquidos." },
+        { status: 400 },
+      );
+    }
+    const liquidExposure = liquidRaw === "true";
 
     let maintenanceOptions: string[] = [];
     try {
@@ -75,16 +97,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const admin = createServiceClient();
-
-    const { data: reservation, error: resErr } = await admin
-      .from("reservations")
-      .select("id, user_id, status")
-      .eq("id", reservationId)
-      .maybeSingle();
-
-    if (resErr || !reservation) {
-      return NextResponse.json({ ok: false, error: "Reserva não encontrada." }, { status: 404 });
+    const { reservation, error: reservationError } = await getReservationById(reservationId);
+    if (reservationError || !reservation) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: reservationError ?? "Reserva não encontrada.",
+        },
+        { status: 404 },
+      );
     }
     if (reservation.user_id !== user.id) {
       return NextResponse.json({ ok: false, error: "Acesso negado." }, { status: 403 });
@@ -96,21 +117,28 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: pending } = await admin
-      .from("used_device_offers")
-      .select("id")
-      .eq("reservation_id", reservationId)
-      .eq("user_id", user.id)
-      .eq("status", "pending")
-      .limit(1);
-
-    if (pending && pending.length > 0) {
-      return NextResponse.json(
-        { ok: false, error: "Você já tem uma solicitação pendente de avaliação." },
-        { status: 400 },
-      );
+    if (USE_MOCK_AUTH) {
+      if (mockHasPendingOffer(reservationId, user.id)) {
+        return NextResponse.json(
+          { ok: false, error: "Você já tem uma solicitação pendente de avaliação." },
+          { status: 400 },
+        );
+      }
+      const { id: offerId } = mockInsertOffer({
+        userId: user.id,
+        reservationId,
+        deviceModel,
+        imei,
+        expectedCents,
+        minimumCents,
+        maintenanceOptions,
+        liquidExposure,
+        photoCount: files.length,
+      });
+      return NextResponse.json({ ok: true, offer_id: offerId });
     }
 
+    const supabase = await createClient();
     const offerId = crypto.randomUUID();
     const photoPaths: string[] = [];
 
@@ -125,7 +153,7 @@ export async function POST(req: Request) {
       const ext = file.type.includes("png") ? "png" : "jpg";
       const path = `${user.id}/${offerId}/${i}.${ext}`;
       const bytes = Buffer.from(await file.arrayBuffer());
-      const { error: uploadError } = await admin.storage.from(BUCKET).upload(path, bytes, {
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, bytes, {
         contentType: file.type || "image/jpeg",
         upsert: false,
       });
@@ -138,25 +166,29 @@ export async function POST(req: Request) {
       photoPaths.push(path);
     }
 
-    const { error: insertError } = await admin.from("used_device_offers").insert({
-      id: offerId,
-      user_id: user.id,
-      reservation_id: reservationId,
-      device_model: deviceModel,
-      imei,
-      expected_value_cents: expectedCents,
-      minimum_value_cents: minimumCents,
-      maintenance_options: maintenanceOptions,
-      liquid_exposure: liquidExposure,
-      photo_paths: photoPaths,
-      status: "pending",
+    const { data: rpcId, error: rpcError } = await supabase.rpc("create_used_device_offer", {
+      p_offer_id: offerId,
+      p_reservation_id: reservationId,
+      p_device_model: deviceModel,
+      p_imei: imei,
+      p_expected_value_cents: expectedCents,
+      p_minimum_value_cents: minimumCents,
+      p_maintenance_options: maintenanceOptions,
+      p_liquid_exposure: liquidExposure,
+      p_photo_paths: photoPaths,
     });
 
-    if (insertError) {
-      return NextResponse.json({ ok: false, error: insertError.message }, { status: 400 });
+    if (rpcError) {
+      for (const path of photoPaths) {
+        await supabase.storage.from(BUCKET).remove([path]);
+      }
+      return NextResponse.json(
+        { ok: false, error: mapSubmitRpcError(rpcError.message) },
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json({ ok: true, offer_id: offerId });
+    return NextResponse.json({ ok: true, offer_id: (rpcId as string) ?? offerId });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : "Falha ao enviar." },

@@ -22,6 +22,7 @@ import {
   BarChart3,
   MessageCircle,
   Sparkles,
+  Smartphone,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -44,7 +45,8 @@ export type SidebarIcon =
   | "gift"
   | "bar-chart"
   | "message-circle"
-  | "sparkles";
+  | "sparkles"
+  | "smartphone";
 
 const icons: Record<SidebarIcon, LucideIcon> = {
   "layout-dashboard": LayoutDashboard,
@@ -61,6 +63,7 @@ const icons: Record<SidebarIcon, LucideIcon> = {
   "bar-chart": BarChart3,
   "message-circle": MessageCircle,
   sparkles: Sparkles,
+  smartphone: Smartphone,
 };
 
 export interface SidebarItem {

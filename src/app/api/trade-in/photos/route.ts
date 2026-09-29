@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
+import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 const BUCKET = "used-device-photos";
@@ -18,8 +19,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Parâmetros inválidos" }, { status: 400 });
   }
 
-  const admin = createServiceClient();
-  const { data: offer, error } = await admin
+  const supabase = await createClient();
+  const { data: offer, error } = await supabase
     .from("used_device_offers")
     .select("user_id, photo_paths")
     .eq("id", offerId)
@@ -39,8 +40,13 @@ export async function POST(req: Request) {
   const safePaths = paths.filter((p) => allowed.has(p));
   const urls: Record<string, string> = {};
 
+  const storageClient =
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() && process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? createServiceClient()
+      : supabase;
+
   for (const path of safePaths) {
-    const { data, error: signErr } = await admin.storage
+    const { data, error: signErr } = await storageClient.storage
       .from(BUCKET)
       .createSignedUrl(path, 3600);
     if (!signErr && data?.signedUrl) {

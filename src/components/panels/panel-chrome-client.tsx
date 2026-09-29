@@ -12,6 +12,7 @@ const ADMIN_NAV: SidebarItem[] = [
   { href: "/admin", label: "Overview", icon: "layout-dashboard" },
   { href: "/admin/dashboards", label: "Dashboards", icon: "bar-chart" },
   { href: "/admin/reservas", label: "Reservas", icon: "bookmark" },
+  { href: "/admin/avaliacao-usados", label: "Avaliação de usados", icon: "smartphone" },
   { href: "/admin/clientes", label: "Clientes", icon: "users" },
   { href: "/admin/produtos", label: "Produtos", icon: "package" },
   { href: "/admin/whatsapp", label: "WhatsApp", icon: "message-circle" },
@@ -19,7 +20,6 @@ const ADMIN_NAV: SidebarItem[] = [
   { href: "/admin/sorteio", label: "Sorteio", icon: "sparkles" },
   { href: "/admin/config", label: "Config", icon: "settings" },
   { href: "/admin/indicacoes", label: "Indicações", icon: "gift" },
-  { href: "/admin/avaliacao-usados", label: "Avaliação de usados", icon: "clipboard-check" },
 ];
 
 /**

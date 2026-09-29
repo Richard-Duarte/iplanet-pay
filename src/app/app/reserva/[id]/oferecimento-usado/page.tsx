@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getReservationById } from "@/lib/reservations/queries";
 import { getLatestUsedDeviceOfferForReservation } from "@/lib/trade-in/queries";
+import { PageHeader } from "@/components/ui/page-header";
 import { UsedDeviceOfferForm } from "@/components/trade-in/used-device-offer-form";
 
 export const metadata = { title: "Oferecimento de usado" };
@@ -28,9 +29,18 @@ export default async function OferecimentoUsadoPage({
   }
 
   return (
-    <UsedDeviceOfferForm
-      reservationId={id}
-      backHref={`/app/reserva/${id}`}
-    />
+    <div className="space-y-8">
+      <PageHeader
+        showBack
+        backForceHref={`/app/reserva/${id}`}
+        eyebrow="Reserva"
+        title="Oferecimento de usado"
+        description="Use seu aparelho atual como parte do pagamento."
+      />
+      <UsedDeviceOfferForm
+        reservationId={id}
+        backHref={`/app/reserva/${id}`}
+      />
+    </div>
   );
 }

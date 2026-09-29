@@ -10,6 +10,7 @@ import {
   Users,
   Gift,
   Package,
+  Smartphone,
 } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { listRecentContributions } from "@/lib/wallet/queries";
@@ -97,6 +98,19 @@ export default async function AdminPage() {
           </div>
           <Link href="/admin/dashboards">
             <Button variant="outline" size="sm" leftIcon={<BarChart3 className="h-4 w-4" />}>
+              Abrir
+            </Button>
+          </Link>
+        </Card>
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Avaliação de usados</h2>
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Fila de ofertas de aparelhos usados como pagamento.
+            </p>
+          </div>
+          <Link href="/admin/avaliacao-usados">
+            <Button variant="outline" size="sm" leftIcon={<Smartphone className="h-4 w-4" />}>
               Abrir
             </Button>
           </Link>

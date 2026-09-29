@@ -1,5 +1,7 @@
+import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { mockGetLatestOfferForReservation } from "@/lib/trade-in/mock";
 import type { UsedDeviceOffer, UsedDeviceOfferWithProfile } from "@/lib/trade-in/types";
 
 const OFFER_SELECT = `
@@ -24,6 +26,10 @@ export async function getLatestUsedDeviceOfferForReservation(
   reservationId: string,
   userId: string,
 ): Promise<{ offer: UsedDeviceOffer | null; error?: string }> {
+  if (USE_MOCK_AUTH) {
+    return { offer: mockGetLatestOfferForReservation(reservationId, userId) };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("used_device_offers")
