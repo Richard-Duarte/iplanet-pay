@@ -242,11 +242,11 @@ export default async function ReservaDetailPage({
           </p>
         )}
 
-        {isOwner && (canAportar || usedDeviceOffer) ? (
+        {isOwner && (canOfferUsedDevice || usedDeviceOffer) ? (
           <UsedDeviceOfferStatus
             reservationId={reservation.id}
             offer={usedDeviceOffer}
-            canSubmitNew={canOfferUsedDevice && canAportar}
+            canSubmitNew={canOfferUsedDevice}
           />
         ) : null}
 

@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Pill } from "@/components/ui/pill";
 import { MotionModal } from "@/components/ui/motion";
@@ -84,6 +86,10 @@ export function AdminUsedDevicePanel() {
 
   async function submitReview() {
     if (!active || !decision) return;
+    if (decision === "reject" && !adminMessage.trim()) {
+      setError("Informe o motivo da recusa.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -126,23 +132,14 @@ export function AdminUsedDevicePanel() {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">Avaliação de usados</h2>
-
       <Card className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input label="Nome do cliente" value={name} onChange={(e) => setName(e.target.value)} />
-        <label className="block space-y-1 text-sm">
-          <span className="font-medium">Status</span>
-          <select
-            className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="all">Todos</option>
-            <option value="pending">Pendente de Avaliação</option>
-            <option value="approved">Aprovado</option>
-            <option value="rejected">Recusado</option>
-          </select>
-        </label>
+        <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="all">Todos</option>
+          <option value="pending">Pendente de avaliação</option>
+          <option value="approved">Aprovado</option>
+          <option value="rejected">Recusado</option>
+        </Select>
         <Input
           label="Data inicial"
           type="date"
@@ -156,13 +153,13 @@ export function AdminUsedDevicePanel() {
           onChange={(e) => setDateTo(e.target.value)}
         />
         <div className="sm:col-span-2 lg:col-span-4">
-          <Button type="button" onClick={() => void load()}>
+          <Button type="button" variant="outline" onClick={() => void load()}>
             Aplicar filtros
           </Button>
         </div>
       </Card>
 
-      {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+      {error && !active ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
 
       <Card className="overflow-x-auto p-0">
         <ul className="divide-y divide-[var(--line)]">
@@ -173,21 +170,44 @@ export function AdminUsedDevicePanel() {
           ) : (
             rows.map((r) => (
               <li key={r.id}>
-                <button
-                  type="button"
-                  className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-4 text-left hover:bg-[var(--bg-subtle)] sm:px-5"
-                  onClick={() => void openDetail(r)}
-                >
-                  <div>
-                    <p className="font-semibold">{r.client_name ?? "Cliente"}</p>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 text-left hover:opacity-90"
+                    onClick={() => void openDetail(r)}
+                  >
+                    <p className="font-semibold text-[var(--ink)]">
+                      {r.client_name ?? "Cliente"}
+                    </p>
                     <p className="text-sm text-[var(--ink-muted)]">
                       {r.device_model} · {new Date(r.created_at).toLocaleString("pt-BR")}
                     </p>
+                  </button>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <Pill tone={STATUS_TONE[r.status] ?? "lavender"}>
+                      {USED_DEVICE_STATUS_LABEL[r.status]}
+                    </Pill>
+                    {r.status === "pending" ? (
+                      <Button
+                        type="button"
+                        variant="accent"
+                        size="sm"
+                        onClick={() => void openDetail(r)}
+                      >
+                        Avaliar aparelho
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void openDetail(r)}
+                      >
+                        Ver detalhes
+                      </Button>
+                    )}
                   </div>
-                  <Pill tone={STATUS_TONE[r.status] ?? "lavender"}>
-                    {USED_DEVICE_STATUS_LABEL[r.status]}
-                  </Pill>
-                </button>
+                </div>
               </li>
             ))
           )}
@@ -198,59 +218,73 @@ export function AdminUsedDevicePanel() {
         open={!!active}
         onClose={() => setActive(null)}
         labelledBy="avaliar-usado-title"
-        className="h-[100dvh] max-h-[100dvh] w-full max-w-none rounded-none"
+        className="max-w-3xl"
       >
         {active ? (
-          <div className="flex max-h-[100dvh] flex-col bg-[#0a0a0a] text-white">
-            <header className="flex items-center justify-between border-b border-white/10 px-4 py-4">
-              <h2 id="avaliar-usado-title" className="text-lg font-semibold">
-                Avaliar Aparelho do Cliente
-              </h2>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setActive(null)}>
-                Fechar
-              </Button>
+          <div className="flex max-h-[92vh] flex-col">
+            <header className="flex items-start justify-between gap-3 border-b border-[var(--line)] px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                  Avaliação
+                </p>
+                <h2 id="avaliar-usado-title" className="text-xl font-bold text-[var(--ink)]">
+                  Avaliar aparelho do cliente
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] text-[var(--ink-muted)] hover:bg-[var(--bg-subtle)]"
+                aria-label="Fechar"
+                onClick={() => setActive(null)}
+              >
+                <X className="h-5 w-5" />
+              </button>
             </header>
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5">
+
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
               <div className="grid gap-4 sm:grid-cols-2 text-sm">
                 <div>
-                  <p className="text-white/50">Cliente</p>
-                  <p className="font-semibold">{active.client_name ?? "—"}</p>
+                  <p className="text-[var(--ink-muted)]">Cliente</p>
+                  <p className="font-semibold text-[var(--ink)]">{active.client_name ?? "—"}</p>
                 </div>
                 <div>
-                  <p className="text-white/50">Modelo Oferecido</p>
-                  <p className="font-semibold">{active.device_model}</p>
+                  <p className="text-[var(--ink-muted)]">Modelo oferecido</p>
+                  <p className="font-semibold text-[var(--ink)]">{active.device_model}</p>
                 </div>
                 <div>
-                  <p className="text-white/50">IMEI</p>
-                  <p className="font-mono">{active.imei}</p>
+                  <p className="text-[var(--ink-muted)]">IMEI</p>
+                  <p className="font-mono text-[var(--ink)]">{active.imei}</p>
                 </div>
                 <div>
-                  <p className="text-white/50">Avaliação Desejada</p>
-                  <p className="font-semibold text-emerald-400">
+                  <p className="text-[var(--ink-muted)]">Valor desejado</p>
+                  <p className="font-semibold text-[var(--accent)]">
                     {formatCentsBRL(active.expected_value_cents)}
                   </p>
-                  <p className="text-xs text-white/45">
-                    Mínimo que aceita: {formatCentsBRL(active.minimum_value_cents)}
+                  <p className="text-xs text-[var(--ink-muted)]">
+                    Mínimo aceito: {formatCentsBRL(active.minimum_value_cents)}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-[#141414] p-4 text-sm space-y-2">
-                <p>
-                  <span className="text-white/50">Manutenções: </span>
+              <Card className="space-y-2 bg-[var(--bg-subtle)] text-sm">
+                <p className="text-[var(--ink)]">
+                  <span className="font-medium text-[var(--ink-muted)]">Manutenções: </span>
                   {maintenanceLabels(active.maintenance_options)}
                 </p>
-                <p>
-                  <span className="text-white/50">Exposição a líquidos: </span>
-                  {active.liquid_exposure ? "Sim, relatado" : "Não relatado"}
+                <p className="text-[var(--ink)]">
+                  <span className="font-medium text-[var(--ink-muted)]">Exposição a líquidos: </span>
+                  {active.liquid_exposure ? "Sim" : "Não"}
                 </p>
-              </div>
+              </Card>
 
               <div>
-                <p className="mb-2 text-sm font-semibold">Fotos Anexadas</p>
+                <p className="mb-2 text-sm font-semibold text-[var(--ink)]">Fotos anexadas</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {active.photo_paths.map((path) => (
-                    <div key={path} className="aspect-[3/4] overflow-hidden rounded-xl bg-[#222]">
+                    <div
+                      key={path}
+                      className="aspect-square overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--bg-subtle)]"
+                    >
                       {photoUrls[path] ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -259,7 +293,7 @@ export function AdminUsedDevicePanel() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-xs text-white/40">
+                        <div className="flex h-full items-center justify-center text-xs text-[var(--ink-muted)]">
                           Carregando…
                         </div>
                       )}
@@ -269,22 +303,22 @@ export function AdminUsedDevicePanel() {
               </div>
 
               {active.status === "pending" ? (
-                <div className="space-y-3 border-t border-white/10 pt-4">
-                  <p className="text-sm font-semibold">Decisão</p>
+                <Card className="space-y-3">
+                  <p className="text-sm font-semibold text-[var(--ink)]">Decisão</p>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
                       variant={decision === "approve" ? "accent" : "outline"}
                       onClick={() => setDecision("approve")}
                     >
-                      Aprovado
+                      Aprovar
                     </Button>
                     <Button
                       type="button"
                       variant={decision === "reject" ? "accent" : "outline"}
                       onClick={() => setDecision("reject")}
                     >
-                      Reprovado
+                      Recusar
                     </Button>
                   </div>
                   {decision === "approve" ? (
@@ -300,34 +334,41 @@ export function AdminUsedDevicePanel() {
                     onChange={(e) => setAdminMessage(e.target.value)}
                     rows={4}
                   />
+                  {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
                   <Button
                     type="button"
+                    variant="accent"
                     disabled={!decision || loading}
                     onClick={() => void submitReview()}
                   >
                     {loading ? "Salvando…" : "Confirmar avaliação"}
                   </Button>
-                </div>
+                </Card>
               ) : (
-                <div
-                  className={`rounded-2xl border p-4 ${
+                <Card
+                  className={
                     active.status === "rejected"
-                      ? "border-red-500/40 bg-red-950/30"
-                      : "border-emerald-500/30 bg-emerald-950/20"
-                  }`}
+                      ? "border-red-200 bg-red-50"
+                      : "border-[var(--accent)]/30 bg-[var(--accent-soft)]"
+                  }
                 >
-                  <p className="font-semibold">
+                  <p className="font-semibold text-[var(--ink)]">
                     {active.status === "rejected"
-                      ? "Você rejeitou esta avaliação."
-                      : "Avaliação aprovada."}
+                      ? "Avaliação recusada"
+                      : "Avaliação aprovada"}
                   </p>
+                  {active.approved_value_cents ? (
+                    <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                      Valor creditado: {formatCentsBRL(active.approved_value_cents)}
+                    </p>
+                  ) : null}
                   {active.admin_message ? (
-                    <p className="mt-2 text-sm text-white/70">
-                      <span className="font-semibold">Motivo: </span>
+                    <p className="mt-2 text-sm text-[var(--ink)]">
+                      <span className="font-semibold">Mensagem: </span>
                       {active.admin_message}
                     </p>
                   ) : null}
-                </div>
+                </Card>
               )}
             </div>
           </div>

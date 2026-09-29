@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCentsBRL } from "@/lib/utils";
@@ -29,8 +30,13 @@ export function UsedDeviceOfferStatus({
         <h3 className="text-base font-semibold text-[var(--ink)]">Usado como pagamento</h3>
         {canSubmitNew ? (
           <Link href={offerHref}>
-            <Button type="button" variant="outline" size="sm">
-              Dar aparelho como pagamento
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              leftIcon={<Smartphone className="h-4 w-4" />}
+            >
+              Oferecer aparelho usado
             </Button>
           </Link>
         ) : null}
