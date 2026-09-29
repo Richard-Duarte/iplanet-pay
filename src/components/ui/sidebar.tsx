@@ -256,16 +256,17 @@ export function Sidebar({
           </div>
         ) : (
           <div className="mb-6 min-w-0">
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <BrandLogo variant="wordmark" height={40} priority />
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h2 className="text-3xl font-bold tracking-tight text-[var(--ink)]">
+                  {title}
+                </h2>
+                {subtitle ? (
+                  <p className="mt-1 text-sm text-[var(--ink-muted)]">{subtitle}</p>
+                ) : null}
+              </div>
               {collapseBtn}
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--ink)]">
-              {title}
-            </h2>
-            {subtitle ? (
-              <p className="mt-1 text-sm text-[var(--ink-muted)]">{subtitle}</p>
-            ) : null}
           </div>
         )}
 
@@ -300,8 +301,7 @@ export function Sidebar({
               </button>
             </div>
             <div className="mb-8">
-              <BrandLogo variant="wordmark" height={40} priority />
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-[var(--ink)]">
+              <h2 className="text-3xl font-bold tracking-tight text-[var(--ink)]">
                 {title}
               </h2>
               {subtitle ? (

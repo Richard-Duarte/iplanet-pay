@@ -69,9 +69,6 @@ export function PanelChromeClient({
               className="shrink-0 lg:hidden"
             />
             <div className="min-w-0 lg:hidden">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)] sm:text-xs">
-                iPlanet Pay
-              </p>
               <p className="truncate text-base font-bold sm:text-lg">{title}</p>
             </div>
           </div>
