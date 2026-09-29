@@ -11,6 +11,8 @@ import { CancelReservationButton } from "@/components/reservations/cancel-button
 import { SwitchDeviceButton } from "@/components/reservations/switch-device-button";
 import { ConfirmRetiradaButton } from "@/components/reservations/confirm-retirada-button";
 import { GerarPixForm } from "@/components/pix/gerar-pix-form";
+import { UsedDeviceOfferStatus } from "@/components/trade-in/used-device-offer-status";
+import { getLatestUsedDeviceOfferForReservation } from "@/lib/trade-in/queries";
 import { ContributionHistoryPanel } from "@/components/wallet/contribution-history-panel";
 import { SolicitarRetiradaWizard } from "@/components/pickup/solicitar-retirada-wizard";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -67,6 +69,14 @@ export default async function ReservaDetailPage({
   const title = reservation.product?.name ?? "Reserva";
   const subtitle = productSubtitle(reservation.product, reservation.store);
   const isOwner = user?.id === reservation.user_id;
+  const { offer: usedDeviceOffer } =
+    isOwner && user
+      ? await getLatestUsedDeviceOfferForReservation(id, user.id)
+      : { offer: null };
+  const canOfferUsedDevice =
+    isOwner &&
+    reservation.status === "ativa" &&
+    (!usedDeviceOffer || usedDeviceOffer.status === "rejected");
   const canCancel = isOwner && reservation.status === "ativa";
   const canRequestSaque =
     isOwner &&
@@ -231,6 +241,14 @@ export default async function ReservaDetailPage({
                         : "Somente o dono da reserva pode gerar Pix."}
           </p>
         )}
+
+        {isOwner && (canAportar || usedDeviceOffer) ? (
+          <UsedDeviceOfferStatus
+            reservationId={reservation.id}
+            offer={usedDeviceOffer}
+            canSubmitNew={canOfferUsedDevice && canAportar}
+          />
+        ) : null}
 
         {canSwitchDevice ? (
           <SwitchDeviceButton

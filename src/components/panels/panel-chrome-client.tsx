@@ -19,6 +19,7 @@ const ADMIN_NAV: SidebarItem[] = [
   { href: "/admin/sorteio", label: "Sorteio", icon: "sparkles" },
   { href: "/admin/config", label: "Config", icon: "settings" },
   { href: "/admin/indicacoes", label: "Indicações", icon: "gift" },
+  { href: "/admin/avaliacao-usados", label: "Avaliação de usados", icon: "clipboard-check" },
 ];
 
 /**
