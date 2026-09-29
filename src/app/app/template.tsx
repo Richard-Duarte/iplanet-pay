@@ -1,7 +1,7 @@
 "use client";
 
-import { PageTransition } from "@/components/ui/motion";
+import { RouteTransition } from "@/components/ui/motion";
 
 export default function Template({ children }: { children: React.ReactNode }) {
-  return <PageTransition>{children}</PageTransition>;
+  return <RouteTransition>{children}</RouteTransition>;
 }

@@ -135,6 +135,7 @@ function NavLinks({
           <Link
             key={href}
             href={href}
+            prefetch
             title={collapsed ? label : undefined}
             aria-label={label}
             aria-current={active ? "page" : undefined}

@@ -2,11 +2,15 @@
 
 import {
   AnimatePresence,
+  LazyMotion,
+  domAnimation,
   motion,
+  m,
   useScroll,
   useTransform,
   type HTMLMotionProps,
 } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -120,6 +124,31 @@ export function PageTransition({
   );
 }
 
+/** Transição leve entre rotas do app/admin (LazyMotion, uma camada por segmento). */
+export function RouteTransition({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const pathname = usePathname();
+  return (
+    <LazyMotion features={domAnimation} strict>
+      <m.div
+        key={pathname}
+        className={className}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.16, ease: materialDecelerate }}
+        style={{ willChange: "opacity, transform" }}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
+  );
+}
+
 export function MotionModal({
   open,
   onClose,
@@ -165,6 +194,7 @@ export function MotionModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby={labelledBy}
+            data-lenis-prevent-touch
             className={cn(
               "relative z-10 flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[28px] border border-[var(--line)] bg-white shadow-[0_24px_80px_rgba(17,17,17,0.18)] sm:rounded-[28px]",
               className,
