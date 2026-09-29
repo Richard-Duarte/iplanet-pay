@@ -13,6 +13,7 @@ import {
   WITHDRAWAL_FEE_PCT_DEFAULT,
   type PixKeyType,
 } from "@/lib/withdrawals/types";
+import { WithdrawalFeeBreakdown } from "@/components/withdrawals/withdrawal-fee-breakdown";
 import { Wallet } from "lucide-react";
 
 export function RequestSaqueButton({
@@ -20,11 +21,14 @@ export function RequestSaqueButton({
   totalPaidCents,
   feePct = WITHDRAWAL_FEE_PCT_DEFAULT,
   size = "md",
+  showPreview = true,
 }: {
   reservationId: string;
   totalPaidCents: number;
   feePct?: number;
   size?: "sm" | "md" | "lg";
+  /** Resumo da taxa acima do botão (histórico de aportes). */
+  showPreview?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -77,20 +81,26 @@ export function RequestSaqueButton({
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        size={size}
-        leftIcon={<Wallet className="h-4 w-4" />}
-        onClick={() => setOpen(true)}
-      >
-        Solicitar saque
-      </Button>
+      <div className="flex w-full flex-col items-center gap-3">
+        {showPreview ? (
+          <WithdrawalFeeBreakdown totalPaidCents={totalPaidCents} feePct={feePct} compact />
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size={size}
+          leftIcon={<Wallet className="h-4 w-4" />}
+          onClick={() => setOpen(true)}
+        >
+          Solicitar saque
+        </Button>
+      </div>
 
       <MotionModal
         open={open}
         onClose={() => !loading && setOpen(false)}
         labelledBy="saque-title"
+        className="max-w-lg"
       >
         <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-4">
           <h2 id="saque-title" className="text-lg font-bold tracking-tight">
@@ -106,30 +116,11 @@ export function RequestSaqueButton({
         </div>
         <div className="space-y-4 overflow-y-auto px-5 py-4">
           <p className="text-sm text-[var(--ink-muted)]">
-            Taxa administrativa de <strong>{feePct}%</strong> sobre os aportes
-            confirmados. Você recebe <strong>70%</strong>. O Pix é efetuado em
-            até <strong>24h</strong> após a aprovação no Financeiro.
+            O Pix do reembolso é efetuado em até <strong>24h</strong> após a
+            aprovação no Financeiro.
           </p>
-          <div className="rounded-2xl bg-[var(--bg-subtle)] px-4 py-3 text-sm">
-            <div className="flex justify-between">
-              <span>Aportes confirmados</span>
-              <span className="font-semibold">
-                {formatCentsBRL(totalPaidCents)}
-              </span>
-            </div>
-            <div className="mt-1 flex justify-between text-[var(--danger)]">
-              <span>Taxa ({feePct}%)</span>
-              <span className="font-semibold">
-                − {formatCentsBRL(amounts.fee_amount_cents)}
-              </span>
-            </div>
-            <div className="mt-2 flex justify-between border-t border-[var(--line)] pt-2">
-              <span className="font-semibold">Você recebe</span>
-              <span className="text-lg font-bold text-[var(--accent)]">
-                {formatCentsBRL(amounts.refund_amount_cents)}
-              </span>
-            </div>
-          </div>
+
+          <WithdrawalFeeBreakdown totalPaidCents={totalPaidCents} feePct={feePct} />
 
           <Select
             label="Tipo da chave Pix"
@@ -184,7 +175,7 @@ export function RequestSaqueButton({
           >
             {loading
               ? "Enviando..."
-              : `Confirmar saque de ${formatCentsBRL(amounts.refund_amount_cents)}`}
+              : `Confirmar saque · receber ${formatCentsBRL(amounts.refund_amount_cents)}`}
           </Button>
         </div>
       </MotionModal>

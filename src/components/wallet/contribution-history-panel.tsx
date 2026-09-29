@@ -30,11 +30,12 @@ export function ContributionHistoryPanel({
         <ContributionList contributions={contributions} emptyLabel={emptyLabel} />
       </div>
       {showSaque ? (
-        <div className="mt-4 flex justify-center border-t border-[var(--line)] pt-4">
+        <div className="mt-4 border-t border-[var(--line)] pt-4">
           <RequestSaqueButton
             reservationId={reservationId}
             totalPaidCents={totalPaidCents}
             size="sm"
+            showPreview
           />
         </div>
       ) : null}
