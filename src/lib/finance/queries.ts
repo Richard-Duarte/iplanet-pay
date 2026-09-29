@@ -1,3 +1,4 @@
+import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import {
   CONTRIBUTION_SELECT,
   type Contribution,
@@ -41,6 +42,9 @@ export async function getFinanceAggregates(limitRecent = 30): Promise<{
     by_week: [],
     recent: [],
   };
+  if (USE_MOCK_AUTH) {
+    return { aggregates: empty, error: null };
+  }
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();

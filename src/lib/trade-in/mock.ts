@@ -1,4 +1,5 @@
-import type { UsedDeviceOffer } from "@/lib/trade-in/types";
+import { MOCK_USERS } from "@/lib/auth/mock";
+import type { UsedDeviceOffer, UsedDeviceOfferWithProfile } from "@/lib/trade-in/types";
 
 const offers = new Map<string, UsedDeviceOffer>();
 
@@ -49,6 +50,29 @@ export function mockInsertOffer(input: {
   };
   offers.set(id, offer);
   return { id };
+}
+
+export function mockListOffersAdmin(filters: {
+  status?: string;
+  name?: string;
+}): UsedDeviceOfferWithProfile[] {
+  let rows: UsedDeviceOfferWithProfile[] = [...offers.values()].map((o) => {
+    const profile = Object.values(MOCK_USERS).find((u) => u.id === o.user_id);
+    return {
+      ...o,
+      client_name: profile?.full_name ?? null,
+      client_phone: profile?.phone ?? null,
+    };
+  });
+  rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  if (filters.status && filters.status !== "all") {
+    rows = rows.filter((r) => r.status === filters.status);
+  }
+  if (filters.name?.trim()) {
+    const needle = filters.name.trim().toLowerCase();
+    rows = rows.filter((r) => (r.client_name ?? "").toLowerCase().includes(needle));
+  }
+  return rows;
 }
 
 export function mockHasPendingOffer(reservationId: string, userId: string): boolean {

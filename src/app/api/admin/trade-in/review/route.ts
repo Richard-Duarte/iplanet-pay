@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
-import { createServiceClient } from "@/lib/supabase/admin";
+import { getTradeInServiceClient } from "@/lib/trade-in/queries";
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
@@ -22,7 +22,17 @@ export async function POST(req: Request) {
   }
 
   try {
-    const admin = createServiceClient();
+    const admin = getTradeInServiceClient();
+    if (!admin) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "SUPABASE_SERVICE_ROLE_KEY não configurada. Configure no servidor para aprovar/recusar ofertas.",
+        },
+        { status: 503 },
+      );
+    }
     const { data, error } = await admin.rpc("review_used_device_offer", {
       p_offer_id: offerId,
       p_action: action,

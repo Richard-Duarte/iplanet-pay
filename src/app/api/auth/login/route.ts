@@ -6,13 +6,14 @@ import {
   serializeMockSession,
 } from "@/lib/auth/mock";
 import type { UserRole } from "@/types/auth";
-import { homeForRole } from "@/lib/auth/roles";
+import { homeForRole, roleAllowedForPath } from "@/lib/auth/roles";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
     email?: string;
     password?: string;
     role?: UserRole;
+    next?: string;
   };
 
   if (USE_MOCK_AUTH) {
@@ -55,9 +56,25 @@ export async function POST(request: Request) {
 
   const role = (profile?.role ?? "cliente") as UserRole;
 
+  const requestedNext =
+    typeof body.next === "string" && body.next.startsWith("/") && !body.next.startsWith("//")
+      ? body.next
+      : null;
+
+  let redirectTo = homeForRole(role);
+  let warning: string | undefined;
+
+  if (requestedNext && roleAllowedForPath(role, requestedNext)) {
+    redirectTo = requestedNext;
+  } else if (requestedNext?.startsWith("/admin") && role !== "admin") {
+    warning =
+      "Esta conta não tem permissão de admin. No Supabase, defina profiles.role = admin para seu usuário.";
+  }
+
   return NextResponse.json({
     ok: true,
-    redirectTo: homeForRole(role),
+    redirectTo,
+    warning,
     mode: "supabase",
   });
 }

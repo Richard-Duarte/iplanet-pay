@@ -14,16 +14,23 @@ export async function GET(req: Request) {
   const dateFrom = url.searchParams.get("dateFrom") ?? "";
   const dateTo = url.searchParams.get("dateTo") ?? "";
 
-  const { rows, error } = await listUsedDeviceOffersAdmin({
-    status,
-    name,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
-  });
+  try {
+    const { rows, error } = await listUsedDeviceOffersAdmin({
+      status,
+      name,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+    });
 
-  if (error) {
-    return NextResponse.json({ ok: false, error }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ ok: false, error }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, rows });
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, error: e instanceof Error ? e.message : "Falha ao carregar." },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json({ ok: true, rows });
 }

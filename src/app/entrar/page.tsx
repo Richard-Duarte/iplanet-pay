@@ -11,10 +11,11 @@ export const metadata = { title: "Entrar" };
 export default async function EntrarPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ product?: string; next?: string }>;
+  searchParams?: Promise<{ product?: string; next?: string; error?: string }>;
 }) {
   const sp = searchParams ? await searchParams : {};
   const product = sp.product;
+  const authError = sp.error?.trim() || null;
   const next = product
     ? `/app/catalogo?product=${encodeURIComponent(product)}`
     : sp.next;
@@ -34,7 +35,16 @@ export default async function EntrarPage({
           backForceHref="/"
         />
         <Card className="mt-8">
-          <LoginForm mockMode={USE_MOCK_AUTH} nextPath={next} productSlug={product} />
+          <LoginForm
+            mockMode={USE_MOCK_AUTH}
+            nextPath={next}
+            productSlug={product}
+            initialMessage={
+              authError === "sem_permissao_admin"
+                ? "Sua conta entrou, mas não tem papel admin. Use o botão Admin no modo demo ou peça para alterar profiles.role no Supabase."
+                : authError
+            }
+          />
         </Card>
         <ReferralLoginTeaser />
         <p className="mt-4 text-center text-sm text-[var(--ink-muted)]">

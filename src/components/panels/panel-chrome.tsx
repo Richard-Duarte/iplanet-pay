@@ -17,7 +17,7 @@ export async function PanelChrome({
   const user = await getCurrentUser();
   if (!user) redirect("/entrar?next=/admin");
   if (user.role !== "admin") {
-    redirect("/entrar");
+    redirect("/entrar?next=/admin&error=sem_permissao_admin");
   }
 
   return (

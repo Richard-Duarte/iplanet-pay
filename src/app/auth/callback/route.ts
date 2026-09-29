@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import { createClient } from "@/lib/supabase/server";
-import { homeForRole } from "@/lib/auth/roles";
+import { homeForRole, roleAllowedForPath } from "@/lib/auth/roles";
 import type { UserRole } from "@/types/auth";
 
 function safeNext(raw: string | null): string | null {
@@ -13,6 +14,10 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const nextParam = safeNext(searchParams.get("next"));
+
+  if (USE_MOCK_AUTH) {
+    return NextResponse.redirect(`${origin}/entrar`);
+  }
 
   if (code) {
     const supabase = await createClient();
@@ -51,7 +56,12 @@ export async function GET(request: Request) {
         }
       }
 
-      const dest = nextParam ?? homeForRole(role);
+      let dest = homeForRole(role);
+      if (nextParam && roleAllowedForPath(role, nextParam)) {
+        dest = nextParam;
+      } else if (nextParam?.startsWith("/admin") && role !== "admin") {
+        dest = `/entrar?error=${encodeURIComponent("Esta conta Google não tem permissão de admin.")}&next=/admin`;
+      }
 
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";

@@ -18,15 +18,17 @@ export function LoginForm({
   mockMode,
   nextPath,
   productSlug,
+  initialMessage,
 }: {
   mockMode: boolean;
   nextPath?: string;
   productSlug?: string;
+  initialMessage?: string | null;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(initialMessage ?? null);
   const [loading, setLoading] = useState(false);
 
   function resolveRedirect(fallback: string) {
@@ -46,12 +48,20 @@ export function LoginForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, role, next: nextPath }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        redirectTo?: string;
+        warning?: string;
+      };
       if (!res.ok || !data.ok) {
         setMessage(data.error ?? "Não foi possível entrar.");
         return;
       }
-      router.push(resolveRedirect(data.redirectTo ?? "/app"));
+      if (data.warning) {
+        setMessage(data.warning);
+      }
+      router.push(data.redirectTo ?? resolveRedirect("/app"));
       router.refresh();
     } catch {
       setMessage("Erro de rede. Tente novamente.");

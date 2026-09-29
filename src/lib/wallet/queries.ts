@@ -1,3 +1,4 @@
+import { USE_MOCK_AUTH } from "@/lib/auth/mock";
 import {
   CONTRIBUTION_SELECT,
   type Contribution,
@@ -76,6 +77,9 @@ export async function listMyLedger(
 export async function listRecentContributions(
   limit = 20,
 ): Promise<{ contributions: Contribution[]; error: string | null }> {
+  if (USE_MOCK_AUTH) {
+    return { contributions: [], error: null };
+  }
   try {
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
