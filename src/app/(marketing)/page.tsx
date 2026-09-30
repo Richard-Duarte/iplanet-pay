@@ -5,7 +5,6 @@ import { LandingCatalog } from "@/components/landing/landing-catalog";
 import { FaqChat } from "@/components/chat/faq-chat";
 import { getAppSettings } from "@/lib/settings/queries";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
-import { LandingExperienceShell } from "@/components/landing/landing-experience-shell";
 import { ExperiencePreloader } from "@/components/ui/experience-preloader";
 
 async function LandingPageContent() {
@@ -52,14 +51,12 @@ async function LandingPageContent() {
 
 export default function LandingPage() {
   return (
-    <LandingExperienceShell>
-      <Suspense
-        fallback={
-          <ExperiencePreloader variant="landing" className="min-h-screen" />
-        }
-      >
-        <LandingPageContent />
-      </Suspense>
-    </LandingExperienceShell>
+    <Suspense
+      fallback={
+        <ExperiencePreloader variant="landing" className="min-h-screen" />
+      }
+    >
+      <LandingPageContent />
+    </Suspense>
   );
 }

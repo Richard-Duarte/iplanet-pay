@@ -12,74 +12,7 @@ import {
   ExperiencePreloaderOverlay,
   type ExperiencePreloaderVariant,
 } from "@/components/ui/experience-preloader";
-
-const MAX_READY_MS = 3_200;
-const MIN_VISIBLE_MS = 650;
-
-function delay(ms: number) {
-  return new Promise<void>((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-function nextFrame() {
-  return new Promise<void>((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
-}
-
-async function waitForFonts(timeoutMs: number) {
-  if (typeof document === "undefined" || !document.fonts?.ready) return;
-  await Promise.race([document.fonts.ready, delay(timeoutMs)]);
-}
-
-async function waitForImages(
-  root: HTMLElement,
-  timeoutMs: number,
-  maxImages = 12,
-) {
-  const imgs = Array.from(root.querySelectorAll("img")).slice(0, maxImages);
-  if (imgs.length === 0) return;
-
-  await Promise.race([
-    Promise.all(
-      imgs.map(
-        (img) =>
-          new Promise<void>((resolve) => {
-            if (img.complete) {
-              resolve();
-              return;
-            }
-            const done = () => resolve();
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
-          }),
-      ),
-    ),
-    delay(timeoutMs),
-  ]);
-}
-
-async function waitUntilPageReady(
-  root: HTMLElement | null,
-  variant: ExperiencePreloaderVariant,
-) {
-  const started = performance.now();
-  await nextFrame();
-  await nextFrame();
-
-  const elapsed = () => performance.now() - started;
-  const remaining = () => Math.max(0, MAX_READY_MS - elapsed());
-  const imageCap = variant === "landing" ? 4 : 12;
-
-  await waitForFonts(Math.min(900, remaining()));
-  if (root) {
-    await waitForImages(root, Math.min(900, remaining()), imageCap);
-  }
-
-  const minLeft = MIN_VISIBLE_MS - elapsed();
-  if (minLeft > 0) await delay(minLeft);
-}
+import { waitUntilPageReady } from "@/lib/navigation/wait-until-page-ready";
 
 function isInternalAppLink(anchor: HTMLAnchorElement) {
   const href = anchor.getAttribute("href");
@@ -134,7 +67,9 @@ export function RouteExperienceLoader({
     let cancelled = false;
 
     void (async () => {
-      await waitUntilPageReady(contentRef.current, variant);
+      await waitUntilPageReady(contentRef.current, {
+        imageCap: variant === "landing" ? 4 : 12,
+      });
       if (cancelled || runId.current !== id) return;
       setOverlay(false);
     })();
