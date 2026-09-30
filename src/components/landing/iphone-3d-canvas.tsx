@@ -241,20 +241,22 @@ function ExploreButtons({ onActivate }: { onActivate: () => void }) {
 
   return (
     <>
-      {/* Desktop: overlay central */}
-      <button
-        type="button"
-        className="absolute inset-0 z-20 hidden cursor-pointer flex-col items-center justify-center gap-3 bg-transparent text-center touch-manipulation md:flex"
-        aria-label="Clique para explorar o modelo 3D"
-        {...bind}
-      >
-        <span className="rounded-full border border-black/10 bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm">
-          Clique para explorar
-        </span>
-        <span className="pointer-events-none px-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-          Depois arraste para girar o modelo
-        </span>
-      </button>
+      {/* Desktop: só o chip captura clique — o resto deixa a rolagem passar */}
+      <div className="pointer-events-none absolute inset-0 z-20 hidden md:flex flex-col items-center justify-center gap-3 text-center">
+        <button
+          type="button"
+          className="pointer-events-auto flex cursor-pointer flex-col items-center gap-3 touch-manipulation"
+          aria-label="Clique para explorar o modelo 3D"
+          {...bind}
+        >
+          <span className="rounded-full border border-black/10 bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#111] shadow-[0_8px_28px_rgba(17,17,17,0.12)] backdrop-blur-sm">
+            Clique para explorar
+          </span>
+          <span className="pointer-events-none px-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
+            Depois arraste para girar o modelo
+          </span>
+        </button>
+      </div>
 
       {/* Mobile: chip embaixo — modelo visível acima */}
       <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4 md:hidden">
@@ -290,27 +292,9 @@ function ViewerFrame({
 }) {
   const view = mobileLayout ? MOBILE_VIEW : DESKTOP_VIEW;
   const blockLenisScroll = controlsEnabled;
-  const shellRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(true);
-
-  useEffect(() => {
-    const el = shellRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry) setInView(entry.isIntersecting);
-      },
-      { rootMargin: "80px 0px", threshold: 0 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  const runCanvas = inView || controlsEnabled;
 
   return (
     <div
-      ref={shellRef}
       className={`relative isolate overflow-hidden ${shellClassName}`}
       {...(blockLenisScroll
         ? { "data-lenis-prevent-touch": true as const }
@@ -327,7 +311,7 @@ function ViewerFrame({
       <CornerBrackets />
       <Canvas
         key={mobileLayout ? "mobile-3d" : "desktop-3d"}
-        frameloop={runCanvas ? "always" : "never"}
+        frameloop="always"
         camera={{
           position: view.camera.position,
           fov: view.camera.fov,

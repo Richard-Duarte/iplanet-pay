@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -58,26 +59,27 @@ function mapScrollToFold(t: number): number {
   return linear * linear * (3 - 2 * linear);
 }
 
-function useDesktopDuoPhoneSize() {
-  const [phoneSize, setPhoneSize] = useState(1);
+/** Desktop-only visual scale — keeps WebGL `phoneSize` at 1 (same as mobile behavior). */
+function useDesktopDuoScale() {
+  const [scale, setScale] = useState(1);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
-    const sync = () => setPhoneSize(mq.matches ? 1.3 : 1);
+    const sync = () => setScale(mq.matches ? 1.22 : 1);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  return phoneSize;
+  return scale;
 }
 
 function DuoPinnedStep({
   step,
-  phoneSize,
+  visualScale,
 }: {
   step: (typeof STEPS)[number];
-  phoneSize: number;
+  visualScale: number;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [foldProgress, setFoldProgress] = useState(0);
@@ -122,14 +124,14 @@ function DuoPinnedStep({
       }
     };
     update();
-    window.addEventListener("scroll", schedule, { passive: true, capture: true });
+    window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     const ro = new ResizeObserver(schedule);
     if (trackRef.current) ro.observe(trackRef.current);
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
-      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
   }, [update]);
@@ -182,14 +184,19 @@ function DuoPinnedStep({
             // Only lift while pinned/after — lifting in "before" slides the
             // white Duo canvas up over the section intro copy.
             transform:
-              phase === "before" ? undefined : `translateY(${VISUAL_LIFT})`,
+              phase === "before"
+                ? visualScale > 1
+                  ? `scale(${visualScale})`
+                  : undefined
+                : `translateY(${VISUAL_LIFT})${visualScale > 1 ? ` scale(${visualScale})` : ""}`,
+            transformOrigin: "center center",
           }}
         >
           <IphoneDuoScrollClient
             foldProgress={foldProgress}
             interactionMode="scroll"
             reverseAnimation={false}
-            phoneSize={phoneSize}
+            phoneSize={1}
             phoneFinish="star-white"
             background="#ffffff"
             screen="custom"
@@ -219,7 +226,7 @@ function DuoPinnedStep({
  * Fixed pin: enter closed → centered → slow open → hold open → release.
  */
 export function ComoFuncionaDuoScroll() {
-  const phoneSize = useDesktopDuoPhoneSize();
+  const visualScale = useDesktopDuoScale();
 
   return (
     <section id="como-funciona-duo" className="relative bg-white text-[#111]">
@@ -240,7 +247,7 @@ export function ComoFuncionaDuoScroll() {
       </div>
 
       {STEPS.map((step) => (
-        <DuoPinnedStep key={step.n} step={step} phoneSize={phoneSize} />
+        <DuoPinnedStep key={step.n} step={step} visualScale={visualScale} />
       ))}
     </section>
   );

@@ -26,11 +26,15 @@ export function Experiencia3dSection() {
           <p className="mx-auto mt-3 max-w-2xl text-center text-base font-medium leading-relaxed text-[#1d1d1f] md:text-xl">
             transforme seu sonho em meta.
           </p>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#6e6e73] md:text-base">
-            No celular, toque em{" "}
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#6e6e73] md:hidden">
+            Toque em{" "}
             <span className="font-semibold text-[#111]">Clique para explorar</span>{" "}
-            para abrir em tela cheia e girar com o dedo. No desktop, clique na
-            área 3D e arraste para girar — a rolagem da página continua normal.
+            para abrir em tela cheia e girar com o dedo.
+          </p>
+          <p className="mx-auto mt-3 hidden max-w-2xl text-center text-base leading-relaxed text-[#6e6e73] md:block">
+            Clique em{" "}
+            <span className="font-semibold text-[#111]">Clique para explorar</span>{" "}
+            e arraste para girar — a rolagem da página continua normal.
           </p>
         </MotionFade>
         <div className="mt-10">
