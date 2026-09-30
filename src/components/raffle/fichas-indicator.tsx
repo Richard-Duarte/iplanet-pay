@@ -16,7 +16,7 @@ export async function FichasIndicator({ userId }: { userId: string }) {
       <span className="text-xs text-[var(--ink-muted)]">
         Sorteio em {days} {days === 1 ? "dia" : "dias"} (dia 1)
       </span>
-      <Link href="/app/ranking">
+      <Link href="/app/ranking" prefetch>
         <Button type="button" variant="ghost" size="sm" leftIcon={<Trophy className="h-4 w-4" />}>
           Ranking
         </Button>

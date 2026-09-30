@@ -19,6 +19,13 @@ const defaultPublicSupabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqbmlrZnJsZWRja21qYWh3bnNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNjg5MjAsImV4cCI6MjEwNTc0NDkyMH0.6teIFzZMLo0CNl9fqmO5KcdHfac05yAx9hF5rVvIfAw";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    /** Keep prefetched RSC payloads warm longer (faster tab switches). */
+    staleTimes: {
+      dynamic: 60,
+      static: 300,
+    },
+  },
   env: {
     NEXT_PUBLIC_SUPABASE_URL:
       process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||

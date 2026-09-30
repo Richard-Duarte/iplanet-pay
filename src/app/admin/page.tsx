@@ -82,7 +82,7 @@ export default async function AdminPage() {
               Busca, filtros por status/loja, cancelar e confirmar retirada.
             </p>
           </div>
-          <Link href="/admin/reservas">
+          <Link prefetch href="/admin/reservas">
             <Button variant="accent">Abrir reservas</Button>
           </Link>
         </Card>
@@ -96,7 +96,7 @@ export default async function AdminPage() {
               Acessos, cliques e aportes.
             </p>
           </div>
-          <Link href="/admin/dashboards">
+          <Link prefetch href="/admin/dashboards">
             <Button variant="outline" size="sm" leftIcon={<BarChart3 className="h-4 w-4" />}>
               Abrir
             </Button>
@@ -109,7 +109,7 @@ export default async function AdminPage() {
               Fila de ofertas de aparelhos usados como pagamento.
             </p>
           </div>
-          <Link href="/admin/avaliacao-usados">
+          <Link prefetch href="/admin/avaliacao-usados">
             <Button variant="outline" size="sm" leftIcon={<Smartphone className="h-4 w-4" />}>
               Abrir
             </Button>
@@ -122,7 +122,7 @@ export default async function AdminPage() {
               Perfis, papéis e reservas.
             </p>
           </div>
-          <Link href="/admin/clientes">
+          <Link prefetch href="/admin/clientes">
             <Button variant="outline" size="sm" leftIcon={<Users className="h-4 w-4" />}>
               Abrir
             </Button>
@@ -135,7 +135,7 @@ export default async function AdminPage() {
               Catálogo, categorias e abas da landing.
             </p>
           </div>
-          <Link href="/admin/produtos">
+          <Link prefetch href="/admin/produtos">
             <Button variant="outline" size="sm" leftIcon={<Package className="h-4 w-4" />}>
               Abrir
             </Button>
@@ -161,7 +161,7 @@ export default async function AdminPage() {
               Agregados de aportes confirmados/pendentes e lista recente.
             </p>
           </div>
-          <Link href="/admin/financeiro">
+          <Link prefetch href="/admin/financeiro">
             <Button variant="accent" leftIcon={<CreditCard className="h-4 w-4" />}>
               Abrir financeiro
             </Button>
@@ -190,7 +190,7 @@ export default async function AdminPage() {
               Status de gateways (env) e bônus de indicação.
             </p>
           </div>
-          <Link href="/admin/config">
+          <Link prefetch href="/admin/config">
             <Button variant="outline" size="sm" leftIcon={<Settings className="h-4 w-4" />}>
               Abrir
             </Button>
@@ -203,7 +203,7 @@ export default async function AdminPage() {
               Lista leve de referrals.
             </p>
           </div>
-          <Link href="/admin/indicacoes">
+          <Link prefetch href="/admin/indicacoes">
             <Button variant="outline" size="sm" leftIcon={<Gift className="h-4 w-4" />}>
               Abrir
             </Button>

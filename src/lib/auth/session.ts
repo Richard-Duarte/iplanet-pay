@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import {
   MOCK_COOKIE,
@@ -16,7 +17,7 @@ function asPixKeyType(value: unknown): PixKeyType | null {
     : null;
 }
 
-export async function getCurrentUser(): Promise<AuthUser | null> {
+export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
   if (USE_MOCK_AUTH) {
     const cookieStore = await cookies();
     return parseMockSession(cookieStore.get(MOCK_COOKIE)?.value);
@@ -52,6 +53,6 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       (profile as { referral_bonus_balance_cents?: number } | null)
         ?.referral_bonus_balance_cents ?? 0,
   };
-}
+});
 
 export { USE_MOCK_AUTH, MOCK_USERS };

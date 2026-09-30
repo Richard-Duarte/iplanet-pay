@@ -1,4 +1,9 @@
 import type { ReactNode } from "react";
+import { RoutePrefetcher } from "@/components/navigation/route-prefetcher";
+import {
+  ADMIN_PREFETCH_ROUTES,
+  CLIENTE_PREFETCH_ROUTES,
+} from "@/lib/navigation/prefetch-routes";
 import { Sidebar, type SidebarItem } from "./sidebar";
 import { BottomNav } from "./bottom-nav";
 
@@ -28,6 +33,7 @@ export function AppShell({
   if (variant === "cliente") {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
+        <RoutePrefetcher routes={CLIENTE_PREFETCH_ROUTES} />
         <div className="mx-auto max-w-5xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-6 md:px-8 md:pb-10">
           {topBar}
           {children}
@@ -39,6 +45,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-[var(--bg-subtle)]">
+      <RoutePrefetcher routes={ADMIN_PREFETCH_ROUTES} />
       <Sidebar
         title={sidebarTitle ?? "Painel"}
         subtitle={sidebarSubtitle}

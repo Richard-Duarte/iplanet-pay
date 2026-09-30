@@ -68,7 +68,7 @@ export default async function ClienteHomePage() {
           title="Nenhuma reserva ativa"
           description="Escolha um iPhone no catálogo e gere o aporte Pix na reserva."
           action={
-            <Link href="/app/catalogo">
+            <Link prefetch href="/app/catalogo">
               <Button variant="accent" leftIcon={<Smartphone className="h-4 w-4" />}>
                 Ver catálogo
               </Button>
@@ -96,7 +96,7 @@ export default async function ClienteHomePage() {
           <p className="mt-2 text-[var(--ink-muted)]">
             Veja modelos disponíveis para nova reserva.
           </p>
-          <Link href="/app/catalogo" className="mt-5 inline-block">
+          <Link prefetch href="/app/catalogo" className="mt-5 inline-block">
             <Button variant="outline" leftIcon={<Smartphone className="h-4 w-4" />}>
               Abrir catálogo
             </Button>
@@ -108,7 +108,7 @@ export default async function ClienteHomePage() {
           <p className="mt-2 text-[var(--ink-muted)]">
             Acompanhe o ranking de aportes e suas fichas para o sorteio.
           </p>
-          <Link href="/app/ranking" className="mt-5 inline-block">
+          <Link prefetch href="/app/ranking" className="mt-5 inline-block">
             <Button variant="outline">Ver ranking →</Button>
           </Link>
         </Card>
@@ -118,7 +118,7 @@ export default async function ClienteHomePage() {
           <p className="mt-2 text-[var(--ink-muted)]">
             Veja aportes Pix confirmados e o extrato da carteira.
           </p>
-          <Link href="/app/carteira" className="mt-5 inline-block">
+          <Link prefetch href="/app/carteira" className="mt-5 inline-block">
             <Button variant="ghost">Ir para carteira →</Button>
           </Link>
         </Card>

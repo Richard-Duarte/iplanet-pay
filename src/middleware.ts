@@ -22,6 +22,14 @@ function isProtected(pathname: string) {
   );
 }
 
+/** Next.js router prefetch — skip extra DB round-trips; full check on navigation. */
+function isRouterPrefetch(request: NextRequest) {
+  return (
+    request.headers.get("Next-Router-Prefetch") === "1" ||
+    request.headers.get("Purpose") === "prefetch"
+  );
+}
+
 function redirectTo(
   request: NextRequest,
   pathname: string,
@@ -87,6 +95,10 @@ export async function middleware(request: NextRequest) {
         redirectTo(request, "/entrar", { next: pathname }),
         response,
       );
+    }
+
+    if (isRouterPrefetch(request)) {
+      return response;
     }
 
     const { data: profile } = await supabase

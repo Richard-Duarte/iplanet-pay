@@ -53,7 +53,7 @@ export function ReservationCard({
 
   if (!href) return body;
   return (
-    <Link href={href} className="block transition hover:opacity-90">
+    <Link href={href} prefetch className="block transition hover:opacity-90">
       {body}
     </Link>
   );

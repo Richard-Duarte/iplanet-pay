@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, QrCode } from "lucide-react";
 import { ProductHeroCard } from "@/components/ui/product-hero-card";
 import { ProductImage } from "@/components/products/product-image";
@@ -22,8 +23,19 @@ export type ActiveHeroItem = {
 const ROTATE_MS = 10_000;
 
 export function ActiveHeroCarousel({ items }: { items: ActiveHeroItem[] }) {
+  const router = useRouter();
   const [index, setIndex] = useState(0);
   const count = items.length;
+
+  useEffect(() => {
+    if (items.length === 0) return;
+    const id = window.setTimeout(() => {
+      for (const item of items.slice(0, 3)) {
+        router.prefetch(`/app/reserva/${item.id}`);
+      }
+    }, 1200);
+    return () => window.clearTimeout(id);
+  }, [items, router]);
 
   useEffect(() => {
     if (count <= 1) return;
@@ -63,13 +75,13 @@ export function ActiveHeroCarousel({ items }: { items: ActiveHeroItem[] }) {
                 label="Progresso da reserva"
               />
               <div className="flex flex-wrap gap-2">
-                <Link href={`/app/reserva/${hero.id}`}>
+                <Link href={`/app/reserva/${hero.id}`} prefetch>
                   <Button size="sm">
                     Ver reserva
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href={`/app/reserva/${hero.id}`}>
+                <Link href={`/app/reserva/${hero.id}`} prefetch>
                   <Button
                     size="sm"
                     variant="accent"

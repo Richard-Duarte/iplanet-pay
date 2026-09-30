@@ -36,7 +36,7 @@ export default async function ClienteLayout({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/app/configuracoes">
+            <Link href="/app/configuracoes" prefetch>
               <Button
                 type="button"
                 variant="outline"

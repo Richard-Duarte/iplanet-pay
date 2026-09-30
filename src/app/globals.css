@@ -89,3 +89,51 @@ body {
 .soft-glow {
   box-shadow: var(--shadow-soft);
 }
+
+/* Skeleton preloader — GPU-friendly shimmer (no JS). */
+.experience-skeleton {
+  position: relative;
+  background: color-mix(in srgb, var(--line) 88%, var(--bg-subtle));
+}
+
+.experience-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--bg) 55%, transparent) 45%,
+    color-mix(in srgb, var(--bg) 85%, transparent) 50%,
+    color-mix(in srgb, var(--bg) 55%, transparent) 55%,
+    transparent 100%
+  );
+  animation: experience-shimmer 1.35s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes experience-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.experience-progress-bar {
+  animation: experience-progress 1.1s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes experience-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.experience-preloader-overlay {
+  pointer-events: none;
+  touch-action: pan-y;
+}
