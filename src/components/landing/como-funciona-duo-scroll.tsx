@@ -59,27 +59,33 @@ function mapScrollToFold(t: number): number {
   return linear * linear * (3 - 2 * linear);
 }
 
-/** Desktop-only visual scale — keeps WebGL `phoneSize` at 1 (same as mobile behavior). */
-function useDesktopDuoScale() {
-  const [scale, setScale] = useState(1);
+const DESKTOP_DUO_MQ = "(min-width: 768px)";
+/** Slightly larger on desktop via the vendor camera — avoid CSS scale (misaligns the canvas). */
+const PHONE_SIZE_DESKTOP = 1.18;
+
+function useDuoPhoneSize() {
+  const [phoneSize, setPhoneSize] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    return window.matchMedia(DESKTOP_DUO_MQ).matches ? PHONE_SIZE_DESKTOP : 1;
+  });
 
   useLayoutEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    const sync = () => setScale(mq.matches ? 1.22 : 1);
+    const mq = window.matchMedia(DESKTOP_DUO_MQ);
+    const sync = () => setPhoneSize(mq.matches ? PHONE_SIZE_DESKTOP : 1);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  return scale;
+  return phoneSize;
 }
 
 function DuoPinnedStep({
   step,
-  visualScale,
+  phoneSize,
 }: {
   step: (typeof STEPS)[number];
-  visualScale: number;
+  phoneSize: number;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [foldProgress, setFoldProgress] = useState(0);
@@ -184,19 +190,14 @@ function DuoPinnedStep({
             // Only lift while pinned/after — lifting in "before" slides the
             // white Duo canvas up over the section intro copy.
             transform:
-              phase === "before"
-                ? visualScale > 1
-                  ? `scale(${visualScale})`
-                  : undefined
-                : `translateY(${VISUAL_LIFT})${visualScale > 1 ? ` scale(${visualScale})` : ""}`,
-            transformOrigin: "center center",
+              phase === "before" ? undefined : `translateY(${VISUAL_LIFT})`,
           }}
         >
           <IphoneDuoScrollClient
             foldProgress={foldProgress}
             interactionMode="scroll"
             reverseAnimation={false}
-            phoneSize={1}
+            phoneSize={phoneSize}
             phoneFinish="star-white"
             background="#ffffff"
             screen="custom"
@@ -226,7 +227,7 @@ function DuoPinnedStep({
  * Fixed pin: enter closed → centered → slow open → hold open → release.
  */
 export function ComoFuncionaDuoScroll() {
-  const visualScale = useDesktopDuoScale();
+  const phoneSize = useDuoPhoneSize();
 
   return (
     <section id="como-funciona-duo" className="relative bg-white text-[#111]">
@@ -247,7 +248,7 @@ export function ComoFuncionaDuoScroll() {
       </div>
 
       {STEPS.map((step) => (
-        <DuoPinnedStep key={step.n} step={step} visualScale={visualScale} />
+        <DuoPinnedStep key={step.n} step={step} phoneSize={phoneSize} />
       ))}
     </section>
   );
