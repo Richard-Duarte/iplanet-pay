@@ -192,12 +192,13 @@ function Scene({
         ref={controlsRef}
         enabled={controlsEnabled}
         enablePan={false}
+        enableZoom={mobileLayout && controlsEnabled}
         minDistance={view.orbit.minDistance}
         maxDistance={view.orbit.maxDistance}
         target={view.orbit.target}
         minPolarAngle={Math.PI / 3.2}
         maxPolarAngle={Math.PI / 1.65}
-        makeDefault
+        makeDefault={controlsEnabled}
         onStart={onUserInteract}
       />
     </>
@@ -226,8 +227,6 @@ function ExploreButtons({ onActivate }: { onActivate: () => void }) {
   };
 
   const bind = {
-    "data-lenis-prevent": true,
-    "data-lenis-prevent-touch": true,
     onClick: (e: MouseEvent) => {
       e.stopPropagation();
       fireActivate();
@@ -253,7 +252,7 @@ function ExploreButtons({ onActivate }: { onActivate: () => void }) {
           Clique para explorar
         </span>
         <span className="pointer-events-none px-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-          Depois arraste para girar · pinça para zoom
+          Depois arraste para girar o modelo
         </span>
       </button>
 
@@ -290,11 +289,32 @@ function ViewerFrame({
   mobileLayout: boolean;
 }) {
   const view = mobileLayout ? MOBILE_VIEW : DESKTOP_VIEW;
+  const blockLenisScroll = controlsEnabled;
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(true);
+
+  useEffect(() => {
+    const el = shellRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) setInView(entry.isIntersecting);
+      },
+      { rootMargin: "80px 0px", threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const runCanvas = inView || controlsEnabled;
+
   return (
     <div
+      ref={shellRef}
       className={`relative isolate overflow-hidden ${shellClassName}`}
-      data-lenis-prevent
-      data-lenis-prevent-touch
+      {...(blockLenisScroll
+        ? { "data-lenis-prevent-touch": true as const }
+        : {})}
     >
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06]"
@@ -307,11 +327,12 @@ function ViewerFrame({
       <CornerBrackets />
       <Canvas
         key={mobileLayout ? "mobile-3d" : "desktop-3d"}
+        frameloop={runCanvas ? "always" : "never"}
         camera={{
           position: view.camera.position,
           fov: view.camera.fov,
         }}
-        dpr={mobileLayout ? [1, 2] : [1, 1.75]}
+        dpr={mobileLayout ? [1, 1.75] : [1, 1.5]}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
         className={`absolute inset-0 h-full w-full ${controlsEnabled ? "touch-none" : "touch-pan-y"}`}
         style={{ pointerEvents: controlsEnabled ? "auto" : "none" }}
@@ -392,8 +413,7 @@ export default function Iphone3dCanvas() {
             ? "fixed inset-0 z-[200] flex flex-col bg-white"
             : "relative w-full"
         }
-        data-lenis-prevent
-        data-lenis-prevent-touch
+        {...(controlsEnabled ? { "data-lenis-prevent-touch": true as const } : {})}
         onPointerLeave={touchMode ? undefined : deactivateDesktop}
         onBlur={touchMode ? undefined : deactivateDesktop}
       >
@@ -432,7 +452,7 @@ export default function Iphone3dCanvas() {
               </p>
             ) : !touchMode && desktopActive ? (
               <p className="pointer-events-none absolute bottom-5 left-0 right-0 z-10 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40">
-                Arraste para girar · Esc ou saia da área para liberar o scroll
+                Arraste para girar · Esc ou saia da área para fechar
               </p>
             ) : null
           }

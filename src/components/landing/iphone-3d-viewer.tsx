@@ -17,12 +17,7 @@ const Iphone3dCanvas = dynamic(
 
 export function Experiencia3dSection() {
   return (
-    <section
-      id="experiencia-3d"
-      className="bg-white text-[#111]"
-      data-lenis-prevent
-      data-lenis-prevent-touch
-    >
+    <section id="experiencia-3d" className="bg-white text-[#111]">
       <div className="mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-24">
         <MotionFade>
           <h2 className="text-center text-3xl font-bold tracking-tight text-[#111] md:text-5xl lg:text-6xl">
@@ -35,7 +30,7 @@ export function Experiencia3dSection() {
             No celular, toque em{" "}
             <span className="font-semibold text-[#111]">Clique para explorar</span>{" "}
             para abrir em tela cheia e girar com o dedo. No desktop, clique na
-            área 3D e use arraste ou scroll para zoom.
+            área 3D e arraste para girar — a rolagem da página continua normal.
           </p>
         </MotionFade>
         <div className="mt-10">
