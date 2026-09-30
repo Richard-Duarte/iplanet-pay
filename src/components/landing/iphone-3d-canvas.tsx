@@ -290,27 +290,8 @@ function ViewerFrame({
   mobileLayout: boolean;
 }) {
   const view = mobileLayout ? MOBILE_VIEW : DESKTOP_VIEW;
-  const shellRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(true);
-
-  useEffect(() => {
-    const el = shellRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry) setInView(entry.isIntersecting);
-      },
-      { rootMargin: "120px 0px", threshold: 0 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  const animateCanvas = inView || controlsEnabled;
-
   return (
     <div
-      ref={shellRef}
       className={`relative isolate overflow-hidden ${shellClassName}`}
       data-lenis-prevent
       data-lenis-prevent-touch
@@ -326,12 +307,11 @@ function ViewerFrame({
       <CornerBrackets />
       <Canvas
         key={mobileLayout ? "mobile-3d" : "desktop-3d"}
-        frameloop={animateCanvas ? "always" : "never"}
         camera={{
           position: view.camera.position,
           fov: view.camera.fov,
         }}
-        dpr={mobileLayout ? [1, 1.75] : [1, 1.5]}
+        dpr={mobileLayout ? [1, 2] : [1, 1.75]}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
         className={`absolute inset-0 h-full w-full ${controlsEnabled ? "touch-none" : "touch-pan-y"}`}
         style={{ pointerEvents: controlsEnabled ? "auto" : "none" }}

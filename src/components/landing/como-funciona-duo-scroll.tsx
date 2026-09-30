@@ -1,20 +1,14 @@
 "use client";
 
 import {
-  memo,
   useCallback,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
-  type MutableRefObject,
 } from "react";
 import { MotionFade } from "@/components/ui/motion";
-import {
-  IphoneDuoScrollClient,
-  useDuoDisplayOptions,
-  type DuoSceneController,
-} from "@/components/landing/iphone-duo-scroll-client";
+import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-client";
 
 /**
  * Scroll runway while the phone is pinned in the viewport (vh).
@@ -36,11 +30,6 @@ const VISUAL_LIFT = "-9vh";
 const HOLD_CLOSED = 0.08;
 const OPEN_END = 0.78;
 
-const DESKTOP_MQ = "(min-width: 768px)";
-const PHONE_SIZE_DESKTOP = 1.3;
-const PHONE_SIZE_MOBILE = 1;
-const DUO_SCREEN_BLUR = 0.55;
-
 const STEPS = [
   {
     n: 1,
@@ -61,67 +50,20 @@ const STEPS = [
 
 type PinPhase = "before" | "pinned" | "after";
 
-type StepRuntime = {
-  phase: PinPhase;
-  fold: number;
-};
-
-type SceneDriver = (
-  fold: number,
-  isVisible: boolean,
-  phoneSize: number,
-) => void;
-
 function mapScrollToFold(t: number): number {
   if (t <= HOLD_CLOSED) return 0;
   if (t >= OPEN_END) return 1;
   const linear = (t - HOLD_CLOSED) / (OPEN_END - HOLD_CLOSED);
+  // Smoothstep — gentle open that finishes while still pinned
   return linear * linear * (3 - 2 * linear);
 }
 
-function computeStepRuntime(el: HTMLDivElement): StepRuntime {
-  const rect = el.getBoundingClientRect();
-  const viewport = window.innerHeight;
-  const pinH = Math.max(1, viewport - PIN_TOP);
-  const range = Math.max(1, rect.height - pinH);
-
-  if (rect.top > PIN_TOP) {
-    return { phase: "before", fold: 0 };
-  }
-
-  if (rect.bottom <= PIN_TOP + pinH) {
-    return { phase: "after", fold: 1 };
-  }
-
-  const scrolled = Math.min(range, Math.max(0, PIN_TOP - rect.top));
-  return {
-    phase: "pinned",
-    fold: mapScrollToFold(scrolled / range),
-  };
-}
-
-function trackVisible(el: HTMLDivElement): boolean {
-  const rect = el.getBoundingClientRect();
-  const viewport = window.innerHeight;
-  return rect.bottom > 0 && rect.top < viewport;
-}
-
-function phasesChanged(a: PinPhase[], b: PinPhase[]): boolean {
-  if (a.length !== b.length) return true;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return true;
-  }
-  return false;
-}
-
-function useDesktopPhoneSize() {
-  const [phoneSize, setPhoneSize] = useState(PHONE_SIZE_MOBILE);
+function useDesktopDuoPhoneSize() {
+  const [phoneSize, setPhoneSize] = useState(1);
 
   useEffect(() => {
-    const mq = window.matchMedia(DESKTOP_MQ);
-    const sync = () => {
-      setPhoneSize(mq.matches ? PHONE_SIZE_DESKTOP : PHONE_SIZE_MOBILE);
-    };
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setPhoneSize(mq.matches ? 1.3 : 1);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
@@ -130,135 +72,67 @@ function useDesktopPhoneSize() {
   return phoneSize;
 }
 
-function useDuoScrollEngine(
-  trackRefs: MutableRefObject<(HTMLDivElement | null)[]>,
-  sceneDrivers: MutableRefObject<(SceneDriver | null)[]>,
-  phoneSizeRef: MutableRefObject<number>,
-) {
-  const [phases, setPhases] = useState<PinPhase[]>(() =>
-    STEPS.map(() => "before" as PinPhase),
-  );
+function DuoPinnedStep({
+  step,
+  phoneSize,
+}: {
+  step: (typeof STEPS)[number];
+  phoneSize: number;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [foldProgress, setFoldProgress] = useState(0);
+  const [phase, setPhase] = useState<PinPhase>("before");
+
+  const update = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const viewport = window.innerHeight;
+    const pinH = Math.max(1, viewport - PIN_TOP);
+    const range = Math.max(1, rect.height - pinH);
+
+    // before: track hasn't reached the pin line yet
+    if (rect.top > PIN_TOP) {
+      setPhase("before");
+      setFoldProgress(0);
+      return;
+    }
+
+    // after: scrolled past the pin window — park phone at end of track
+    if (rect.bottom <= PIN_TOP + pinH) {
+      setPhase("after");
+      setFoldProgress(1);
+      return;
+    }
+
+    // pinned: keep phone fixed & centered; map scroll → fold
+    setPhase("pinned");
+    const scrolled = Math.min(range, Math.max(0, PIN_TOP - rect.top));
+    setFoldProgress(mapScrollToFold(scrolled / range));
+  }, []);
 
   useEffect(() => {
     let raf = 0;
-    const ro = new ResizeObserver(() => schedule());
-    const observed = new WeakSet<HTMLDivElement>();
-
-    const attachObservers = () => {
-      for (const el of trackRefs.current) {
-        if (!el || observed.has(el)) continue;
-        observed.add(el);
-        ro.observe(el);
+    const schedule = () => {
+      if (!raf) {
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          update();
+        });
       }
     };
-
-    const tick = () => {
-      raf = 0;
-      attachObservers();
-      const nextPhases: PinPhase[] = [];
-      const size = phoneSizeRef.current;
-
-      trackRefs.current.forEach((el, index) => {
-        if (!el) {
-          nextPhases.push("before");
-          return;
-        }
-        const runtime = computeStepRuntime(el);
-        nextPhases.push(runtime.phase);
-        const visible = trackVisible(el);
-        const drive = sceneDrivers.current[index];
-        drive?.(runtime.fold, visible, size);
-      });
-
-      setPhases((prev) =>
-        phasesChanged(prev, nextPhases) ? nextPhases : prev,
-      );
-    };
-
-    const schedule = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-
-    tick();
-    window.addEventListener("scroll", schedule, { passive: true });
+    update();
+    window.addEventListener("scroll", schedule, { passive: true, capture: true });
     window.addEventListener("resize", schedule);
-
+    const ro = new ResizeObserver(schedule);
+    if (trackRef.current) ro.observe(trackRef.current);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
       ro.disconnect();
+      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("resize", schedule);
     };
-  }, [trackRefs, sceneDrivers, phoneSizeRef]);
-
-  return phases;
-}
-
-const DuoPinnedStep = memo(function DuoPinnedStep({
-  step,
-  phase,
-  phoneSize,
-  trackRef,
-  registerSceneDriver,
-}: {
-  step: (typeof STEPS)[number];
-  phase: PinPhase;
-  phoneSize: number;
-  trackRef: (el: HTMLDivElement | null) => void;
-  registerSceneDriver: (
-    index: number,
-    driver: SceneDriver | null,
-  ) => void;
-}) {
-  const stepIndex = step.n - 1;
-  const [mountDuo, setMountDuo] = useState(step.n === 1);
-  const controllerRef = useRef<DuoSceneController | null>(null);
-  const displayOptions = useDuoDisplayOptions({
-    screen: "custom",
-    innerImage: { src: step.inner },
-    outerImage: { src: step.outer },
-    imageFit: "cover",
-    lockScreenUI: {
-      showClock: false,
-      showWifi: false,
-      showQuickActions: false,
-    },
-  });
-
-  useEffect(() => {
-    const el = document.querySelector<HTMLDivElement>(
-      `[data-duo-step="${step.n}"]`,
-    );
-    if (!el) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) setMountDuo(true);
-        else if (step.n > 1 && phase === "before") setMountDuo(false);
-      },
-      { rootMargin: "60% 0px 60% 0px", threshold: 0 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [phase, step.n]);
-
-  const handleSceneReady = useCallback((controller: DuoSceneController) => {
-    controllerRef.current = controller;
-    registerSceneDriver(stepIndex, (fold, isVisible, size) => {
-      controller.update(
-        fold,
-        size,
-        displayOptions,
-        DUO_SCREEN_BLUR,
-        0,
-        isVisible,
-      );
-    });
-  }, [displayOptions, registerSceneDriver, stepIndex]);
-
-  useEffect(() => {
-    return () => registerSceneDriver(stepIndex, null);
-  }, [registerSceneDriver, stepIndex]);
+  }, [update]);
 
   const pinH = `calc(100vh - ${PIN_TOP}px)`;
 
@@ -274,7 +148,6 @@ const DuoPinnedStep = memo(function DuoPinnedStep({
           display: "grid",
           placeItems: "center",
           background: "#ffffff",
-          contain: "layout style paint",
         }
       : phase === "after"
         ? {
@@ -286,7 +159,6 @@ const DuoPinnedStep = memo(function DuoPinnedStep({
             display: "grid",
             placeItems: "center",
             background: "#ffffff",
-            contain: "layout style paint",
           }
         : {
             position: "relative",
@@ -294,7 +166,6 @@ const DuoPinnedStep = memo(function DuoPinnedStep({
             display: "grid",
             placeItems: "center",
             background: "#ffffff",
-            contain: "layout style paint",
           };
 
   return (
@@ -308,77 +179,47 @@ const DuoPinnedStep = memo(function DuoPinnedStep({
         <div
           className="h-full w-full"
           style={{
+            // Only lift while pinned/after — lifting in "before" slides the
+            // white Duo canvas up over the section intro copy.
             transform:
               phase === "before" ? undefined : `translateY(${VISUAL_LIFT})`,
           }}
         >
-          {mountDuo ? (
-            <IphoneDuoScrollClient
-              foldProgress={0}
-              interactionMode="scroll"
-              reverseAnimation={false}
-              phoneSize={phoneSize}
-              phoneFinish="star-white"
-              background="#ffffff"
-              screen="custom"
-              imageFit="cover"
-              outerImage={{ src: step.outer }}
-              innerImage={{ src: step.inner }}
-              lockScreenUI={{
-                showClock: false,
-                showWifi: false,
-                showQuickActions: false,
-              }}
-              screenBlur={DUO_SCREEN_BLUR}
-              screenReflection={0}
-              loaderColor="#858580"
-              loaderOpacity={0.5}
-              loaderStyle="fold"
-              onSceneReady={handleSceneReady}
-              style={{ width: "100%", height: "100%" }}
-            />
-          ) : (
-            <div
-              className="h-full w-full"
-              style={{ background: "#ffffff" }}
-              aria-hidden
-            />
-          )}
+          <IphoneDuoScrollClient
+            foldProgress={foldProgress}
+            interactionMode="scroll"
+            reverseAnimation={false}
+            phoneSize={phoneSize}
+            phoneFinish="star-white"
+            background="#ffffff"
+            screen="custom"
+            imageFit="cover"
+            outerImage={{ src: step.outer }}
+            innerImage={{ src: step.inner }}
+            lockScreenUI={{
+              showClock: false,
+              showWifi: false,
+              showQuickActions: false,
+            }}
+            screenBlur={1}
+            screenReflection={0}
+            loaderColor="#858580"
+            loaderOpacity={0.5}
+            loaderStyle="fold"
+            style={{ width: "100%", height: "100%" }}
+          />
         </div>
       </div>
     </div>
   );
-});
+}
 
 /**
  * Three Framer iPhone Duo Scroll units (one per step).
  * Fixed pin: enter closed → centered → slow open → hold open → release.
  */
 export function ComoFuncionaDuoScroll() {
-  const phoneSize = useDesktopPhoneSize();
-  const phoneSizeRef = useRef(phoneSize);
-  phoneSizeRef.current = phoneSize;
-
-  const trackRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const sceneDrivers = useRef<(SceneDriver | null)[]>(
-    STEPS.map(() => null),
-  );
-
-  const phases = useDuoScrollEngine(trackRefs, sceneDrivers, phoneSizeRef);
-
-  const registerSceneDriver = useCallback(
-    (index: number, driver: SceneDriver | null) => {
-      sceneDrivers.current[index] = driver;
-    },
-    [],
-  );
-
-  const setTrackRef = useCallback(
-    (index: number) => (el: HTMLDivElement | null) => {
-      trackRefs.current[index] = el;
-    },
-    [],
-  );
+  const phoneSize = useDesktopDuoPhoneSize();
 
   return (
     <section id="como-funciona-duo" className="relative bg-white text-[#111]">
@@ -398,15 +239,8 @@ export function ComoFuncionaDuoScroll() {
         </MotionFade>
       </div>
 
-      {STEPS.map((step, index) => (
-        <DuoPinnedStep
-          key={step.n}
-          step={step}
-          phase={phases[index] ?? "before"}
-          phoneSize={phoneSize}
-          trackRef={setTrackRef(index)}
-          registerSceneDriver={registerSceneDriver}
-        />
+      {STEPS.map((step) => (
+        <DuoPinnedStep key={step.n} step={step} phoneSize={phoneSize} />
       ))}
     </section>
   );
