@@ -215,7 +215,8 @@ export function ComoFuncionaDuoScroll() {
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#6e6e73] md:text-lg">
             Cada passo é um iPhone Duo: fechado mostra o número; role para abrir
-            e ler o passo — escolha, aporte via Pix e retire na loja.
+            e ler o passo — escolha, aporte via Pix e retire na loja ou receba
+            pelos correios em todo o Brasil.
           </p>
         </MotionFade>
       </div>
