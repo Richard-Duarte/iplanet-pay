@@ -43,6 +43,35 @@ function ClientePageSkeleton() {
   );
 }
 
+function LandingPageSkeleton() {
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pt-4 md:px-8 md:pt-8">
+      <div className="flex items-center justify-between gap-4">
+        <SkeletonBar className="h-9 w-32 rounded-xl" />
+        <div className="flex gap-2">
+          <SkeletonBar className="h-10 w-24 rounded-full" />
+          <SkeletonBar className="h-10 w-28 rounded-full" />
+        </div>
+      </div>
+      <SkeletonBlock className="h-[min(52vh,420px)] w-full rounded-[28px]" />
+      <div className="space-y-3">
+        <SkeletonBar className="h-8 w-56" />
+        <SkeletonBar className="h-5 w-full max-w-xl" />
+      </div>
+      <div className="flex gap-2 overflow-hidden">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonBar key={i} className="h-9 w-20 shrink-0 rounded-full" />
+        ))}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonBlock key={i} className="h-44 w-full" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AdminPageSkeleton() {
   return (
     <div className="flex min-h-0 flex-1 gap-0 lg:gap-6">
@@ -83,11 +112,19 @@ function LoadingExperienceBar() {
   );
 }
 
+export type ExperiencePreloaderVariant = "cliente" | "admin" | "landing";
+
+function PageSkeleton({ variant }: { variant: ExperiencePreloaderVariant }) {
+  if (variant === "admin") return <AdminPageSkeleton />;
+  if (variant === "landing") return <LandingPageSkeleton />;
+  return <ClientePageSkeleton />;
+}
+
 export function ExperiencePreloader({
   variant = "cliente",
   className,
 }: {
-  variant?: "cliente" | "admin";
+  variant?: ExperiencePreloaderVariant;
   className?: string;
 }) {
   return (
@@ -101,7 +138,7 @@ export function ExperiencePreloader({
       aria-label="Carregando experiência"
     >
       <div className="min-h-0 flex-1 overflow-hidden py-2">
-        {variant === "admin" ? <AdminPageSkeleton /> : <ClientePageSkeleton />}
+        <PageSkeleton variant={variant} />
       </div>
       <LoadingExperienceBar />
     </div>
@@ -113,7 +150,7 @@ export function ExperiencePreloaderOverlay({
   variant = "cliente",
   active,
 }: {
-  variant?: "cliente" | "admin";
+  variant?: ExperiencePreloaderVariant;
   active: boolean;
 }) {
   if (!active || typeof document === "undefined") return null;

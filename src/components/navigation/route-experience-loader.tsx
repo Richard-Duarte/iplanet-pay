@@ -8,7 +8,10 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
-import { ExperiencePreloaderOverlay } from "@/components/ui/experience-preloader";
+import {
+  ExperiencePreloaderOverlay,
+  type ExperiencePreloaderVariant,
+} from "@/components/ui/experience-preloader";
 
 const MAX_READY_MS = 3_200;
 const MIN_VISIBLE_MS = 650;
@@ -30,8 +33,12 @@ async function waitForFonts(timeoutMs: number) {
   await Promise.race([document.fonts.ready, delay(timeoutMs)]);
 }
 
-async function waitForImages(root: HTMLElement, timeoutMs: number) {
-  const imgs = Array.from(root.querySelectorAll("img"));
+async function waitForImages(
+  root: HTMLElement,
+  timeoutMs: number,
+  maxImages = 12,
+) {
+  const imgs = Array.from(root.querySelectorAll("img")).slice(0, maxImages);
   if (imgs.length === 0) return;
 
   await Promise.race([
@@ -53,17 +60,21 @@ async function waitForImages(root: HTMLElement, timeoutMs: number) {
   ]);
 }
 
-async function waitUntilPageReady(root: HTMLElement | null) {
+async function waitUntilPageReady(
+  root: HTMLElement | null,
+  variant: ExperiencePreloaderVariant,
+) {
   const started = performance.now();
   await nextFrame();
   await nextFrame();
 
   const elapsed = () => performance.now() - started;
   const remaining = () => Math.max(0, MAX_READY_MS - elapsed());
+  const imageCap = variant === "landing" ? 4 : 12;
 
   await waitForFonts(Math.min(900, remaining()));
   if (root) {
-    await waitForImages(root, Math.min(900, remaining()));
+    await waitForImages(root, Math.min(900, remaining()), imageCap);
   }
 
   const minLeft = MIN_VISIBLE_MS - elapsed();
@@ -88,7 +99,7 @@ export function RouteExperienceLoader({
   variant,
   children,
 }: {
-  variant: "cliente" | "admin";
+  variant: ExperiencePreloaderVariant;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -123,7 +134,7 @@ export function RouteExperienceLoader({
     let cancelled = false;
 
     void (async () => {
-      await waitUntilPageReady(contentRef.current);
+      await waitUntilPageReady(contentRef.current, variant);
       if (cancelled || runId.current !== id) return;
       setOverlay(false);
     })();
@@ -131,7 +142,7 @@ export function RouteExperienceLoader({
     return () => {
       cancelled = true;
     };
-  }, [pathname, beginLoad]);
+  }, [pathname, beginLoad, variant]);
 
   return (
     <>

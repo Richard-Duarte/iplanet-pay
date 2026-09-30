@@ -5,8 +5,10 @@ import { LandingCatalog } from "@/components/landing/landing-catalog";
 import { FaqChat } from "@/components/chat/faq-chat";
 import { getAppSettings } from "@/lib/settings/queries";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
+import { LandingExperienceShell } from "@/components/landing/landing-experience-shell";
+import { ExperiencePreloader } from "@/components/ui/experience-preloader";
 
-export default async function LandingPage() {
+async function LandingPageContent() {
   const [{ products }, { categories }, { settings }] = await Promise.all([
     listCatalogProducts(),
     listCategories(),
@@ -39,13 +41,25 @@ export default async function LandingPage() {
   return (
     <>
       <PageViewTracker path="/" />
-      <Suspense fallback={<div className="min-h-screen bg-white" />}>
-        <LandingCatalog
-          products={landingProducts as never}
-          categories={landingCategories}
-        />
-      </Suspense>
+      <LandingCatalog
+        products={landingProducts as never}
+        categories={landingCategories}
+      />
       <FaqChat whatsappDigits={settings.whatsapp_support} />
     </>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <LandingExperienceShell>
+      <Suspense
+        fallback={
+          <ExperiencePreloader variant="landing" className="min-h-screen" />
+        }
+      >
+        <LandingPageContent />
+      </Suspense>
+    </LandingExperienceShell>
   );
 }
