@@ -32,6 +32,7 @@ export function VelocityCatalogCarousel({
   const [cardW, setCardW] = useState(340);
   const [viewportW, setViewportW] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [inView, setInView] = useState(true);
   const x = useMotionValue(0);
 
   const measure = useCallback(() => {
@@ -52,6 +53,19 @@ export function VelocityCatalogCarousel({
     ro.observe(el);
     return () => ro.disconnect();
   }, [measure]);
+
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) setInView(entry.isIntersecting);
+      },
+      { rootMargin: "80px 0px", threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const offsetFor = useCallback(
     (i: number) => {
@@ -81,12 +95,12 @@ export function VelocityCatalogCarousel({
 
   // Autoplay every 5s; pause while dragging; reset on index change
   useEffect(() => {
-    if (products.length < 2 || paused) return;
+    if (products.length < 2 || paused || !inView) return;
     const id = window.setInterval(() => {
       setIndex((prev) => (prev + 1) % products.length);
     }, AUTOPLAY_MS);
     return () => window.clearInterval(id);
-  }, [products.length, paused, index]);
+  }, [products.length, paused, inView]);
 
   function onDragEnd(_: unknown, info: PanInfo) {
     setPaused(false);

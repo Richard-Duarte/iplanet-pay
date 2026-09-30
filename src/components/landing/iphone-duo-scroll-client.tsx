@@ -1,9 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ComponentType, CSSProperties } from "react";
+import { useMemo, type ComponentType, type CSSProperties } from "react";
 
 export type DuoScrollImage = { src: string; srcSet?: string };
+
+/** Raw controller from the bundled Framer / Three scene. */
+export type DuoSceneController = {
+  update: (
+    progress: number,
+    size: number,
+    options: Record<string, unknown>,
+    blur: number,
+    reflection: number,
+    isVisible: boolean,
+  ) => void;
+  dispose: () => void;
+};
 
 export type IphoneDuoScrollProps = {
   interactionMode?: "scroll" | "drag";
@@ -30,6 +43,7 @@ export type IphoneDuoScrollProps = {
   loaderOpacity?: number;
   loaderStyle?: "fold" | "spinner";
   style?: CSSProperties;
+  onSceneReady?: (controller: DuoSceneController) => void;
 };
 
 const IphoneDuoScroll = dynamic(
@@ -91,4 +105,39 @@ const IphoneDuoScroll = dynamic(
 
 export function IphoneDuoScrollClient(props: IphoneDuoScrollProps) {
   return <IphoneDuoScroll {...props} />;
+}
+
+/** Build displayOptions object expected by the vendor update() call. */
+export function useDuoDisplayOptions(
+  props: Pick<
+    IphoneDuoScrollProps,
+    "screen" | "innerImage" | "outerImage" | "imageFit" | "lockScreenUI"
+  >,
+) {
+  return useMemo(
+    () => ({
+      screen: props.screen ?? "custom",
+      clockMode: "static" as const,
+      timeFormat: "auto" as const,
+      clockColor: "#FFFFFF",
+      timeFont: { fontFamily: "Inter", fontSize: "320px", fontWeight: 300 },
+      dateFont: { fontFamily: "Inter", fontSize: "29px", fontWeight: 700 },
+      timeOffsetY: 0,
+      showClock: props.lockScreenUI?.showClock ?? false,
+      showWifi: props.lockScreenUI?.showWifi ?? false,
+      showQuickActions: props.lockScreenUI?.showQuickActions ?? false,
+      innerImageSrc: props.innerImage?.src ?? "",
+      outerImageSrc: props.outerImage?.src ?? "",
+      imageFit: props.imageFit ?? "cover",
+    }),
+    [
+      props.screen,
+      props.innerImage?.src,
+      props.outerImage?.src,
+      props.imageFit,
+      props.lockScreenUI?.showClock,
+      props.lockScreenUI?.showWifi,
+      props.lockScreenUI?.showQuickActions,
+    ],
+  );
 }
