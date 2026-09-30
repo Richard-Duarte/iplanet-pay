@@ -1,7 +1,6 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 function SkeletonBar({ className }: { className?: string }) {
@@ -117,18 +116,13 @@ export function ExperiencePreloaderOverlay({
   variant?: "cliente" | "admin";
   active: boolean;
 }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted || !active) return null;
+  if (!active || typeof document === "undefined") return null;
 
   return createPortal(
     <div
       className="experience-preloader-overlay fixed inset-0 z-[120] flex flex-col bg-[var(--bg)]"
-      aria-hidden={!active}
+      aria-busy="true"
+      aria-live="polite"
     >
       <ExperiencePreloader variant={variant} className="min-h-screen" />
     </div>,

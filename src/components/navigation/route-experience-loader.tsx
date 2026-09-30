@@ -10,8 +10,8 @@ import {
 import { usePathname } from "next/navigation";
 import { ExperiencePreloaderOverlay } from "@/components/ui/experience-preloader";
 
-const MAX_READY_MS = 2_800;
-const MIN_VISIBLE_MS = 280;
+const MAX_READY_MS = 3_200;
+const MIN_VISIBLE_MS = 650;
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => {
