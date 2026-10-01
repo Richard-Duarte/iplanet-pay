@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pill } from "@/components/ui/pill";
 import { AuthDivider, GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { ExperiencePreloader } from "@/components/ui/experience-preloader";
+import {
+  markShellWarm,
+  routesForShell,
+  shellVariantForPath,
+  warmRoutes,
+} from "@/lib/navigation/warm-app-shell";
 import type { UserRole } from "@/types/auth";
 
 const DEMO_ROLES: { role: UserRole; label: string }[] = [
@@ -30,6 +37,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(initialMessage ?? null);
   const [loading, setLoading] = useState(false);
+  const [booting, setBooting] = useState(false);
 
   function resolveRedirect(fallback: string) {
     if (nextPath) return nextPath;
@@ -56,17 +64,23 @@ export function LoginForm({
       };
       if (!res.ok || !data.ok) {
         setMessage(data.error ?? "Não foi possível entrar.");
+        setLoading(false);
         return;
       }
       if (data.warning) {
         setMessage(data.warning);
       }
-      router.push(data.redirectTo ?? resolveRedirect("/app"));
+      const dest = data.redirectTo ?? resolveRedirect("/app");
+      const variant = shellVariantForPath(dest);
+      setBooting(true);
+      await warmRoutes((href) => router.prefetch(href), routesForShell(variant));
+      markShellWarm(variant);
+      router.push(dest);
       router.refresh();
     } catch {
       setMessage("Erro de rede. Tente novamente.");
-    } finally {
       setLoading(false);
+      setBooting(false);
     }
   }
 
@@ -94,6 +108,18 @@ export function LoginForm({
 
   return (
     <div className="space-y-6">
+      {booting ? (
+        <div
+          className="fixed inset-0 z-[300] flex flex-col bg-[var(--bg)]"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <ExperiencePreloader
+            variant={shellVariantForPath(resolveRedirect("/app"))}
+            className="min-h-screen"
+          />
+        </div>
+      ) : null}
       {productSlug ? (
         <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--ink-muted)]">
           Depois do login você continua a reserva de{" "}

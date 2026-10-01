@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ExperiencePreloader } from "@/components/ui/experience-preloader";
-import { waitUntilPageReady } from "@/lib/navigation/wait-until-page-ready";
+import {
+  LANDING_PRELOAD_URLS,
+  waitUntilPageReady,
+} from "@/lib/navigation/wait-until-page-ready";
 
 /**
  * SSR com overlay visível (useState true) — skeleton no HTML antes do JS.
- * Esconde só quando conteúdo + imagens principais estão prontos.
+ * Só solta quando imagens, modelo Duo e iPhone 18 3D estão no cache.
  */
 export function HomeBootGate({ children }: { children: ReactNode }) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -17,8 +20,14 @@ export function HomeBootGate({ children }: { children: ReactNode }) {
 
     void (async () => {
       await waitUntilPageReady(contentRef.current, {
-        imageCap: 4,
+        imageCap: 80,
         minVisibleMs: 900,
+        maxReadyMs: 14_000,
+        preloadUrls: LANDING_PRELOAD_URLS,
+        waitFor: [
+          { selector: "[data-duo-step] canvas", minCount: 3 },
+          { selector: "#experiencia-3d canvas", minCount: 1 },
+        ],
       });
       if (!cancelled) setShowBoot(false);
     })();

@@ -15,7 +15,9 @@ import { IphoneDuoScrollClient } from "@/components/landing/iphone-duo-scroll-cl
  * Scroll runway while the phone is pinned in the viewport (vh).
  * Longer = slower unfold. Pin uses position:fixed (Lenis-safe).
  */
-const PIN_VH = 145;
+const PIN_VH_DESKTOP = 145;
+/** Shorter runway on phones so one step sits closer to the next. */
+const PIN_VH_MOBILE = 62;
 /** Sticky landing header ~56–64px; keep a thin clearance so closed portrait isn’t clipped. */
 const PIN_TOP = 48;
 /**
@@ -63,40 +65,52 @@ const DESKTOP_DUO_MQ = "(min-width: 768px)";
 /** Slightly larger on desktop via the vendor camera — avoid CSS scale (misaligns the canvas). */
 const PHONE_SIZE_DESKTOP = 1.18;
 
-function useDuoPhoneSize() {
-  const [phoneSize, setPhoneSize] = useState(() => {
-    if (typeof window === "undefined") return 1;
-    return window.matchMedia(DESKTOP_DUO_MQ).matches ? PHONE_SIZE_DESKTOP : 1;
-  });
+function useDuoLayout() {
+  const [desktop, setDesktop] = useState(true);
 
   useLayoutEffect(() => {
     const mq = window.matchMedia(DESKTOP_DUO_MQ);
-    const sync = () => setPhoneSize(mq.matches ? PHONE_SIZE_DESKTOP : 1);
+    const sync = () => setDesktop(mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  return phoneSize;
+  return {
+    phoneSize: desktop ? PHONE_SIZE_DESKTOP : 1,
+    pinVh: desktop ? PIN_VH_DESKTOP : PIN_VH_MOBILE,
+    mobile: !desktop,
+  };
+}
+
+function pinWindowPx(mobile: boolean) {
+  const viewport = window.innerHeight;
+  return mobile ? Math.round(viewport * 0.46) : Math.max(1, viewport - PIN_TOP);
 }
 
 function DuoPinnedStep({
   step,
   phoneSize,
+  pinVh,
+  mobile,
 }: {
   step: (typeof STEPS)[number];
   phoneSize: number;
+  pinVh: number;
+  mobile: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [foldProgress, setFoldProgress] = useState(0);
   const [phase, setPhase] = useState<PinPhase>("before");
 
+  const mobileRef = useRef(mobile);
+  mobileRef.current = mobile;
+
   const update = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const viewport = window.innerHeight;
-    const pinH = Math.max(1, viewport - PIN_TOP);
+    const pinH = pinWindowPx(mobileRef.current);
     const range = Math.max(1, rect.height - pinH);
 
     // before: track hasn't reached the pin line yet
@@ -142,7 +156,7 @@ function DuoPinnedStep({
     };
   }, [update]);
 
-  const pinH = `calc(100vh - ${PIN_TOP}px)`;
+  const pinH = mobile ? "46vh" : `calc(100vh - ${PIN_TOP}px)`;
 
   const stageStyle: CSSProperties =
     phase === "pinned"
@@ -181,16 +195,24 @@ function DuoPinnedStep({
       ref={trackRef}
       className="relative w-full"
       data-duo-step={step.n}
-      style={{ height: `${PIN_VH}vh` }}
+      style={{ height: `${pinVh}vh` }}
     >
-      <div style={stageStyle}>
+      <div
+        style={{
+          ...stageStyle,
+          placeItems: mobile && phase !== "pinned" ? "start center" : "center",
+        }}
+      >
         <div
-          className="h-full w-full"
+          className="w-full"
           style={{
-            // Only lift while pinned/after — lifting in "before" slides the
-            // white Duo canvas up over the section intro copy.
+            // Mobile: shorter frame pinned to the top so copy and the next
+            // step sit close. Desktop stays full-height and centered.
+            height: "100%",
             transform:
-              phase === "before" ? undefined : `translateY(${VISUAL_LIFT})`,
+              phase === "before" || mobile
+                ? undefined
+                : `translateY(${VISUAL_LIFT})`,
           }}
         >
           <IphoneDuoScrollClient
@@ -227,11 +249,11 @@ function DuoPinnedStep({
  * Fixed pin: enter closed → centered → slow open → hold open → release.
  */
 export function ComoFuncionaDuoScroll() {
-  const phoneSize = useDuoPhoneSize();
+  const { phoneSize, pinVh, mobile } = useDuoLayout();
 
   return (
     <section id="como-funciona-duo" className="relative bg-white text-[#111]">
-      <div className="relative z-30 mx-auto max-w-6xl px-4 pb-10 pt-16 md:px-8 md:pb-12 md:pt-24">
+      <div className="relative z-30 mx-auto max-w-6xl px-4 pb-2 pt-10 md:px-8 md:pb-12 md:pt-24">
         <MotionFade>
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
             Como funciona
@@ -248,7 +270,13 @@ export function ComoFuncionaDuoScroll() {
       </div>
 
       {STEPS.map((step) => (
-        <DuoPinnedStep key={step.n} step={step} phoneSize={phoneSize} />
+        <DuoPinnedStep
+          key={step.n}
+          step={step}
+          phoneSize={phoneSize}
+          pinVh={pinVh}
+          mobile={mobile}
+        />
       ))}
     </section>
   );
