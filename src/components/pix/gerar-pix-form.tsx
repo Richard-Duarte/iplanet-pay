@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { AporteContractModal } from "@/components/pix/aporte-contract-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCentsBRL } from "@/lib/utils";
@@ -31,14 +32,21 @@ export function GerarPixForm({
   const [message, setMessage] = useState<string | null>(null);
   const [pix, setPix] = useState<PixPayload | null>(null);
   const [copied, setCopied] = useState(false);
+  const [contractOpen, setContractOpen] = useState(false);
 
-  async function submit(e: FormEvent) {
+  function submit(e: FormEvent) {
     e.preventDefault();
-    if (disabled) return;
-    setLoading(true);
+    if (disabled || remainingCents <= 0) return;
     setMessage(null);
     setPix(null);
     setCopied(false);
+    setContractOpen(true);
+  }
+
+  async function generateAfterAccept(contractId: string) {
+    setContractOpen(false);
+    setLoading(true);
+    setMessage(null);
     try {
       const res = await fetch("/api/pix/generate", {
         method: "POST",
@@ -46,6 +54,7 @@ export function GerarPixForm({
         body: JSON.stringify({
           reservation_id: reservationId,
           amount_brl: amountBrl,
+          contract_id: contractId,
         }),
       });
       const data = (await res.json()) as {
@@ -92,7 +101,15 @@ export function GerarPixForm({
 
   return (
     <div className="space-y-4">
-      <form onSubmit={(e) => void submit(e)} className="space-y-3">
+      <AporteContractModal
+        open={contractOpen}
+        reservationId={reservationId}
+        onClose={() => setContractOpen(false)}
+        onAccepted={(contractId) => {
+          void generateAfterAccept(contractId);
+        }}
+      />
+      <form onSubmit={submit} className="space-y-3">
         <Input
           label="Valor do aporte (R$)"
           hint={`Mínimo R$ 5,00 · restante ${formatCentsBRL(remainingCents)}`}

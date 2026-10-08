@@ -22,6 +22,7 @@ export async function POST(
   const body = (await request.json().catch(() => ({}))) as {
     amount_cents?: number;
     amount_brl?: number | string;
+    contract_id?: string;
   };
 
   let amountCents = body.amount_cents;
@@ -36,6 +37,7 @@ export async function POST(
   const result = await generatePixForReservation({
     reservationId: id,
     amountCents: amountCents ?? 0,
+    contractId: body.contract_id,
   });
 
   if (!result.ok) {

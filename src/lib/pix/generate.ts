@@ -15,21 +15,87 @@ const GATEWAY_MISSING_PT =
  * Cria contribution pending + tenta Mercado Pago.
  * Sem token: retorna ok com gateway_configured=false (não inventa QR).
  */
+async function assertAporteContract(params: {
+  contractId: string;
+  reservationId: string;
+  userId: string;
+}) {
+  if (params.contractId === "mock-contract") return { ok: true as const };
+
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("aporte_contracts")
+    .select("id, reservation_id, scrolled_to_end, contribution_id, user_id")
+    .eq("id", params.contractId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { ok: false as const, error: "Contrato do aporte não encontrado." };
+  }
+  if (
+    data.user_id !== params.userId ||
+    data.reservation_id !== params.reservationId ||
+    data.scrolled_to_end !== true ||
+    data.contribution_id
+  ) {
+    return {
+      ok: false as const,
+      error: "Aceite o contrato do aporte para continuar.",
+    };
+  }
+  return { ok: true as const };
+}
+
+async function linkAporteContract(params: {
+  contractId: string;
+  contributionId: string;
+  userId: string;
+}) {
+  if (params.contractId === "mock-contract") return;
+  const { tryCreateServiceClient } = await import("@/lib/supabase/admin");
+  const { createClient } = await import("@/lib/supabase/server");
+  const db = tryCreateServiceClient() ?? (await createClient());
+  await db
+    .from("aporte_contracts")
+    .update({ contribution_id: params.contributionId })
+    .eq("id", params.contractId)
+    .eq("user_id", params.userId)
+    .is("contribution_id", null);
+}
+
 export async function generatePixForReservation(params: {
   reservationId: string;
   amountCents: number;
+  contractId?: string;
 }): Promise<GeneratePixOutcome> {
-  const { reservationId, amountCents } = params;
+  const { reservationId, amountCents, contractId } = params;
   if (!reservationId) return { ok: false, error: "Reserva inválida." };
   if (!Number.isFinite(amountCents) || amountCents < MIN_CONTRIBUTION_CENTS) {
     return { ok: false, error: "Valor mínimo de R$ 5,00 por aporte." };
+  }
+  if (!contractId) {
+    return { ok: false, error: "Aceite o contrato do aporte para continuar." };
   }
 
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Entre para continuar." };
 
+  const contract = await assertAporteContract({
+    contractId,
+    reservationId,
+    userId: user.id,
+  });
+  if (!contract.ok) return contract;
+
   const created = await createContribution(reservationId, amountCents);
   if (!created.ok) return { ok: false, error: created.error };
+
+  await linkAporteContract({
+    contractId,
+    contributionId: created.contribution_id,
+    userId: user.id,
+  });
 
   if (!isPixGatewayConfigured()) {
     return {

@@ -134,7 +134,7 @@ export function RouteTransition({
 }) {
   const pathname = usePathname();
   return (
-    <LazyMotion features={domAnimation} strict>
+    <LazyMotion features={domAnimation}>
       <m.div
         key={pathname}
         className={className}

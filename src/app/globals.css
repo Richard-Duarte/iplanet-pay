@@ -134,6 +134,6 @@ body {
 }
 
 .experience-preloader-overlay {
-  pointer-events: none;
-  touch-action: pan-y;
+  pointer-events: auto;
+  touch-action: none;
 }

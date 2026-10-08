@@ -4,6 +4,7 @@ import { generatePixForReservation } from "@/lib/pix/generate";
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as {
     reservation_id?: string;
+    contract_id?: string;
     amount_cents?: number;
     /** Aceita reais no form (ex.: 50.00) se amount_cents ausente */
     amount_brl?: number | string;
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
   const result = await generatePixForReservation({
     reservationId: body.reservation_id ?? "",
     amountCents: amountCents ?? 0,
+    contractId: body.contract_id,
   });
 
   if (!result.ok) {

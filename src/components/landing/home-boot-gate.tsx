@@ -7,29 +7,50 @@ import {
   waitUntilPageReady,
 } from "@/lib/navigation/wait-until-page-ready";
 
+/** Keep the overlay up until the hero video, Duo canvases and 3D stage exist. */
+function landingStillLoading(root: HTMLElement) {
+  const video = root.querySelector<HTMLVideoElement>("#hero video");
+  if (!video) return true;
+  if (
+    !video.error &&
+    (video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA ||
+      video.networkState === HTMLMediaElement.NETWORK_LOADING)
+  ) {
+    return true;
+  }
+  if (root.querySelectorAll("[data-duo-step] canvas").length < 3) return true;
+  const stage = root.querySelector("#experiencia-3d");
+  if (!stage?.querySelector("canvas")) return true;
+  if (stage.textContent?.includes("Carregando modelo")) return true;
+  return false;
+}
+
 /**
- * SSR com overlay visível (useState true) — skeleton no HTML antes do JS.
- * Só solta quando imagens, modelo Duo e iPhone 18 3D estão no cache.
+ * Overlay visível no HTML. Só solta em 100%, depois do download da mídia pesada.
  */
 export function HomeBootGate({ children }: { children: ReactNode }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showBoot, setShowBoot] = useState(true);
+  const [percent, setPercent] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
       await waitUntilPageReady(contentRef.current, {
-        imageCap: 80,
         minVisibleMs: 900,
-        maxReadyMs: 14_000,
+        maxReadyMs: 180_000,
         preloadUrls: LANDING_PRELOAD_URLS,
-        waitFor: [
-          { selector: "[data-duo-step] canvas", minCount: 3 },
-          { selector: "#experiencia-3d canvas", minCount: 1 },
-        ],
+        watchMedia: true,
+        isPending: landingStillLoading,
+        onProgress: (value) => {
+          if (!cancelled) setPercent(value);
+        },
       });
-      if (!cancelled) setShowBoot(false);
+      if (!cancelled) {
+        setPercent(100);
+        setShowBoot(false);
+      }
     })();
 
     return () => {
@@ -45,10 +66,21 @@ export function HomeBootGate({ children }: { children: ReactNode }) {
           aria-busy="true"
           aria-live="polite"
         >
-          <ExperiencePreloader variant="landing" className="min-h-screen" />
+          <ExperiencePreloader
+            variant="landing"
+            className="min-h-screen"
+            percent={percent}
+          />
         </div>
       ) : null}
-      <div ref={contentRef}>{children}</div>
+      <div
+        ref={contentRef}
+        inert={showBoot}
+        aria-hidden={showBoot}
+        className={showBoot ? "pointer-events-none select-none" : undefined}
+      >
+        {children}
+      </div>
     </>
   );
 }

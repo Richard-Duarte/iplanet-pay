@@ -168,7 +168,7 @@ export function LandingCatalog({
           loop
           playsInline
           poster="/videos/iphone-18-pro-hero-poster.jpg"
-          preload="metadata"
+          preload="auto"
         >
           <source src="/videos/iphone-18-pro-hero.mp4" type="video/mp4" />
         </video>

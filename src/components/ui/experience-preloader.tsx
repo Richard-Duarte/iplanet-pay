@@ -95,18 +95,33 @@ function AdminPageSkeleton() {
   );
 }
 
-function LoadingExperienceBar() {
+function LoadingExperienceBar({ percent }: { percent?: number }) {
+  const known = typeof percent === "number";
+  const value = known ? Math.max(0, Math.min(100, Math.round(percent))) : 0;
+
   return (
     <div className="mx-auto w-full max-w-md px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-2">
       <p className="mb-3 text-center text-sm font-medium tracking-tight text-[var(--ink-muted)]">
-        Carregando experiência
+        {known ? `Carregando experiência ${value}%` : "Carregando experiência"}
       </p>
       <div
         className="h-1.5 overflow-hidden rounded-full bg-[var(--line)]"
         role="progressbar"
-        aria-valuetext="Carregando experiência"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={known ? value : undefined}
+        aria-valuetext={
+          known ? `Carregando experiência ${value}%` : "Carregando experiência"
+        }
       >
-        <div className="experience-progress-bar h-full w-1/3 rounded-full bg-[var(--accent)]" />
+        <div
+          className={
+            known
+              ? "h-full rounded-full bg-[var(--accent)] transition-[width] duration-200"
+              : "experience-progress-bar h-full w-1/3 rounded-full bg-[var(--accent)]"
+          }
+          style={known ? { width: `${value}%` } : undefined}
+        />
       </div>
     </div>
   );
@@ -123,9 +138,11 @@ function PageSkeleton({ variant }: { variant: ExperiencePreloaderVariant }) {
 export function ExperiencePreloader({
   variant = "cliente",
   className,
+  percent,
 }: {
   variant?: ExperiencePreloaderVariant;
   className?: string;
+  percent?: number;
 }) {
   return (
     <div
@@ -140,18 +157,20 @@ export function ExperiencePreloader({
       <div className="min-h-0 flex-1 overflow-hidden py-2">
         <PageSkeleton variant={variant} />
       </div>
-      <LoadingExperienceBar />
+      <LoadingExperienceBar percent={percent} />
     </div>
   );
 }
 
-/** Full-screen overlay — visual only; does not block React/hydration underneath. */
+/** Full-screen overlay. Blocks pointer events until the page is ready. */
 export function ExperiencePreloaderOverlay({
   variant = "cliente",
   active,
+  percent,
 }: {
   variant?: ExperiencePreloaderVariant;
   active: boolean;
+  percent?: number;
 }) {
   if (!active || typeof document === "undefined") return null;
 
@@ -161,7 +180,11 @@ export function ExperiencePreloaderOverlay({
       aria-busy="true"
       aria-live="polite"
     >
-      <ExperiencePreloader variant={variant} className="min-h-screen" />
+      <ExperiencePreloader
+        variant={variant}
+        className="min-h-screen"
+        percent={percent}
+      />
     </div>,
     document.body,
   );

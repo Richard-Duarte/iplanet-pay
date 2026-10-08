@@ -37,6 +37,7 @@ export function RouteExperienceLoader({
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const [overlay, setOverlay] = useState(variant !== "landing");
+  const [percent, setPercent] = useState(0);
   const warmed = useRef(false);
 
   useLayoutEffect(() => {
@@ -69,7 +70,10 @@ export function RouteExperienceLoader({
         waitUntilPageReady(contentRef.current, {
           imageCap: 48,
           minVisibleMs: 700,
-          maxReadyMs: 10_000,
+          maxReadyMs: 45_000,
+          onProgress: (value) => {
+            if (!cancelled) setPercent(value);
+          },
         }),
         shell
           ? warmRoutes((href) => router.prefetch(href), routes)
@@ -88,8 +92,17 @@ export function RouteExperienceLoader({
 
   return (
     <>
-      <ExperiencePreloaderOverlay variant={variant} active={overlay} />
-      <div ref={contentRef} className="min-w-0 flex-1">
+      <ExperiencePreloaderOverlay
+        variant={variant}
+        active={overlay}
+        percent={percent}
+      />
+      <div
+        ref={contentRef}
+        className="min-w-0 flex-1"
+        inert={overlay}
+        aria-hidden={overlay}
+      >
         {children}
       </div>
     </>
