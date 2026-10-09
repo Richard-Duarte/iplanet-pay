@@ -31,6 +31,12 @@ export function GerarPixForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pix, setPix] = useState<PixPayload | null>(null);
+  const [payment, setPayment] = useState<{
+    contributionId: string;
+    amountCents: number;
+  } | null>(null);
+  const [advancing, setAdvancing] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [contractOpen, setContractOpen] = useState(false);
 
@@ -39,6 +45,8 @@ export function GerarPixForm({
     if (disabled || remainingCents <= 0) return;
     setMessage(null);
     setPix(null);
+    setPayment(null);
+    setConfirmed(false);
     setCopied(false);
     setContractOpen(true);
   }
@@ -63,29 +71,54 @@ export function GerarPixForm({
         gateway_configured?: boolean;
         pix?: PixPayload | null;
         amount_cents?: number;
+        contribution_id?: string;
       };
-      if (!res.ok || !data.ok) {
+      if (!res.ok || !data.ok || !data.contribution_id) {
         setMessage(data.error ?? "Não foi possível gerar o Pix.");
         return;
       }
-      if (data.pix?.copy_paste) {
-        setPix(data.pix);
-        setMessage(
-          data.amount_cents
-            ? `Aporte de ${formatCentsBRL(data.amount_cents)} criado. Pague o Pix abaixo.`
-            : "Pix gerado. Pague com o código abaixo.",
-        );
-      } else {
-        setMessage(
-          data.error ??
-            "Aporte pendente criado, mas o gateway Pix não está configurado.",
-        );
-      }
+      setPayment({
+        contributionId: data.contribution_id,
+        amountCents: data.amount_cents ?? 0,
+      });
+      if (data.pix?.copy_paste) setPix(data.pix);
+      setMessage(
+        data.amount_cents
+          ? `Aporte de ${formatCentsBRL(data.amount_cents)} criado. Avance para confirmar o pagamento de teste.`
+          : "Aporte criado. Avance para confirmar o pagamento de teste.",
+      );
       router.refresh();
     } catch {
       setMessage("Erro de rede. Tente novamente.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function advancePayment() {
+    if (!payment) return;
+    setAdvancing(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/pix/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contribution_id: payment.contributionId }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        setMessage(data.error ?? "Não foi possível confirmar o aporte.");
+        return;
+      }
+      setPix(null);
+      setPayment(null);
+      setConfirmed(true);
+      setMessage("Aporte confirmado. O saldo da reserva foi atualizado.");
+      router.refresh();
+    } catch {
+      setMessage("Erro de rede. Tente novamente.");
+    } finally {
+      setAdvancing(false);
     }
   }
 
@@ -117,12 +150,12 @@ export function GerarPixForm({
           inputMode="decimal"
           value={amountBrl}
           onChange={(e) => setAmountBrl(e.target.value)}
-          disabled={disabled || loading}
+          disabled={disabled || loading || advancing}
         />
         <Button
           type="submit"
           variant="accent"
-          disabled={disabled || loading || remainingCents <= 0}
+          disabled={disabled || loading || advancing || remainingCents <= 0}
           fullWidth
         >
           {loading ? "Gerando Pix..." : "Gerar Pix"}
@@ -132,16 +165,25 @@ export function GerarPixForm({
       {message ? (
         <p
           className={`text-sm ${
-            pix ? "text-[var(--ink)]" : "text-[var(--danger)]"
+            payment || pix || confirmed ? "text-[var(--ink)]" : "text-[var(--danger)]"
           }`}
         >
           {message}
         </p>
       ) : null}
 
-      {pix ? (
+      {payment ? (
         <div className="space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--bg-subtle)] p-4">
-          {pix.qr_base64 ? (
+          <p className="text-sm font-semibold text-[var(--ink)]">
+            Pagamento de teste
+            {payment.amountCents
+              ? ` · ${formatCentsBRL(payment.amountCents)}`
+              : ""}
+          </p>
+          <p className="text-xs text-[var(--ink-muted)]">
+            Sem Pix real. Avance para lançar este aporte como pago.
+          </p>
+          {pix?.qr_base64 ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={
@@ -153,11 +195,24 @@ export function GerarPixForm({
               className="mx-auto h-48 w-48 rounded-xl bg-white p-2"
             />
           ) : null}
-          <p className="break-all text-xs text-[var(--ink-muted)]">
-            {pix.copy_paste}
-          </p>
-          <Button type="button" variant="outline" onClick={() => void copyCode()}>
-            {copied ? "Copiado!" : "Copiar código Pix"}
+          {pix?.copy_paste ? (
+            <p className="break-all text-xs text-[var(--ink-muted)]">
+              {pix.copy_paste}
+            </p>
+          ) : null}
+          {pix?.copy_paste ? (
+            <Button type="button" variant="outline" onClick={() => void copyCode()}>
+              {copied ? "Copiado!" : "Copiar código Pix"}
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="accent"
+            fullWidth
+            disabled={advancing}
+            onClick={() => void advancePayment()}
+          >
+            {advancing ? "Confirmando..." : "Avançar"}
           </Button>
         </div>
       ) : null}
